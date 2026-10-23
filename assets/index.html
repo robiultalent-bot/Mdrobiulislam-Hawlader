@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light of Mind</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 16px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+
+        .chat-box {
+            height: 350px;
+            overflow-y: auto;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #334155;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #334155;
+            color: #f8fafc;
+            border-bottom-left-radius: 2px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #0284c7;
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #f8fafc;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #0284c7;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        .voice-btn {
+            background: #059669;
+        }
+
+        .voice-btn:hover {
+            background: #047857;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Light of Mind</h1>
+        <p>ডক্টর মায়া (Doctor Maya) - ভয়েস ও টেক্সট সহকারী</p>
+    </header>
+
+    <div class="chat-box" id="chatBox">
+        <div class="message bot-message">
+            নমস্কার, আমি ডক্টর মায়া। "Light of Mind" অ্যাপে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সাহায্য করতে পারি?
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="userInput" placeholder="এখানে লিখুন..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">পাঠান</button>
+        <button class="voice-btn" onclick="startVoice()">🎤</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+
+    function appendMessage(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+        msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        userInput.value = '';
+
+        // Simulated AI response from Doctor Maya
+        setTimeout(() => {
+            const reply = "ধন্যবাদ আপনার বার্তার জন্য। আমি আপনার কথাটি বুঝতে পেরেছি।";
+            appendMessage(reply, 'bot');
+            speakText(reply);
+        }, 800);
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'bn-BD';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function startVoice() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'bn-BD';
+
+            recognition.onstart = function() {
+                userInput.placeholder = "শুনছি... বলুন...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                sendMessage();
+            };
+
+            recognition.onend = function() {
+                userInput.placeholder = "এখানে লিখুন...";
+            };
+
+            recognition.start();
+        } else {
+            alert("আপনার ব্রাউজারে ভয়েস রেকর্ড সাপোর্ট করছে না।");
+        }
+    }
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light of Mind</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        header {
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 16px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+        header p {
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+        .chat-box {
+            height: 350px;
+            overflow-y: auto;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #334155;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background: #334155;
+            color: #f8fafc;
+            border-bottom-left-radius: 2px;
+        }
+        .user-message {
+            align-self: flex-end;
+            background: #0284c7;
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #f8fafc;
+            font-size: 1rem;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+        }
+        button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #0284c7;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0369a1;
+        }
+        .voice-btn {
+            background: #059669;
+        }
+        .voice-btn:hover {
+            background: #047857;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Light of Mind</h1>
+        <p>ডক্টর মায়া (Doctor Maya) - এআই সহকারী</p>
+    </header>
+
+    <div class="chat-box" id="chatBox">
+        <div class="message bot-message">
+            নমস্কার, আমি ডক্টর মায়া। আপনার 'Light of Mind' অ্যাপ্লিকেশনের জন্য আমি সম্পূর্ণ প্রস্তুত আছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="userInput" placeholder="এখানে লিখুন..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">পাঠান</button>
+        <button class="voice-btn" onclick="startVoice()">🎤</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+
+    function appendMessage(text, sender) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+        msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        userInput.value = '';
+
+        setTimeout(() => {
+            const reply = "আপনার কথাটি নোট করা হয়েছে। ডক্টর মায়া এই বিষয়ে আপনাকে আরও সহায়তা করতে প্রস্তুত।";
+            appendMessage(reply, 'bot');
+            speakText(reply);
+        }, 800);
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'bn-BD';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function startVoice() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'bn-BD';
+
+            recognition.onstart = function() {
+                userInput.placeholder = "শুনছি... বলুন...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                sendMessage();
+            };
+
+            recognition.onend = function() {
+                userInput.placeholder = "এখানে লিখুন...";
+            };
+
+            recognition.start();
+        } else {
+            alert("আপনার ব্রাউজারে ভয়েস রেকর্ড সাপোর্ট করছে না।");
+        }
+    }
+</script>
+
+</body>
+</html>
