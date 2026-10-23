@@ -18,6 +18,8 @@ jobs:
           channel: stable
       - run: rm -rf android
       - run: flutter create . --org com.blindtalent --project-name light_of_mind --platforms android
+      - run: sed -i -E 's/(org\.jetbrains\.kotlin\.android" version ")[0-9.]+/\11.9.24/' android/settings.gradle
+      - run: grep -n kotlin android/settings.gradle
       - run: sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: flutter build apk --release --no-shrink
