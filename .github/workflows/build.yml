@@ -16,9 +16,11 @@ jobs:
         with:
           flutter-version: 3.24.5
           channel: stable
-      - run: flutter create . --org com.blindtalent --project-name light_of_mind
+      - run: rm -rf android
+      - run: flutter create . --org com.blindtalent --project-name light_of_mind --platforms android
+      - run: sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
-      - run: flutter build apk --release
+      - run: flutter build apk --release --no-shrink
       - uses: actions/upload-artifact@v4
         with:
           name: app-release
