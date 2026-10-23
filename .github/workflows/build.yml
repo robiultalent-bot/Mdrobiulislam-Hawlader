@@ -14,8 +14,9 @@ jobs:
           java-version: 17
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.24.5
           channel: stable
-      - run: flutter create . --org com.blindtalent --project-name blindtalent
+      - run: flutter create . --org com.blindtalent --project-name light_of_mind
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
