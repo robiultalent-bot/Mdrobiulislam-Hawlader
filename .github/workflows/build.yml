@@ -40,12 +40,11 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          MSG=$( { grep -A 14 "What went wrong" build.log | head -45; echo "-----"; grep -B1 -A 4 "Caused by" build.log | head -25; } | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')
-          echo "::error title=REAL ERROR::$MSG"
-          echo '### Real error' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          { grep -A 14 "What went wrong" build.log | head -45; echo "-----"; grep -B1 -A 4 "Caused by" build.log | head -25; } >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "=========== REAL ERROR START ==========="
+          grep -A 14 "What went wrong" build.log | head -45
+          echo "=========== CAUSED BY ==========="
+          grep -B1 -A 4 "Caused by" build.log | head -25
+          echo "=========== REAL ERROR END ==========="
       - uses: actions/upload-artifact@v4
         if: always()
         with:
