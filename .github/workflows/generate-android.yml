@@ -1,0 +1,24 @@
+name: Generate Android
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.24.5
+          channel: stable
+      - run: rm -rf android
+      - run: flutter create . --org com.blindtalent --project-name light_of_mind --platforms android
+      - run: sed -i -E 's/(org\.jetbrains\.kotlin\.android" version ")[0-9.]+/\12.1.0/' android/settings.gradle
+      - run: sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add android
+          git commit -m "Generate android folder" || echo "nothing to commit"
+          git push
