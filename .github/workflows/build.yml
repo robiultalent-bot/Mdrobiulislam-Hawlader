@@ -22,18 +22,3 @@ jobs:
           java-version: 17
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.24.5
-          channel: stable
-      - run: sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
-      - run: flutter pub get
-      - name: Build
-        shell: bash
-        run: flutter build apk --release --no-shrink 2>&1 | tee build.log
-      - name: SHOW ERROR
-        if: failure()
-        run: |
-          grep -n -A 12 "What went wrong" build.log || tail -40 build.log
-      - uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
