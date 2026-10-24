@@ -30,6 +30,11 @@ jobs:
           [ -f android/app/build.gradle ] || [ -f android/app/build.gradle.kts ] || flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
           sed -i -E 's/(org\.jetbrains\.kotlin\.android"[ ,)]*version[ ("]*)[0-9.]+/\12.1.0/' android/settings.gradle* || true
           sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
+          if ! grep -q 'p.android.compileSdkVersion == null' android/build.gradle; then
+            printf '%s\n' 'subprojects {' '    afterEvaluate { p ->' '        if (p.hasProperty("android") && p.android.compileSdkVersion == null) {' '            p.android.compileSdkVersion 34' '        }' '    }' '}' | cat - android/build.gradle > android/build.gradle.new && mv android/build.gradle.new android/build.gradle
+          fi
+          echo "=== android/build.gradle ===" | tee -a "$L"
+          head -12 android/build.gradle | tee -a "$L"
           MF=android/app/src/main/AndroidManifest.xml
           grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
           grep -q 'permission.WAKE_LOCK' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.WAKE_LOCK"/>|' $MF
