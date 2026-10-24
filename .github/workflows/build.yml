@@ -18,11 +18,19 @@ jobs:
           channel: stable
       - run: rm -rf android
       - run: flutter create . --org com.blindtalent --project-name light_of_mind --platforms android
-      - run: sed -i -E 's/(org\.jetbrains\.kotlin\.android" version ")[0-9.]+/\11.9.24/' android/settings.gradle
-      - run: grep -n kotlin android/settings.gradle
+      - run: sed -i -E 's/(org\.jetbrains\.kotlin\.android" version ")[0-9.]+/\12.1.0/' android/settings.gradle
       - run: sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
-      - run: flutter build apk --release --no-shrink
+      - name: Build
+        shell: bash
+        run: flutter build apk --release --no-shrink 2>&1 | tee build.log
+      - name: SHOW ERROR
+        if: failure()
+        run: |
+          echo "=== KOTLIN VERSION ==="
+          grep -n kotlin android/settings.gradle || true
+          echo "=== ERROR ==="
+          grep -n -A 12 "What went wrong" build.log || tail -40 build.log
       - uses: actions/upload-artifact@v4
         with:
           name: app-release
