@@ -16,10 +16,8 @@ jobs:
         with:
           flutter-version: 3.24.5
           channel: stable
-      - run: rm -rf android
-      - run: flutter create . --org com.blindtalent --project-name light_of_mind --platforms android
-      - run: sed -i -E 's/(org\.jetbrains\.kotlin\.android" version ")[0-9.]+/\12.1.0/' android/settings.gradle
-      - run: sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
+      - run: sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
+      - run: grep -n minSdk android/app/build.gradle
       - run: flutter pub get
       - name: Build
         shell: bash
@@ -27,9 +25,7 @@ jobs:
       - name: SHOW ERROR
         if: failure()
         run: |
-          echo "=== KOTLIN VERSION ==="
           grep -n kotlin android/settings.gradle || true
-          echo "=== ERROR ==="
           grep -n -A 12 "What went wrong" build.log || tail -40 build.log
       - uses: actions/upload-artifact@v4
         with:
