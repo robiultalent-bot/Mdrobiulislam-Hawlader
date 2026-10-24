@@ -2,6 +2,8 @@ name: Build APK
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,3 +50,9 @@ jobs:
           path: |
             **/flutter-apk/*.apk
             build.log
+      - uses: softprops/action-gh-release@v2
+        if: success()
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: APK ${{ github.run_number }}
+          files: "**/flutter-apk/app-release.apk"
