@@ -24,24 +24,27 @@ jobs:
           [ -z "$P" ] && echo "ERROR: pubspec.yaml not found" | tee "$L" && ls -R | head -50 | tee -a "$L" && exit 1
           cd "$(dirname "$P")"
           echo "Project folder: $(pwd)" | tee "$L"
-          ls -la | tee -a "$L"
           M=$(find lib -iname main.dart 2>/dev/null | head -1)
-          [ -z "$M" ] && echo "ERROR: lib/main.dart not found. Files in lib:" | tee -a "$L" && ls -la lib | tee -a "$L" && exit 1
-          echo "Using $M" | tee -a "$L"
+          [ -z "$M" ] && echo "ERROR: lib/main.dart not found" | tee -a "$L" && exit 1
+          [ -f assets/index.html ] || { echo "ERROR: assets/index.html not found" | tee -a "$L"; exit 1; }
           [ -f android/app/build.gradle ] || [ -f android/app/build.gradle.kts ] || flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
           sed -i -E 's/(org\.jetbrains\.kotlin\.android"[ ,)]*version[ ("]*)[0-9.]+/\12.1.0/' android/settings.gradle* || true
           sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
-          grep -q 'permission.INTERNET' android/app/src/main/AndroidManifest.xml || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
+          MF=android/app/src/main/AndroidManifest.xml
+          grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
+          grep -q 'permission.WAKE_LOCK' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.WAKE_LOCK"/>|' $MF
+          grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
           flutter pub get 2>&1 | tee -a "$L"
           flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"
-      - name: Show errors on first page
+      - name: Show real error
         if: failure()
         shell: bash
         run: |
-          grep -iE "error|went wrong|not found|failed" build.log | head -8 | while read -r line; do echo "::error::$line"; done
-          echo '### Last 60 lines of build log' >> "$GITHUB_STEP_SUMMARY"
+          MSG=$( { grep -A 14 "What went wrong" build.log | head -45; echo "-----"; grep -B1 -A 4 "Caused by" build.log | head -25; } | sed 's/%/%25/g' | awk '{printf "%s%%0A",$0}')
+          echo "::error title=REAL ERROR::$MSG"
+          echo '### Real error' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          tail -60 build.log >> "$GITHUB_STEP_SUMMARY"
+          { grep -A 14 "What went wrong" build.log | head -45; echo "-----"; grep -B1 -A 4 "Caused by" build.log | head -25; } >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
