@@ -1,24 +1,50 @@
 name: Build APK
 on:
   push:
-    branches: [main, master]
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: LIST FILES
-        run: |
-          echo "--- root ---"
-          ls -la | cat -A
-          echo "--- lib ---"
-          ls -la lib | cat -A
-          echo "--- pubspec ---"
-          ls -la pubspec.yaml
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.24.5
+      - name: Build
+        shell: bash
+        run: |
+          L="$GITHUB_WORKSPACE/build.log"
+          P=$(find . -name pubspec.yaml -not -path "*/.*" -not -path "*/build/*" | head -1)
+          [ -z "$P" ] && echo "ERROR: pubspec.yaml not found" | tee "$L" && ls -R | head -50 | tee -a "$L" && exit 1
+          cd "$(dirname "$P")"
+          echo "Project folder: $(pwd)" | tee "$L"
+          ls -la | tee -a "$L"
+          M=$(find lib -iname main.dart 2>/dev/null | head -1)
+          [ -z "$M" ] && echo "ERROR: lib/main.dart not found. Files in lib:" | tee -a "$L" && ls -la lib | tee -a "$L" && exit 1
+          echo "Using $M" | tee -a "$L"
+          [ -f android/app/build.gradle ] || [ -f android/app/build.gradle.kts ] || flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
+          sed -i -E 's/(org\.jetbrains\.kotlin\.android"[ ,)]*version[ ("]*)[0-9.]+/\12.1.0/' android/settings.gradle* || true
+          sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
+          grep -q 'permission.INTERNET' android/app/src/main/AndroidManifest.xml || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
+          flutter pub get 2>&1 | tee -a "$L"
+          flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"
+      - name: Show errors on first page
+        if: failure()
+        shell: bash
+        run: |
+          grep -iE "error|went wrong|not found|failed" build.log | head -8 | while read -r line; do echo "::error::$line"; done
+          echo '### Last 60 lines of build log' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -60 build.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: result
+          path: |
+            **/flutter-apk/*.apk
+            build.log
