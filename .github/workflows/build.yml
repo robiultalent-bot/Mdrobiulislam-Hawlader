@@ -8,6 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: LIST FILES
+        run: |
+          echo "--- root ---"
+          ls -la | cat -A
+          echo "--- lib ---"
+          ls -la lib | cat -A
+          echo "--- pubspec ---"
+          ls -la pubspec.yaml
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -17,7 +25,6 @@ jobs:
           flutter-version: 3.24.5
           channel: stable
       - run: sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
-      - run: grep -n minSdk android/app/build.gradle
       - run: flutter pub get
       - name: Build
         shell: bash
@@ -25,7 +32,6 @@ jobs:
       - name: SHOW ERROR
         if: failure()
         run: |
-          grep -n kotlin android/settings.gradle || true
           grep -n -A 12 "What went wrong" build.log || tail -40 build.log
       - uses: actions/upload-artifact@v4
         with:
