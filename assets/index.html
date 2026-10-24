@@ -1,427 +1,2040 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Light of Mind</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: #1e293b;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        header {
-            text-align: center;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 16px;
-        }
-
-        header h1 {
-            font-size: 1.8rem;
-            color: #38bdf8;
-            margin-bottom: 6px;
-        }
-
-        header p {
-            font-size: 0.95rem;
-            color: #94a3b8;
-        }
-
-        .chat-box {
-            height: 350px;
-            overflow-y: auto;
-            background: #0f172a;
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            border: 1px solid #334155;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background: #334155;
-            color: #f8fafc;
-            border-bottom-left-radius: 2px;
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: #0284c7;
-            color: #ffffff;
-            border-bottom-right-radius: 2px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: #f8fafc;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        input[type="text"]:focus {
-            border-color: #38bdf8;
-        }
-
-        button {
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
-            background: #0284c7;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #0369a1;
-        }
-
-        .voice-btn {
-            background: #059669;
-        }
-
-        .voice-btn:hover {
-            background: #047857;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>মনের আলো — Light of Mind</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b1020;color:#f4efe0;font-family:system-ui,"Noto Sans Bengali","Segoe UI",sans-serif;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+body.play{touch-action:none}
+#pad{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 24px 56px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#pad::before,#pad::after{content:"";margin:auto;flex:none}
+#bar{width:220px;height:4px;background:#1c2442;border-radius:4px;margin:-4px 0 10px;overflow:hidden;flex:none}
+#bar i{display:block;height:100%;width:0;background:#f2b84b;transition:width .6s}
+#pbtn{display:none;position:fixed;top:10px;right:10px;z-index:5;font-size:20px;width:46px;height:46px;border-radius:50%;border:0;background:#2a3358;color:#fff;opacity:.85}
+body.play #pbtn{display:block}
+#vset{margin-top:16px;font-size:14px;opacity:.95;display:flex;flex-direction:column;gap:8px;align-items:center}
+.sl{display:block;font-size:14px;width:300px;text-align:left}
+.sl b{margin-left:6px;color:#f2b84b;font-weight:600}
+.sl input{display:block;width:100%;margin-top:8px;accent-color:#f2b84b}
+#foot{max-width:340px;font-size:11px;line-height:1.7;opacity:.6;margin-top:14px;flex:none}
+#want{font-size:15px;color:#f2b84b;min-height:22px;margin-top:6px;transition:color .3s}
+#note{max-width:340px;font-size:13px;line-height:1.65;background:#141b33;border:1px solid #334;border-radius:10px;padding:10px 12px;text-align:left}
+#orb{width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff6c9,#f2b84b 55%,#a56a14);box-shadow:0 0 60px 20px rgba(242,184,75,.35);transform:scale(.6);transition:transform 1s ease-in-out;margin-bottom:22px;flex:none}
+#lv{font-size:13px;opacity:.65;margin-bottom:10px;letter-spacing:.4px}
+#txt{white-space:pre-line;font-size:20px;line-height:1.65;max-width:480px;min-height:110px}
+button{font-family:inherit}
+#go{margin-top:16px;font-size:20px;padding:14px 30px;border-radius:14px;border:0;background:#f2b84b;color:#1a1204;font-weight:600}
+.sm{font-size:14px;padding:8px 12px;border-radius:8px;border:0;background:#4a5370;color:#fff;margin:2px}
+#prev{margin-top:16px;font-size:14px;opacity:.92;display:flex;flex-direction:column;gap:8px;align-items:center}
+#vwarn{max-width:320px;line-height:1.5;font-size:13px;opacity:.85}
+#jump{font-size:14px;padding:6px;width:70px;background:#141b33;color:#fff;border-radius:8px;border:1px solid #556}
+#form{display:none;margin-top:14px;gap:8px}
+#form input{font-size:18px;padding:10px 12px;border-radius:10px;border:1px solid #556;background:#141b33;color:#fff;width:160px}
+#form button{font-size:18px;padding:10px 16px;border-radius:10px;border:0;background:#f2b84b;color:#1a1204}
+#hint{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:12px;opacity:.5;padding:0 12px}
+#promo{font-size:14px;padding:6px 8px;width:150px;background:#141b33;color:#fff;border-radius:8px;border:1px solid #556;user-select:text;-webkit-user-select:text}#stat{font-size:13px;opacity:.85}#pmsg{font-size:12px;color:#f2b84b;min-height:16px}
+.sl input{touch-action:none;user-select:auto;-webkit-user-select:auto}#vset{touch-action:auto}
+#tut{display:none;position:fixed;inset:0;z-index:20;background:#0b1020;overflow-y:auto;padding:18px;touch-action:pan-y;-webkit-overflow-scrolling:touch;text-align:left}#tut h3{color:#f2b84b;margin:16px 0 6px}#tut .row{margin:8px 0;font-size:15px;line-height:1.7}#wa{display:inline-block;margin-top:10px;padding:10px 16px;border-radius:10px;background:#25d366;color:#052;font-weight:600;text-decoration:none;font-size:14px}
+#mbtn{position:fixed;top:10px;left:10px;z-index:5;font-size:20px;width:46px;height:46px;border-radius:50%;border:0;background:#2a3358;color:#fff;opacity:.85}
+#cap{font-size:44px;min-height:52px;color:#f2b84b;margin-top:6px}#clk{font-size:13px;opacity:.7;margin:-4px 0 8px}#ctl{display:none;position:fixed;left:0;right:0;bottom:28px;z-index:6;justify-content:center;gap:8px}body.play #ctl{display:flex}#ctl button{width:56px;height:56px;border-radius:14px;border:0;background:#2a3358;color:#fff;font-size:22px}body.play #pad{padding-bottom:110px}
+select.sm{max-width:300px}
+#pmsg{user-select:text;-webkit-user-select:text;word-break:break-all}
+#lic{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%;max-width:340px;border:1px solid #334;border-radius:10px;padding:10px;background:#101733}
+#lic input{font-size:14px;padding:8px 10px;width:100%;background:#141b33;color:#fff;border-radius:8px;border:1px solid #556;user-select:text;-webkit-user-select:text}
+#lcStat{font-size:12px;line-height:1.6;opacity:.9;word-break:break-word}
+#toast{display:none;position:fixed;top:64px;left:12px;right:12px;z-index:60;max-width:420px;margin:0 auto;background:#1d6b3a;color:#fff;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+#devbtn{display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:7;font-size:18px;width:46px;height:46px;border-radius:50%;border:0;background:#f2b84b;color:#1a1204;opacity:.9}
+#devp{display:none;position:fixed;inset:0;z-index:30;background:#0b1020;overflow-y:auto;padding:14px 14px 80px;touch-action:pan-y;-webkit-overflow-scrolling:touch;text-align:left;user-select:text;-webkit-user-select:text}
+#devp h2{color:#f2b84b;font-size:18px;margin:6px 0 10px}
+#devp h3{color:#f2b84b;font-size:15px;margin:0 0 8px}
+#devp .c{background:#141b33;border:1px solid #334;border-radius:12px;padding:12px;margin:0 0 12px}
+#devp .r{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#devp input[type=text],#devp input[type=number],#devp textarea,#devp select{width:100%;font:inherit;font-size:15px;padding:9px 10px;border-radius:8px;border:1px solid #556;background:#0b1020;color:#fff;margin:4px 0;user-select:text;-webkit-user-select:text}
+#devp textarea{min-height:100px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+#devp .mx{padding:8px 0;border-top:1px solid #223}
+#devp .mxh{display:flex;justify-content:space-between;font-size:14px}
+#devp .mxh b{color:#f2b84b}
+#devp input[type=range]{width:100%;accent-color:#f2b84b;touch-action:none;margin:8px 0}
+#devp .mxb{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#devp .mxb input{width:84px;margin:0}
+#devp .mxb .sm{min-width:48px;font-size:18px}
+#devp .ok{color:#8fe3a0}#devp .er{color:#ff9b9b}
+#devp .mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all;font-size:13px}
+#devp li{margin:6px 0;font-size:13px;word-break:break-all}
+</style>
 </head>
 <body>
-
-<div class="container">
-    <header>
-        <h1>Light of Mind</h1>
-        <p>ডক্টর মায়া (Doctor Maya) - ভয়েস ও টেক্সট সহকারী</p>
-    </header>
-
-    <div class="chat-box" id="chatBox">
-        <div class="message bot-message">
-            নমস্কার, আমি ডক্টর মায়া। "Light of Mind" অ্যাপে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সাহায্য করতে পারি?
-        </div>
+<button id="mbtn" aria-label="ডক্টর মায়ার কথা বন্ধ করো">🔊</button>
+<button id="pbtn" aria-label="বিরতি">⏸</button>
+<button id="devbtn" aria-label="ডেভেলপার প্যানেল">⚙</button>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="devp" role="dialog" aria-label="ডেভেলপার ড্যাশবোর্ড"></div>
+<div id="pad">
+  <div id="orb" aria-hidden="true"></div>
+  <div id="lv" aria-live="polite">মনের আলো</div>
+  <div id="clk" aria-hidden="true"></div>
+  <div id="bar"><i id="barfill"></i></div>
+  <div id="txt" role="status" aria-live="polite" aria-atomic="true">হেডফোন কানে লাগাও। শুরু করতে স্ক্রিনে দুবার ট্যাপ করো, অথবা নিচের বাটন চাপো।</div>
+  <div id="want" aria-live="polite" aria-atomic="true"></div>
+  <div id="cap" role="status" aria-live="assertive" aria-atomic="true"></div>
+  <button id="go" aria-label="খেলা শুরু করো">শুরু করো</button>
+  <div id="vset">
+    <div><b>🌐 ভাষা (Language)</b><br><select id="ntLang" class="sm" aria-label="ভাষা নির্বাচন"></select></div>
+    <div><b>🔊 ভয়েস মোড</b><br><select id="ntMode" class="sm" aria-label="ভয়েস মোড"><option value="core">কোর ভয়েস (প্রাক-নির্ধারিত অডিও ক্লিপ)</option><option value="device">ডিভাইস ভয়েস (ফোনের টিটিএস)</option></select></div>
+    <div id="ntBox" style="display:none;flex-direction:column;gap:8px;align-items:center">
+      <div id="ntEngRow"><b>⚙ টিটিএস ইঞ্জিন</b><br><select id="ntEng" class="sm" aria-label="টিটিএস ইঞ্জিন"></select></div>
+      <div><b>🎙 ডিভাইস ভয়েস (নারীকণ্ঠ)</b><br><select id="ntVoice" class="sm" aria-label="ডিভাইস ভয়েস"></select><br><label style="font-size:13px"><input type="checkbox" id="ntAll"> সব ভয়েস দেখাও</label></div>
+      <label class="sl">স্পিচ রেট: <b id="ntRv"></b><input type="range" id="ntRate" aria-label="স্পিচ রেট"></label>
+      <label class="sl">পিচ: <b id="ntPv"></b><input type="range" id="ntPit" aria-label="পিচ"></label>
+      <div><button class="sm" id="ntReset">↺ ফোনের ডিফল্ট মান</button></div>
     </div>
-
-    <div class="controls">
-        <input type="text" id="userInput" placeholder="এখানে লিখুন..." onkeypress="handleKeyPress(event)">
-        <button onclick="sendMessage()">পাঠান</button>
-        <button class="voice-btn" onclick="startVoice()">🎤</button>
+    <div><button class="sm" id="vmode" style="display:none">কণ্ঠ: কোড-ভয়েস</button> <button class="sm" id="vtest">কণ্ঠ শুনে দেখো</button> <button class="sm" id="vnext">অন্য ভয়েস</button><br><select id="vsel" class="sm" aria-label="ডক্টর মায়ার কণ্ঠ বেছে নাও"></select></div>
+    <div id="vwarn"></div>
+    <div><select id="dsel" class="sm" aria-label="ডিভাইস ভয়েস বাছাই (নারীকণ্ঠ)"></select></div>
+    <div><b>🔢 গণনার কণ্ঠ</b> <select id="clang" class="sm" aria-label="গণনার ভাষা"><option value="bn">বাংলা (এক, দুই, তিন)</option><option value="en">English (One, Two, Three)</option></select><br><select id="csel" class="sm" aria-label="গণনার ভয়েস"></select></div>
+    <div><button class="sm" id="tutbtn2">📖 টিউটোরিয়াল</button></div>
+    <div><button class="sm" id="cntbtn"></button></div>
+    <div id="oldSl" style="display:flex;flex-direction:column;gap:8px;align-items:center">
+    <label class="sl">কণ্ঠের পিচ: <b id="pitv"></b><input type="range" id="pitr" min="0.8" max="1.3" step="0.01" value="1.18" aria-label="কণ্ঠের পিচ"></label>
+    <label class="sl">কথা বলার গতি: <b id="spdv"></b><input type="range" id="spdr" min="0.6" max="1.8" step="0.05" value="0.85" aria-label="কথা বলার গতি"></label>
+    <div><button class="sm" data-s="pitr" data-d="-0.05" aria-label="পিচ কমাও">পিচ −</button><button class="sm" data-s="pitr" data-d="0.05" aria-label="পিচ বাড়াও">পিচ +</button> <button class="sm" data-s="spdr" data-d="-0.05" aria-label="গতি কমাও">গতি −</button><button class="sm" data-s="spdr" data-d="0.05" aria-label="গতি বাড়াও">গতি +</button></div>
     </div>
+  </div>
+  <div id="prev">
+    <div id="jumprow" style="display:none">শুরুর লেভেল (১-২০০): <input id="jump" type="number" min="1" max="200" value="1"></div>
+    <div id="note"><b>🔊 কণ্ঠ নিয়ে একটা কথা:</b> বাংলা কোড-ভয়েসে কিছুটা সমস্যা হচ্ছে, আমরা চেষ্টা করছি। বাংলা ভয়েসের জন্য কাজ চলছে। পরিষ্কার বাংলা শুনতে "কণ্ঠ" বোতামে চেপে <b>"ডিভাইস ভয়েস"</b> (গুগলের বাংলা) বেছে নাও। মায়ার কথা শুনতে না চাইলে ওপরে বাঁ দিকের 🔊 বোতামে চেপে কথা বন্ধ করতে পারো। কথা না শুনলেও সুর শুনে বুঝবে: ওঠা সুর মানে শ্বাস নাও, স্থির সুর মানে ধরে রাখো, নামা সুর মানে ছাড়ো। বিস্তারিত নিচের <b>টিউটোরিয়ালে</b>।<br><br><b>🌟 শিগগিরই আসছে:</b> আরও নতুন লেভেল ও আপডেট খুব শিগগিরই দেওয়ার চেষ্টা করব। আশা করছি, ততদিন তুমি এই সাময়িক সেবাটি ব্যবহার করবে।</div>
+    <div id="stat"></div>
+    <div><button class="sm" id="hpbtn"></button></div>
+    <div id="lic"><b>🔑 ইউজার লাইসেন্স (ঐচ্ছিক)</b><input id="lcContact" type="text" placeholder="জিমেইল আইডি বা ফোন নম্বর" aria-label="জিমেইল আইডি বা ফোন নম্বর" autocomplete="off" autocapitalize="off"><input id="lcCode" type="text" placeholder="ডেভেলপারের দেওয়া প্রমো কোড" aria-label="প্রমো কোড" autocomplete="off" autocapitalize="off"><div><button class="sm" id="lcBtn">✅ সক্রিয় করো</button> <button class="sm" id="lcOff" style="display:none">লাইসেন্স সরাও</button></div><div id="lcStat"></div></div>
+    <div><input id="promo" placeholder="প্রমো কোড" aria-label="প্রমো কোড" autocomplete="off"> <button class="sm" id="papply">প্রয়োগ</button> <button class="sm" id="pcode">📋 প্রগতি কোড</button></div><div id="pmsg"></div>
+    <div><button class="sm" id="reset">অগ্রগতি মুছে নতুন করে শুরু</button></div>
+  </div>
+  <div id="form"><input id="nameIn" placeholder="তোমার নাম" aria-label="তোমার নাম"><button id="nameBtn">ঠিক আছে</button></div>
+  <div id="foot">এই গেমটি তোমার মানসিক প্রশান্তি ও স্বস্তির জন্য একটি সচেতনতামূলক সহায়ক গাইড মাত্র, এটি কোনো পেশাদার চিকিৎসা বা চিকিৎসকের বিকল্প নয়। যেকোনো শারীরিক বা মানসিক স্বাস্থ্য পরামর্শের জন্য অবশ্যই একজন বিশেষজ্ঞ চিকিৎসকের পরামর্শ নিও।</div>
+  <div style="margin-top:12px"><button class="sm" id="tutbtn">📖 টিউটোরিয়াল: গেম কীভাবে খেলতে হয়</button></div>
+  <div id="dev" style="max-width:340px;margin-top:14px;font-size:12px;line-height:1.7;opacity:.9"><b>👨‍💻 ডেভেলপারের তথ্য</b><br>গেম নির্মাতা ও ডেভেলপার: এমডি রবিউল ইসলাম হাওলাদার, বাংলাদেশ 🇧🇩<br>ইমেইল: <a href="mailto:mdrobiulislamhawlader0@gmail.com" style="color:#f2b84b">mdrobiulislamhawlader0@gmail.com</a><br>গেমে কোনো সমস্যা হলে বা মতামত থাকলে গুছিয়ে জানিও: কোন লেভেলে ছিলে, কী করছিলে, কী হলো, আর ফোনের মডেল কী। এতে আমি দ্রুত ঠিক করতে পারব। তোমার প্রতিটা মতামত গেমটাকে আরও সুন্দর করে। 🙏<br>ডেভেলপারকে কল বা মেসেজ করার আগে অনুগ্রহ করে নিচের বোতামে চাপো। WhatsApp খুললে টেক্সট বক্সে একটা মেসেজ লেখা থাকবে। আগে সেই মেসেজটা সেন্ড বাটনে চেপে পাঠিয়ে দাও, তারপর তোমার সমস্যা জানাও।<br><a id="wa" target="_blank" rel="noopener">💬 ডেভেলপারের সঙ্গে যোগাযোগ (WhatsApp: ০১৮২৯৯১১৯৯৫)</a></div>
 </div>
+<div id="tut" role="dialog" aria-label="টিউটোরিয়াল"></div>
+<div id="ctl" role="group" aria-label="নিয়ন্ত্রণ বোতাম"><button data-g="left" aria-label="বামে সোয়াইপ">⬅</button><button data-g="up" aria-label="উপরে সোয়াইপ">⬆</button><button data-g="right" aria-label="ডানে সোয়াইপ">➡</button><button data-g="dbl" aria-label="নিশ্চিত করো, দুবার ট্যাপ">✔</button><button data-g="down" aria-label="আবার শোনো">🔁</button></div>
+<div id="hint">↑ এগোও &nbsp; ↓ আবার শোনো &nbsp; ← বামে &nbsp; → ডানে &nbsp; ২ বার ট্যাপ = নিশ্চিত &nbsp; ২ আঙুলে ↑ = সাহায্য &nbsp; ২ আঙুলে ↓ = বিরতি</div>
 
+<script type="application/json" id="mayaClips">{}</script>
 <script>
-    const chatBox = document.getElementById('chatBox');
-    const userInput = document.getElementById('userInput');
+"use strict";
+/* =========================================================
+   ১. ডেটা: পর্ব, চিন্তা, ২০০ লেভেল (Level JSON Schema)
+   ========================================================= */
+const bn=n=>String(n).replace(/\d/g,d=>"০১২৩৪৫৬৭৮৯"[d]);
+const rnd=a=>a[Math.random()*a.length|0];
+const $=id=>document.getElementById(id);
 
-    function appendMessage(text, sender) {
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
-        msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-        msgDiv.innerText = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+const PHASES=[
+{n:"ভয় জয় ও প্রাথমিক পরিচিতি",intro:"এই পর্বে আমরা ধীরে ধীরে ভয়ের সঙ্গে বন্ধুত্ব করব।",
+ neg:["আমি কিছুই পারি না।","আমাকে দিয়ে কিছু হবে না।","অন্ধকারে আমি একা।","ভয় আমাকে সবসময় আটকে রাখবে।"],
+ pos:["আমি এখানে নিরাপদ।","আমি ধীরে ধীরে শিখছি।","আমার শ্বাস আমার সঙ্গে আছে।","ছোট পদক্ষেপও এগিয়ে যাওয়া।"]},
+{n:"অডিও ফোকাস ও দিক নির্ণয়",intro:"এই পর্বে শব্দ শুনে দিক চেনা শিখব। তোমার কান তোমার শক্তি।",
+ neg:["আমি দিক হারিয়ে ফেলেছি।","চারপাশের শব্দ আমাকে ভয় দেখায়।","আমি মনোযোগ ধরে রাখতে পারি না।","আমি সবার পেছনে পড়ে আছি।"],
+ pos:["আমি শব্দ শুনে পথ চিনতে পারি।","আমার কান আমার শক্তি।","আমি একটু একটু করে মনোযোগ ধরে রাখছি।","আমি শান্ত থেকে শুনতে পারি।"]},
+{n:"আবেগ নিয়ন্ত্রণ ও বিষণ্ণতা মুক্তি",intro:"এই পর্বে নিজের অনুভূতির প্রতি দয়ালু হতে শিখব।",
+ neg:["আমি কারও বোঝা।","আমার কষ্ট কখনো শেষ হবে না।","আমার অনুভূতির কোনো মূল্য নেই।","আমি সবকিছু নষ্ট করে ফেলি।"],
+ pos:["কঠিন অনুভূতিও একসময় বদলে যায়।","আমি নিজের প্রতি দয়ালু হতে পারি।","সাহায্য চাওয়া সাহসের কাজ।","আমার অনুভূতি গুরুত্বপূর্ণ।"]},
+{n:"বাস্তব জীবনের অভ্যাস ও সামাজিক যোগসূত্র",intro:"এই পর্বে ছোট ছোট অভ্যাস আর মানুষের সঙ্গে যোগাযোগের কথা ভাবব।",
+ neg:["কেউ আমাকে বোঝে না।","আমি একা থাকাই ভালো।","আমি কারও সঙ্গে মিশতে পারব না।","কেউ আমার খোঁজ নেয় না।"],
+ pos:["আজ আমি একজন প্রিয় মানুষকে একটা কথা বলতে পারি।","ছোট অভ্যাস আমার দিন বদলে দেয়।","আমার পাশে মানুষ আছে।","আমি একটু একটু করে মানুষের কাছে যেতে পারি।"]},
+{n:"চূড়ান্ত মানসিক বিজয় ও মনের আলো অর্জন",intro:"এই শেষ পর্বে তুমি নিজের ভেতরের আলোকে চিনে নেবে।",
+ neg:["আমি আবার পিছিয়ে যাব।","আমি যথেষ্ট ভালো নই।","আমার আলো নিভে যাবে।","আমি এতদূর আসার যোগ্য নই।"],
+ pos:["আমার ভেতরে আলো আছে।","আমি এতদূর এসেছি, আরও যেতে পারব।","আমি নিজেকে বিশ্বাস করি।","প্রতিদিন আমি একটু একটু করে শক্ত হচ্ছি।"]}
+];
+// পর্বভিত্তিক অডিও: l = বাম কানের ভারী সুর, r = ডান কানের আশার সুর
+const PM=[{at:"fearVsHope",l:80,r:528},{at:"directionalFocus",l:90,r:396},{at:"emotionRelease",l:100,r:417},{at:"socialWarmth",l:110,r:639},{at:"innerLight",l:120,r:741}];
+const GS=["swipeRight","swipeLeft","swipeUp","doubleTap"];
+const BM=["breath478","boxBreathing","slowBreath"];
+const GST={swipeRight:"right",swipeLeft:"left",swipeUp:"up",doubleTap:"dbl"};
+const GPH={swipeRight:"ডান দিকে সোয়াইপ করো",swipeLeft:"বাম দিকে সোয়াইপ করো",swipeUp:"উপরে সোয়াইপ করো",doubleTap:"স্ক্রিনে দুবার ট্যাপ করো"};
+const MTYPE={breath478:"breath",boxBreathing:"breath",slowBreath:"breath",hold5:"breath",soundFocus:"sound",thoughtRelease:"thought",audioMemory:"memory",gesturePuzzle:"puzzle",bodyScan:"body",voiceDiary:"diary"};
+const TK={sound:"soundFocus",thought:"thoughtRelease",memory:"audioMemory",puzzle:"gesturePuzzle",body:"bodyScan",diary:"voiceDiary"};
+
+// রোডম্যাপের ২০টি ব্লক (প্রতি ১০ লেভেলে একটি)
+const BLK=[
+{t:"ডক্টর মায়ার সঙ্গে পরিচয়",tk:["breath","sound","thought"],op:["আজ আমরা জেশ্চারগুলো একসঙ্গে চিনে নেব","বাম কানে ভয়, ডান কানে আশা, দুটোকে আলাদা করে চিনি"],ms:["নিজেকে একটা ভালো কথা বলো।","একজন প্রিয় মানুষের কথা মনে করো।"]},
+{t:"অডিও মেমোরি ও একাকীত্ব দূর",tk:["memory","thought"],op:["সুরের ছন্দ মনে রাখার খেলা খেলি","একাকীত্ব মানে তুমি একা, তা নয়"],ms:["স্বজনের একজনের খোঁজ নাও।","পরিবারের কারও সঙ্গে পাঁচ মিনিট কাটাও।"]},
+{t:"রিফ্লেক্স ও পাখির ডাক",tk:["sound","body","sound"],op:["কোলাহলের মধ্যেও পাখির ডাক খুঁজে নেওয়া যায়","শরীর আলগা করে শব্দে মন দাও"],ms:["জানালা দিয়ে পাখির ডাক শোনো।","কাঁধ আর হাত আলগা করে এক মিনিট বসো।"]},
+{t:"রাগ সামলানো ও আত্মক্ষমা",tk:["breath","thought"],op:["শ্বাসের ছন্দে হৃদস্পন্দন ধীর করি","নিজেকে ক্ষমা করাও একটা শক্তি"],ms:["নিজের কোনো ভুলের জন্য নিজেকে ক্ষমা করো।","রাগ এলে আজ তিনবার গভীর শ্বাস নাও।"]},
+{t:"দিক নির্ণয়",tk:["sound","memory"],op:["চারপাশের শব্দ কোন দিক থেকে আসছে, ধীরে খুঁজে নাও","ঘড়ির টিকটিকের মতো ছোট শব্দেও মন দাও"],ms:["বাড়ির একটা শব্দের উৎস খুঁজে বের করো।","চোখ বন্ধ করে ঘরের শব্দ শোনো।"]},
+{t:"বাইনোরাল সুর ও জেশ্চার ধাঁধা",tk:["puzzle","breath","puzzle"],op:["কয়েকটা ধাপ একসঙ্গে মনে রাখার খেলা","দুই কানের সুর মিলিয়ে মনকে শান্ত করি"],ms:["এক গ্লাস পানি ধীরে ধীরে পান করো।","দশ মিনিট হেঁটে এসো।"]},
+{t:"ঝড়ের মাঝে বাঁশির সুর",tk:["sound","puzzle"],op:["ঝড়ের শব্দের ভেতরেও একটা শান্ত সুর লুকিয়ে থাকে","মনোযোগ ধরে রাখলে সুরটা পেয়ে যাবে"],ms:["আজ একটা কাজ মন দিয়ে শেষ করো।","বাইরে এক মিনিট খোলা বাতাসে দাঁড়াও।"]},
+{t:"ভুলের ভয় নেই",tk:["thought","sound","puzzle"],op:["ভুল হলে কিছুই হারায় না, আমি পাশে আছি","ভুল করা শেখারই অংশ"],ms:["আজ একটা ছোট ভুলকে হাসিমুখে মেনে নাও।","নিজের একটা ভালো গুণ মনে করো।"]},
+{t:"নেতিবাচক চিন্তা মুছে ফেলা",tk:["thought"],op:["মাথায় আসা কষ্টের চিন্তাকে বামে সরিয়ে দাও","ডান দিকের ইতিবাচক কথাগুলো গ্রহণ করো"],ms:["একটা দুশ্চিন্তা মনে মনে ছেড়ে দাও।","একটা ইতিবাচক কথা আজ নিজেকে তিনবার বলো।"]},
+{t:"ভালো লাগা ও বডি স্ক্যান",tk:["body","thought"],op:["আজ নিজের ভালো লাগার কথা ভাবি","শরীরের ভেতরটা ধীরে ধীরে অনুভব করো"],ms:["একটা প্রিয় স্মৃতি মনে করে হাসো।","নিজের পছন্দের একটা কাজ করো।"]},
+{t:"থিটা ওয়েভ ও ইকো",tk:["breath","sound","body"],op:["ধীর সুরে দুশ্চিন্তাকে ঘুম পাড়িয়ে দিই","প্রতিধ্বনির দিকে মন দিয়ে শোনো"],ms:["আজ ঘুমের আগে ফোন সরিয়ে রাখো।","পাঁচ মিনিট চুপচাপ বসো।"]},
+{t:"আত্মবিশ্বাস ও পুরনো বন্ধু",tk:["thought","breath"],op:["তোমার আত্মবিশ্বাস ফিরে আসছে","পুরনো সম্পর্কগুলো আবার উষ্ণ হতে পারে"],ms:["পুরনো কোনো বন্ধু বা আত্মীয়কে ফোন করো।","কাউকে একটা ভালো কথা বলো।"]},
+{t:"পাঁচ সেকেন্ডের শ্বাস",tk:["breath"],op:["রাগ এলে পাঁচ সেকেন্ড শ্বাস ধরে রাখি","শ্বাসই রাগ সামলানোর সবচেয়ে সহজ উপায়"],ms:["রাগ এলে পাঁচ সেকেন্ড শ্বাস ধরে ধীরে ছাড়ো।","আজ একটা কঠিন কথা শান্ত গলায় বলো।"]},
+{t:"দ্রুত মেমোরি ও স্ক্রিন-ফ্রি জীবন",tk:["memory","puzzle"],op:["এবার একটু দ্রুত গতিতে মনোযোগ ধরে রাখি","স্ক্রিন ছাড়া দিনের ছন্দ ফিরে পাই"],ms:["আজ এক ঘণ্টা স্ক্রিন ছাড়া কাটাও।","খাওয়ার সময় ফোন সরিয়ে রাখো।"]},
+{t:"ভয়েস ডায়রি",tk:["diary","body"],op:["মনের কথা বলে ফেললে মন হালকা হয়","আজ ডায়রিতে নিজের কথা বলি"],ms:["আজ রাতে তিন বাক্যে নিজের দিনটা ভাবো।","মনের কথা কাউকে বলার চেষ্টা করো।"]},
+{t:"জনবহুল জায়গা ও সহানুভূতি",tk:["sound","thought"],op:["কল্পনা করো, তুমি একটা ভিড়ের মধ্য দিয়ে ধীরে হাঁটছো","অন্যের কষ্ট বোঝা তোমাকে আরও শক্ত করে"],ms:["কারও প্রতি একটু সহানুভূতি দেখাও।","কারও কথা মন দিয়ে শোনো।"]},
+{t:"মাস্টার অডিও চ্যালেঞ্জ",tk:["puzzle","sound","memory"],op:["এখন দ্রুত জেশ্চার আর ত্রিমাত্রিক শব্দ একসঙ্গে","তুমি এখন যথেষ্ট প্রস্তুত"],ms:["নিজের অগ্রগতির জন্য নিজেকে অভিনন্দন জানাও।","কাউকে শেখাও তুমি কী শিখেছো।"]},
+{t:"শান্তির চূড়ান্ত অভিজ্ঞতা",tk:["body","breath"],op:["আজ পুরো শরীর আর মন একসঙ্গে শান্ত হোক","শান্তি এখন তোমার ভেতরেই"],ms:["পাঁচ মিনিট শান্ত হয়ে বসে শুধু শ্বাস দেখো।","একটা কৃতজ্ঞতার কথা কাউকে বলো।"]},
+{t:"বড় প্রতিকূলতা জয়",tk:["puzzle","thought","breath"],op:["কঠিন সময়েও শান্ত মাথায় সিদ্ধান্ত নেওয়া যায়","তুমি আগের চেয়ে অনেক শক্ত"],ms:["আজ একটা কঠিন কাজ শান্ত মনে শুরু করো।","দরকার হলে কারও কাছে সাহায্য চাও।"]},
+{t:"বিজয়ের কাউন্টডাউন",tk:["thought","body","breath"],op:[""],ms:["অন্যের প্রতি সহানুভূতির হাত বাড়িয়ে দাও।","নিজের জন্য গর্ব করো।"]}
+];
+
+const gameLevels=Array.from({length:200},(_,i)=>{
+  const pi=Math.floor(i/40),bi=Math.floor(i/10),j=i%10,k=i%40,b=BLK[bi],m=PM[pi],g=GS[i%4],tk=b.tk[j%b.tk.length];
+  const mt=tk==="breath"?(bi===12?"hold5":BM[j%3]):TK[tk];
+  const op=bi===19?`বিজয় আর ${bn(200-(i+1))} ধাপ দূরে`:b.op[j%b.op.length];
+  return{level:i+1,title:`${b.t} ${bn(j+1)}`,phase:pi+1,
+    narrative:`ডক্টর মায়া: '[PlayerName], ${op}। ${GPH[g]}...'`,
+    requiredGesture:g,
+    binauralAudioConfig:{leftFreq:m.l+(k%4)*4,rightFreq:m.r,audioType:m.at,beatHz:bi===10?6:10},
+    meditationType:mt,socialMission:b.ms[j%b.ms.length]};
+});
+gameLevels[0]={level:1,title:"প্রথম পদক্ষেপ ও ভয় জয়",phase:1,
+  narrative:"ডক্টর মায়া: '[PlayerName], স্বাগতম! আমি তোমার ডক্টর মায়া। তোমার বাম পাশে অহেতুক ভয় আর ডান পাশে আশা। ডান দিকে সোয়াইপ করো...'",
+  requiredGesture:"swipeRight",binauralAudioConfig:{leftFreq:80,rightFreq:528,audioType:"fearVsHope",beatHz:10},
+  meditationType:"breath478",socialMission:"আজকে তোমার প্রিয় কোনো মানুষকে কল দিয়ে এক মিনিট কথা বলো।"};
+gameLevels[199]={level:200,title:"গ্র্যান্ড ফিনালে",phase:5,
+  narrative:"ডক্টর মায়া: '[PlayerName], শেষ ধাপে পৌঁছে গেছো। স্ক্রিনে দুবার ট্যাপ করো...'",
+  requiredGesture:"doubleTap",binauralAudioConfig:{leftFreq:80,rightFreq:880,audioType:"grandFinale",beatHz:10},
+  meditationType:"grandFinale",socialMission:"তোমার মনের আলো চারপাশে ছড়িয়ে দাও।"};
+
+/* =========================================================
+   ২. অবস্থা ও সহায়ক
+   ========================================================= */
+let name="",level=1,token=0,started=false,pending=null,flip=1,useCode=false,tested=false,briefed=false,suspended=false,spd=.85,pit=1.18,vp=0,hp=true,VOL=1,lvT0=0,lvMin=5,cntLang="bn",cvName="",dvName="",prefSaved=false,packOn=false,cntOn=true;
+let DEV=false;try{DEV=localStorage.getItem("all_levels_unlocked")==="true"}catch(e){}
+const SK="lom_progress_v1";
+function saveProg(n){try{localStorage.setItem(SK,JSON.stringify({name,level:Math.max(1,Math.min(200,n|0))}))}catch(e){}try{licSync(Math.max(1,Math.min(200,n|0)))}catch(e){}}
+try{const d=JSON.parse(localStorage.getItem(SK)||"{}");if(d.name&&d.name!=="undefined")name=String(d.name);if(d.level>=1&&d.level<=200)level=d.level|0}catch(e){}
+const PK="lom_prefs_v2";
+let recPref=null;try{recPref=localStorage.getItem("lom_rec")}catch(e){}
+let recMode=recPref!=="0"; // true = ডক্টর মায়ার রেকর্ড করা ভয়েস, false = ডিভাইস (Google) ভয়েস
+function savePrefs(){try{localStorage.setItem(PK,JSON.stringify({useCode,spd,pit,vp,hp,cl:cntLang,cv:cvName,dv:dvName,cn:cntOn,pk:packOn}))}catch(e){}}
+try{const d=JSON.parse(localStorage.getItem(PK)||"{}");if(typeof d.useCode==="boolean"){prefSaved=true}if(d.spd>=.6&&d.spd<=1.8)spd=+d.spd;if(d.pit>=.8&&d.pit<=1.3)pit=+d.pit;if(d.vp>=0&&d.vp<12)vp=d.vp|0;if(typeof d.hp==="boolean")hp=d.hp;if(d.cl==="en"||d.cl==="bn")cntLang=d.cl;if(typeof d.cv==="string")cvName=d.cv;if(typeof d.dv==="string")dvName=d.dv;if(typeof d.pk==="boolean")packOn=d.pk;if(typeof d.cn==="boolean")cntOn=d.cn}catch(e){}
+let AC=null,master=null,bgm=null,bL=null,bR=null,vgain=null,L=null,R=null,amb=[],ints=[],vsrc=null,curCfg=null,curMT="slowBreath",curBI=0,wetG=null,fbG=null,bgmHP=null,birdBus=null,birdBusy=0,fxUntil=0,cntSrc=null,ecoG=null,dlN=null,pg=null;
+// মিক্সার ও ভয়েস-প্যাক অবস্থা: [কী, নাম, সর্বনিম্ন, সর্বোচ্চ, ডিফল্ট, ধাপ, একক]
+const MX=[["master","মাস্টার ভলিউম",0,150,100,5,"%"],["bgm","ব্যাকগ্রাউন্ড সুর (BGM)",0,200,100,5,"%"],["voice","ডক্টর মায়ার কণ্ঠের ভলিউম",0,100,100,5,"%"],["reverb","রিভার্ব",0,300,100,10,"%"],["echo","ইকো",0,400,100,10,"%"],["fb","ইকো ফিডব্যাক (পুনরাবৃত্তি)",0,400,100,10,"%"],["dly","ডিলে সময়",50,1000,380,10," ms"],["bird","পাখির ডাক",0,300,100,10,"%"],["drone","ড্রোন",0,300,100,10,"%"],["heart","হার্টবিট",0,300,100,10,"%"]];
+const MIX={},STEPS={pitr:.05,spdr:.05};
+MX.forEach(r=>{MIX[r[0]]=r[4];STEPS[r[0]]=r[5]});
+try{const d=JSON.parse(localStorage.getItem("lom_mix_v1")||"{}");if(d.m)MX.forEach(r=>{const v=+d.m[r[0]];if(d.m[r[0]]!=null&&isFinite(v)&&v>=r[2]&&v<=r[3])MIX[r[0]]=v});if(d.s)for(const k in STEPS){const v=+d.s[k];if(v>0&&v<1000)STEPS[k]=v}}catch(e){}
+function saveMix(){try{localStorage.setItem("lom_mix_v1",JSON.stringify({m:MIX,s:STEPS}))}catch(e){}}
+VOL=MIX.voice/100;
+const PKS={map:new Map(),cache:new Map(),lv:new Map(),ready:false,n:0,name:""};
+let curNarr="",curNarrL=0;
+const show=t=>{$("txt").textContent=t;try{cueFx(t)}catch(e){}};
+const cap=t=>{$("cap").textContent=t};
+const orb=(s,sec)=>{const o=$("orb");o.style.transition=`transform ${sec}s ease-in-out`;o.style.transform=`scale(${s})`};
+const never=()=>new Promise(()=>{});
+const kill=a=>a.forEach(n=>{try{n.disconnect()}catch(e){}}); // ব্যবহার শেষ অডিও নোড গ্রাফ থেকে সরায়
+async function live(p){const t=token;const v=await p;if(t!==token)await never();return v}
+const sleep=ms=>live(new Promise(r=>setTimeout(r,ms)));
+const P=v=>v*flip; // হেডফোনের বাম-ডান উল্টো হলে ঠিক করে দেয়
+
+/* =========================================================
+   ৩. ডক্টর মায়ার রেকর্ড করা কণ্ঠ (বিল্ট-ইন ক্লিপ)
+   লেভেলের মায়ার কথাগুলো রেকর্ড করা অডিও থেকে চলে; বাকিটা ডিভাইসের বাংলা ভয়েসে।
+   ========================================================= */
+const RC=new Map();
+// ডক্টর মায়ার ১২টি নারীকণ্ঠ: f=মূল স্বর(Hz), fs=কণ্ঠনালীর স্কেল, br=শ্বাসের নরমতা, r=গতি, vb=কণ্ঠের কম্পন
+const VP=[
+{n:"মায়া ১ — কোমল",f:215,fs:1.15,br:.004,r:1,vb:.008},{n:"মায়া ২ — শান্ত নার্স",f:235,fs:1.2,br:.006,r:.95,vb:.01},
+{n:"মায়া ৩ — গভীর মমতা",f:195,fs:1.1,br:.005,r:1.05,vb:.006},{n:"মায়া ৪ — স্নেহময়ী",f:225,fs:1.17,br:.007,r:1,vb:.012},
+{n:"মায়া ৫ — ধীর প্রশান্ত",f:205,fs:1.12,br:.008,r:1.12,vb:.008},{n:"মায়া ৬ — উজ্জ্বল",f:250,fs:1.25,br:.004,r:.95,vb:.01},
+{n:"মায়া ৭ — মধুর",f:230,fs:1.22,br:.006,r:1,vb:.014},{n:"মায়া ৮ — গম্ভীর",f:185,fs:1.08,br:.004,r:1.08,vb:.005},
+{n:"মায়া ৯ — ফিসফিসে নরম",f:220,fs:1.15,br:.012,r:1.1,vb:.006},{n:"মায়া ১০ — আত্মবিশ্বাসী",f:240,fs:1.2,br:.003,r:.92,vb:.008},
+{n:"মায়া ১১ — মায়াবী",f:210,fs:1.18,br:.009,r:1.06,vb:.012},{n:"মায়া ১২ — বন্ধুসুলভ",f:245,fs:1.24,br:.005,r:.97,vb:.011}];
+let F0BASE=230,RATE=.8,FSC=1.15,BR=.004,VB=0; // F0BASE: ২২০–২৪০Hz (নারী কণ্ঠ), FSC: নারী কণ্ঠনালীর ফরম্যান্ট স্কেল
+function applyVoice(){const V=VP[vp];F0BASE=V.f/1.18*pit;RATE=.8/spd*V.r;FSC=V.fs*(1+(pit-1.18)*.5);BR=V.br;VB=V.vb;RC.clear()}
+applyVoice();
+const DW=["শূন্য","এক","দুই","তিন","চার","পাঁচ","ছয়","সাত","আট","নয়"];
+const quiet=t=>new Promise(r=>setTimeout(r,Math.min(8000,Math.max(900,t.length*55)))); // রেকর্ড বা ডিভাইস ভয়েস না থাকলে শুধু লেখা দেখায়, সময় অপেক্ষা করে
+
+/* ---------- ডিভাইসের নিজস্ব বাংলা ভয়েস (বিকল্প) ---------- */
+let enVoices=[],bnVoices=[],vIdx=0,curU=null,vChosen=false;
+let vtok=0;
+
+/* ---------- ভাষা + ফ্লাটার নেটিভ টিটিএস ব্রিজ (flutter_inappwebview JavaScript Handlers + flutter_tts) ---------- */
+let LANG="bn-BD";try{LANG=localStorage.getItem("lom_lang")||"bn-BD"}catch(e){}
+const LANGS=[["bn-BD","বাংলা - বাংলাদেশ (bn-BD)"],["bn-IN","বাংলা - ভারত (bn-IN)"],["en-US","English - US (en-US)"],["en-GB","English - UK (en-GB)"],["en-IN","English - India (en-IN)"]];
+const langIsEn=()=>/^en/i.test(LANG),langBn=()=>/^bn/i.test(LANG)?LANG:"bn-IN",langEn=()=>/^en/i.test(LANG)?LANG:"en-US";
+const BNRE=l=>new RegExp(l.replace("-","[-_]"),"i");
+const NT={on:false,engines:[],engine:"",voices:[],all:false,rate:null,pit:null,sel:{},def:{rate:.5,min:.05,max:1,pit:1}};
+try{const d=JSON.parse(localStorage.getItem("lom_nt_v1")||"{}");if(typeof d.rate==="number")NT.rate=d.rate;if(typeof d.pit==="number")NT.pit=d.pit;if(d.sel&&typeof d.sel==="object")NT.sel=d.sel;NT.all=!!d.all;if(typeof d.eng==="string")NT.engine=d.eng}catch(e){}
+const ntSave=()=>{try{localStorage.setItem("lom_nt_v1",JSON.stringify({rate:NT.rate,pit:NT.pit,sel:NT.sel,all:NT.all,eng:NT.engine}))}catch(e){}};
+const ntAvail=()=>!!(window.flutter_inappwebview&&typeof window.flutter_inappwebview.callHandler==="function");
+const ntCall=(n,a)=>{try{return Promise.resolve(window.flutter_inappwebview.callHandler(n,a))}catch(e){return Promise.reject(e)}};
+const ntRate=()=>NT.rate==null?NT.def.rate:NT.rate,ntPit=()=>NT.pit==null?NT.def.pit:NT.pit;
+const ntFem=n=>/\bmale\b|david|mark|guy|alex|fred|daniel|tom|ryan|eric|james|george|aaron|gordon|rishi|albert|bruce|junior|ralph|reed|rocko|eddy/i.test(n)?false:/-x-[a-z]{2}f(?=-|$)/i.test(n)?true:/-x-[a-z]{2}m(?=-|$)/i.test(n)?false:/female|woman|girl/i.test(n)?true:null;
+const ntNorm=v=>{const n=String(v.name||""),lc=String(v.locale||v.lang||"").replace("_","-"),net=String(v.network_required)==="1"||v.network_required===true||/network/i.test(n);return{name:n,lang:lc,localService:!net,fem:ntFem(n)}};
+const ntEngLabel=n=>/google/i.test(n)?"Google TTS ("+n+")":/samsung|smt/i.test(n)?"Samsung TTS ("+n+")":/multi/i.test(n)?"Multi-TTS ("+n+")":n;
+function ntApply(s){
+  NT.engines=Array.isArray(s.engines)?s.engines.map(String):[];if(s.engine)NT.engine=String(s.engine);
+  if(s.rate){NT.def.rate=+s.rate.normal||.5;NT.def.min=Math.max(.05,+s.rate.min||.05);NT.def.max=+s.rate.max||1}
+  if(s.pitch)NT.def.pit=+s.pitch.normal||1;
+  NT.voices=(Array.isArray(s.voices)?s.voices:[]).map(ntNorm).filter(v=>v.name&&v.lang);
+}
+async function ntInit(eng){
+  if(!ntAvail())return false;
+  try{const s=await ntCall("ttsInit",eng||NT.engine||"");ntApply(s);NT.on=true;loadVoices();ntBuildUI();return true}catch(e){return false}
+}
+const ntVoiceFor=g=>{const n=NT.sel[g];return NT.voices.find(v=>v.name===n&&v.lang.toLowerCase().startsWith(g))||null};
+const ntPayload=(text,en)=>{const g=en?"en":"bn",v=ntVoiceFor(g);return{text,lang:v?v.lang:(en?langEn():langBn()),voice:v?{name:v.name,locale:v.lang}:null,rate:ntRate(),pitch:ntPit(),volume:VOL}};
+function ntSpeak(t,en){return new Promise(r=>{
+  const src=en===1?toEn(t):t;
+  if(en&&!src){setTimeout(r,Math.min(8000,t.length*55));return}
+  const parts=src.match(/[^।!?.\n]+[।!?.]*/g)||[src],my=vtok;let i=0,fin=false;
+  const end=()=>{if(!fin){fin=true;r()}};
+  const next=()=>{
+    if(my!==vtok||i>=parts.length)return end();
+    const s=parts[i++].trim();if(!s)return next();
+    let ok=false;
+    const go=()=>{if(!ok){ok=true;clearTimeout(to);next()}};
+    const to=setTimeout(go,s.length*300/Math.max(.3,ntRate()*2)+6000);
+    ntCall("ttsSpeak",ntPayload(s,en)).then(go,go);
+  };
+  next();
+})}
+function ntCount(k){
+  const en=cntLang==="en",v=NT.voices.find(x=>x.name===cvName&&x.lang.toLowerCase().startsWith(cntLang))||ntVoiceFor(en?"en":"bn"),p=ntPayload(en?EN_DIG[k]:DW[k],en);
+  if(v){p.lang=v.lang;p.voice={name:v.name,locale:v.lang}}
+  ntCall("ttsSpeak",p).catch(()=>{});
+}
+function ntFillVoices(reset){
+  const s=$("ntVoice"),g=langIsEn()?"en":"bn";s.innerHTML="";
+  const ex=v=>v.lang.toLowerCase()===LANG.toLowerCase()?1:0;
+  let list=NT.voices.filter(v=>v.lang.toLowerCase().startsWith(g));
+  list.sort((a,b)=>ex(b)-ex(a)||(b.localService?1:0)-(a.localService?1:0)||a.name.localeCompare(b.name));
+  if(!NT.all)list=list.filter(v=>v.fem!==false);
+  list.forEach(v=>s.add(new Option(`${v.name} (${v.lang}, ${v.localService?"অফলাইন":"অনলাইন"})${v.fem?" ♀":""}`,v.name)));
+  if(!list.length){s.add(new Option("এই ভাষার কোনো ভয়েস পাওয়া যায়নি",""));NT.sel[g]="";return}
+  const cur=NT.sel[g];
+  if(!reset&&cur&&list.some(v=>v.name===cur))s.value=cur;else{NT.sel[g]=list[0].name;s.value=list[0].name;ntSave()}
+}
+function ntLabels(){
+  $("ntRv").textContent=`${bn(ntRate().toFixed(2))} (ডিফল্ট ${bn(NT.def.rate.toFixed(2))})`;
+  $("ntPv").textContent=`${bn(ntPit().toFixed(2))} (ডিফল্ট ${bn(NT.def.pit.toFixed(2))})`;
+}
+function ntBuildUI(){
+  const e=$("ntEng");e.innerHTML="";NT.engines.forEach(n=>e.add(new Option(ntEngLabel(n),n)));if(NT.engine)e.value=NT.engine;
+  $("ntEngRow").style.display=NT.engines.length?"":"none";
+  const r=$("ntRate");r.min=NT.def.min;r.max=NT.def.max;r.step=.05;r.value=ntRate();
+  const p=$("ntPit");p.min=.5;p.max=2;p.step=.05;p.value=ntPit();
+  $("ntAll").checked=NT.all;ntFillVoices(false);ntLabels();showVoice();
+}
+function ntRefreshUI(){
+  try{
+    const dev=!recMode,use=NT.on&&dev;
+    $("ntLang").value=LANG;$("ntMode").value=recMode?"core":"device";
+    $("ntBox").style.display=use?"flex":"none";
+    $("oldSl").style.display=use?"none":"flex";
+    if(NT.on){$("dsel").style.display="none";$("vwarn").textContent=recMode?"কোর ভয়েস: সোর্স কোডের প্রাক-নির্ধারিত অডিও ক্লিপ চলছে।":(NT.voices.length?"ডিভাইস ভয়েস (flutter_tts): "+NT.voices.length.toString().replace(/\d/g,d=>"০১২৩৪৫৬৭৮৯"[d])+"টি ভয়েস পাওয়া গেছে।":"ডিভাইসে কোনো টিটিএস ভয়েস পাওয়া যায়নি।")}
+  }catch(e){}
+}
+LANGS.forEach(l=>$("ntLang").add(new Option(l[1],l[0])));
+
+const pickVoice=()=>{if(vChosen)return bnVoices[vIdx]||null;const re=BNRE(langBn());return bnVoices.find(v=>re.test(v.lang)&&/google/i.test(v.name))||bnVoices.find(v=>re.test(v.lang))||bnVoices.find(v=>/bn[-_]IN/i.test(v.lang)&&/google/i.test(v.name))||bnVoices.find(v=>/bn[-_]IN/i.test(v.lang))||null};
+const allV=()=>NT.on?NT.voices.map(v=>({name:v.name,lang:v.lang,localService:v.localService})):speechSynthesis.getVoices();
+function loadVoices(){
+  if(!NT.on&&!("speechSynthesis" in window))return;
+  bnVoices=allV().filter(v=>v.lang.replace("_","-").toLowerCase().startsWith("bn"));
+  bnVoices.sort((a,b)=>(b.localService?1:0)-(a.localService?1:0));
+  enVoices=allV().filter(v=>/^en[-_]US/i.test(v.lang)&&!/\bmale\b|david|mark|guy|alex|fred|daniel|tom|ryan|eric|james|george|aaron|gordon|rishi|albert|bruce|junior|ralph|reed|rocko|eddy/i.test(v.name)).sort((a,b)=>a.name.localeCompare(b.name));
+  vIdx=Math.min(vIdx,Math.max(0,bnVoices.length-1));
+  if(dvName){const i=bnVoices.findIndex(v=>v.name===dvName);if(i>=0){vIdx=i;vChosen=true}}
+  if(!prefSaved&&!started&&useCode&&bnVoices.length)useCode=false; // বাংলা ডিভাইস ভয়েস থাকলে সেটাই ডিফল্ট
+  if(recPref===null&&!started)recMode=!bnVoices.length; // নিজে বেছে না নিলে: ডিভাইসে বাংলা ভয়েস থাকলে ডিভাইস ভয়েস, না থাকলে মায়ার রেকর্ড করা কোড ভয়েস
+  fillSel();showVoice();
+}
+const MALE=/\bmale\b|david|mark|guy|alex|fred|daniel|tom|ryan|eric|james|george|aaron|gordon|rishi|albert|bruce|junior|ralph|reed|rocko|eddy/i;
+const EN_DIG=["Zero","One","Two","Three","Four","Five","Six","Seven"];
+function fillSel(){ // ডিভাইসে ইনস্টল করা ভয়েসের তালিকা (গেমের নির্দেশনার জন্য নারীকণ্ঠ, গণনার জন্য যেকোনো)
+  const d=$("dsel"),c=$("csel");d.innerHTML="";c.innerHTML="";
+  bnVoices.forEach((v,i)=>{if(!MALE.test(v.name))d.add(new Option(`${v.name} (${v.lang}, ${v.localService?"অফলাইন":"অনলাইন"})`,i))});
+  if(!d.options.length)d.add(new Option("কোনো বাংলা নারীকণ্ঠ পাওয়া যায়নি",-1));
+  c.add(new Option("স্বয়ংক্রিয়",""));
+  if(NT.on||"speechSynthesis" in window)allV().filter(v=>v.lang.toLowerCase().startsWith(cntLang)).forEach(v=>c.add(new Option(`${v.name} (${v.lang})`,v.name)));
+  c.value=cvName;$("clang").value=cntLang;
+}
+function countSay(k){ // শ্বাসের গণনার আলাদা কণ্ঠ: বাংলা বা ইংরেজি
+  if(mute||!cntOn)return;
+  if(NT.on){ntCount(k);return}
+  if(!("speechSynthesis" in window))return;
+  const u=new SpeechSynthesisUtterance(cntLang==="en"?EN_DIG[k]:DW[k]);
+  const v=speechSynthesis.getVoices().find(x=>x.name===cvName&&x.lang.toLowerCase().startsWith(cntLang))||null;
+  u.lang=v?v.lang:(cntLang==="en"?"en-US":"bn-IN");if(v)u.voice=v;u.rate=.9;u.pitch=1;u.volume=VOL;
+  try{speechSynthesis.speak(u)}catch(e){}
+}
+function showVoice(){
+  $("vsel").style.display=useCode?"inline-block":"none";$("vnext").style.display="none";$("dsel").style.display=(useCode||recMode)?"none":"inline-block";if(!useCode&&bnVoices.length){const cur=vChosen?vIdx:bnVoices.indexOf(pickVoice());if(cur>=0)$("dsel").value=cur}
+  if(!$("vsel").options.length)VP.forEach((v,i)=>$("vsel").add(new Option(v.n,i)));
+  $("vsel").value=vp;
+  $("vmode").textContent=recMode?"কণ্ঠ: ডক্টর মায়ার কোড ভয়েস":"কণ্ঠ: ডিভাইস ভয়েস";
+  $("pitv").textContent=useCode?`${bn(Math.round(F0BASE))} Hz`:`${bn(pit.toFixed(2))}×`;
+  $("spdv").textContent=`${bn(spd.toFixed(2))}×`;
+  $("vwarn").textContent=recMode?(bnVoices.length?"ডক্টর মায়ার কোড ভয়েসে চলছে। (ডিভাইস ভয়েসে যেতে ওপরের বোতাম চাপো)":"ফোনে বাংলা ডিভাইস ভয়েস পাওয়া যায়নি। ডক্টর মায়ার কোড ভয়েসে চলছে।"):(vChosen&&bnVoices.length
+      ?`ভয়েস: ${bnVoices[vIdx].name} (${bnVoices[vIdx].localService?"অফলাইন":"অনলাইন"}) ${bn(vIdx+1)}/${bn(bnVoices.length)}`
+      :(bnVoices.length?"ডিভাইসের বাংলা ভয়েস ব্যবহার হচ্ছে। ওপরের তালিকা থেকে অন্য ভয়েস বাছতে পারো। (ভয়েসের লিঙ্গ ফোন জানায় না, তাই নাম দেখে নারীকণ্ঠ বেছে নাও।)":"ফোনে বাংলা ভয়েস পাওয়া যায়নি, তাই মায়ার রেকর্ড করা কথা ছাড়া বাকি কথা (যেমন লেভেলের নাম ও গল্প) শোনা যাবে না। ফোনের সেটিংস > টেক্সট-টু-স্পিচ থেকে Google ইঞ্জিন ও বাংলা ভয়েস ডাউনলোড করো।"));
+ntRefreshUI();
+}
+const EP=[[1.15,.95],[1.3,.9],[.95,.95],[1.2,.85],[1,.8],[1.4,.95],[1.25,.9],[.9,.9],[1.1,.8],[1.05,1],[1.35,.85],[1.2,1]]; // ১২ কণ্ঠের পিচ/গতি (ইংরেজি)
+const EN_NUM={"এক":"One","দুই":"Two","তিন":"Three","চার":"Four","পাঁচ":"Five","ছয়":"Six","সাত":"Seven"};
+const ENR=[[/ডানে সোয়াইপ|ডান দিকে সোয়াইপ/,"Swipe right."],[/বামে সোয়াইপ|বাম দিকে সোয়াইপ/,"Swipe left."],[/উপরে সোয়াইপ/,"Swipe up."],[/দুবার ট্যাপ|ডাবল ট্যাপ/,"Double tap."],
+[/শ্বাস নাও|শ্বাস নেবে/,"Breathe in."],[/ধরে রাখো/,"Hold."],[/শ্বাস ছাড়ো|ধীরে ছাড়ো/,"Breathe out."],[/এবার তুমি করো/,"Now you."],[/চমৎকার|খুব ভালো|ঠিক এভাবেই|গর্বিত/,"Well done."],
+[/আবার চেষ্টা|আবার বলছি/,"Try again."],[/আবার শুনি/,"Listen again."],[/শোনো/,"Listen."],[/স্বাগতম/,"Welcome."],[/চোখ বন্ধ করো/,"Close your eyes."],[/আলগা করো/,"Relax."],
+[/নাম নিচের বক্সে/,"Please type your name."],[/আমি ডক্টর মায়া/,"I'm Doctor Maya."],[/আমি তোমার সঙ্গে আছি/,"I'm here with you."],[/হেডফোন কানে লাগি/,"Put on your headphones."],
+[/সুর যে কানে আসবে/,"Swipe toward the ear that hears the tone."],[/সুরটা কোন কানে/,"Which ear?"],[/ছোট কাজ/,"Your small task for today."]];
+function toEn(t){
+  if(EN_NUM[t])return EN_NUM[t];
+  const o=[],m=t.match(/^লেভেল ([০-৯]+)/);
+  if(m)o.push([-1,"Level "+m[1].replace(/[০-৯]/g,d=>"০১২৩৪৫৬৭৮৯".indexOf(d))+"."]);
+  for(const [re,e] of ENR){const x=t.search(re);if(x>=0)o.push([x,e])}
+  o.sort((a,b)=>a[0]-b[0]);return[...new Set(o.map(a=>a[1]))].join(" ");
+}
+const pickEn=()=>enVoices.length?enVoices[vp%enVoices.length]:null;
+let devFail=0;
+// en: 0 = বাংলা, 1 = বাংলা লেখা থেকে ইংরেজি নির্দেশ, 2 = সরাসরি ইংরেজি
+function deviceSpeak(t,en){if(NT.on)return ntSpeak(t,en);return new Promise(r=>{
+  const src=en===1?toEn(t):t;
+  if(en&&!src){setTimeout(r,Math.min(8000,t.length*55));return}
+  if(!("speechSynthesis" in window)){quiet(t).then(r);return}
+  if(!en&&!bnVoices.length&&speechSynthesis.getVoices().length){quiet(t).then(r);return} // বাংলা ভয়েস না থাকলে ভুল ভাষার ডিফল্ট ভয়েস নয়, কোড-ভয়েস
+  const parts=src.match(/[^।!?.\n]+[।!?.]*/g)||[src],v=en?pickEn():pickVoice(),my=vtok;let i=0,fin=false;
+  const end=()=>{if(!fin){fin=true;r()}};
+  const next=()=>{
+    if(my!==vtok||i>=parts.length)return end();
+    const s=parts[i++].trim();if(!s)return next();
+        const u=new SpeechSynthesisUtterance(s);
+    u.lang=en?langEn():langBn();u.volume=VOL;
+    u.rate=en?Math.min(2,Math.max(.5,EP[vp][1]*spd/.85)):spd;u.pitch=en?Math.min(2,Math.max(.5,EP[vp][0]*pit/1.18)):pit;
+    if(v){u.voice=v;u.lang=v.lang}
+    let ok=false,st=false;
+    const go=()=>{if(!ok){ok=true;clearTimeout(to);clearTimeout(w);next()}};
+    const fail=()=>{if(ok)return;ok=true;clearTimeout(to);clearTimeout(w);++devFail;(en?quiet(t).then(end):quiet(s).then(next))};
+    const to=setTimeout(go,s.length*250/spd+4000);
+    const w=setTimeout(()=>{if(!st&&!ok){try{speechSynthesis.cancel()}catch(e){}fail()}},3500);
+    u.onstart=()=>{st=true;devFail=0;clearTimeout(w)};
+    u.onend=go;u.onerror=e=>{const c=e&&(e.error==="canceled"||e.error==="interrupted");if(c||st)go();else fail()};
+    curU=u;try{speechSynthesis.resume()}catch(e){}
+    try{speechSynthesis.speak(u)}catch(e){fail()}
+  };
+  next();
+})}
+let mute=false;
+const speakRaw=t=>mute?new Promise(r=>setTimeout(r,Math.min(8000,Math.max(900,t.length*55)))):!recMode?deviceSpeak(t,langIsEn()?1:0):(spOK(t)||((curNarr&&t===curNarr&&lvClipOK(curNarrL))?playLevelClip(curNarrL):(packOn&&PKS.ready)?packSpeak(t):deviceSpeak(t,langIsEn()?1:0)));
+
+function cancelVoice(){
+  vtok++;
+  if(NT.on)ntCall("ttsStop").catch(()=>{});
+  try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
+  if(vsrc){try{vsrc.stop()}catch(e){}vsrc=null}
+  if(cntSrc){try{cntSrc.stop()}catch(e){}cntSrc=null}
+}
+
+/* =========================================================
+   ৪. ৩ডি বিহেভিয়ারাল অডিও (Web Audio API)
+   বাম কান = ভয়/উদ্বেগের শব্দ, ডান কান = আশার শব্দ
+   ========================================================= */
+function initAudio(){
+  AC=new(window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=MIX.master/100;
+  let outNode=AC.destination;
+  if(AC.createDynamicsCompressor){const c=AC.createDynamicsCompressor();c.threshold.value=-14;c.knee.value=14;c.ratio.value=4;c.attack.value=.005;c.release.value=.25;c.connect(AC.destination);outNode=c}
+  master.connect(outNode);
+  bgm=AC.createGain();bgm.gain.value=.27*MIX.bgm/100;bgm.connect(master); // BGM ভলিউম ০.২৭ (হেডফোন-পরীক্ষার ডান/বাম সুর এর বাইরে, অপরিবর্তিত)
+  // প্রশান্তিদায়ক রিভার্ব: শুধু গল্পের সাথে বাজা শব্দ (শ্বাস, হাওয়া, চিন্তা উড়ে যাওয়া, ড্রোন) এটি পায়।
+  // হেডফোন টেস্ট, বাম/ডান কানের সুর ও টিক-শব্দ master-এ সরাসরি যায়, তাই স্বাভাবিক ও শুকনো থাকে।
+  try{
+    const sr=AC.sampleRate,len=Math.floor(sr*1.7),ir=AC.createBuffer(1,len,sr),pre=Math.floor(sr*.03); // মনো ও ১.৭ সেকেন্ড: রিভার্বের সুর একই, কিন্তু ফোনের প্রসেসরে চাপ প্রায় এক-তৃতীয়াংশ
+    for(let c=0;c<1;c++){const d=ir.getChannelData(c);let lp=0;
+      for(let i=pre;i<len;i++){const u=(i-pre)/(len-pre);lp+=((Math.random()*2-1)-lp)*(.5-.35*u); // শেষের দিকে আরও নরম
+        d[i]=lp*Math.pow(1-u,2.2)*(1-Math.exp(-i/(sr*.04)))*1.25}}
+    const cv=AC.createConvolver();cv.buffer=ir;
+    const hp=AC.createBiquadFilter();hp.type="highpass";hp.frequency.value=180;
+    const wl=AC.createBiquadFilter();wl.type="lowpass";wl.frequency.value=3200;
+    const wet=AC.createGain();wet.gain.value=.25*MIX.reverb/100; // পরিমিত মাত্রা; বেশি মনে হলে .2, কম মনে হলে .4
+    const dl=AC.createDelay(1),fb=AC.createGain(),dlp=AC.createBiquadFilter(); // খুব হালকা নরম প্রতিধ্বনি
+    dl.delayTime.value=MIX.dly/1000;fb.gain.value=Math.min(.8,.07*MIX.fb/100);wetG=wet;fbG=fb;dlN=dl;ecoG=AC.createGain();ecoG.gain.value=.25*MIX.echo/100;ecoG.connect(master);dlp.type="lowpass";dlp.frequency.value=1800;
+    bgm.connect(hp);hp.connect(cv);cv.connect(wl);wl.connect(wet);wet.connect(master);
+    hp.connect(dl);dl.connect(dlp);dlp.connect(fb);fb.connect(dl);dlp.connect(ecoG);
+  }catch(e){}
+  // পাখির আলাদা বাস: গভীর রিভার্ব নেই। ঘরের ভেতর থেকে জানালার ওপারের মৃদু পাখির ডাকের মতো হালকা রুম-রিভার্ব ও সামান্য প্রতিধ্বনি
+  try{
+    birdBus=AC.createGain();birdBus.gain.value=.27*MIX.bird/100;
+    const blp=AC.createBiquadFilter();blp.type="lowpass";blp.frequency.value=6500;blp.Q.value=.5; // জানালার ওপার থেকে আসার নরম অনুভূতি
+    birdBus.connect(blp);blp.connect(master);
+    const bsr=AC.sampleRate,bl=Math.floor(bsr*.45),bir=AC.createBuffer(1,bl,bsr);
+    for(let c=0;c<1;c++){const d=bir.getChannelData(c);for(let i=0;i<bl;i++){const u=i/bl;d[i]=(Math.random()*2-1)*Math.pow(1-u,3)*(1-Math.exp(-i/(bsr*.004)))}}
+    const bcv=AC.createConvolver();bcv.buffer=bir;const brw=AC.createGain();brw.gain.value=.05;
+    blp.connect(bcv);bcv.connect(brw);brw.connect(master);
+    const bdl=AC.createDelay(.5),bdg=AC.createGain();bdl.delayTime.value=.17;bdg.gain.value=.027;
+    blp.connect(bdl);bdl.connect(bdg);bdg.connect(master);
+  }catch(e){birdBus=null}
+  // ডক্টর মায়ার কোড-ভয়েসের জন্য BiquadFilter চেইন (ভলিউম ১.০)
+  vgain=AC.createGain();vgain.gain.value=VOL;
+  const bq=(t,f,g,q)=>{const n=AC.createBiquadFilter();n.type=t;n.frequency.value=f;if(g)n.gain.value=g;if(q)n.Q.value=q;return n};
+  const ch=[bq("highpass",120),bq("lowshelf",300,2),bq("peaking",2400,1.5,.9),bq("highshelf",4000,-8),bq("lowpass",5000)];
+  let pv=vgain;ch.forEach(n=>{pv.connect(n);pv=n});pv.connect(AC.destination);
+  bL=AC.createStereoPanner();bL.pan.value=-flip;bL.connect(bgm);
+  bR=AC.createStereoPanner();bR.pan.value=flip;bR.connect(bgm);
+  L=AC.createStereoPanner();L.pan.value=-flip;L.connect(master);
+  R=AC.createStereoPanner();R.pan.value=flip;R.connect(master);
+}
+function applyEcho(){} // আগে এখানে হেডফোন/স্পিকার ভেদে মাত্রা বদলাত; এখন সব মান স্থির ও আগের মতো
+function ensureAudio(){if(!AC){initAudio();applyEcho()}if(AC.state==="suspended")AC.resume();try{if(SPD&&!SPB.size)spChunk(0).catch(()=>0)}catch(e){}}
+function setFlip(){flip=-flip;L.pan.value=-flip;R.pan.value=flip;bL.pan.value=-flip;bR.pan.value=flip}
+function tone(dest,f,t0,dur,type,vol){
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.03);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(g);g.connect(dest);o.start(t0);o.stop(t0+dur+.05);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(e){}};
+}
+function drone(f,dest,vol,type,lp){
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f;g.gain.value=vol*MIX.drone/100;
+  let n=o;if(lp){const b=AC.createBiquadFilter();b.type="lowpass";b.frequency.value=lp;o.connect(b);n=b}
+  n.connect(g);g.connect(dest);o.start();amb.push({n:o,g,dr:vol});
+}
+function wind(vol){
+  const s=AC.createBufferSource();s.buffer=noiseBuf();s.loop=true;
+  const b=AC.createBiquadFilter();b.type="lowpass";b.frequency.value=350;
+  const g=AC.createGain();g.gain.value=vol;s.connect(b);b.connect(g);g.connect(bL);s.start();amb.push({n:s,g});
+}
+function bell(){ // ডান কান: আশার সুর
+  const f=rnd([523.25,587.33,659.25,783.99,880]),t=AC.currentTime;
+  tone(R,f,t,2.2,"sine",.25);tone(R,f*2,t,1.4,"sine",.08);tone(R,f*1.5,t+.25,1.8,"sine",.1);
+}
+function cricket(){const t=AC.currentTime;for(let i=0;i<3;i++)tone(L,4200,t+i*.12,.08,"square",.009)}
+function darkPulse(){const t=AC.currentTime;tone(L,90,t,1.6,"sawtooth",.12);tone(L,95,t,1.6,"sawtooth",.1)} // বাম কান
+function chime(side,neutral){ // বাম = নিচু সুর, ডান = উঁচু সুর (হেডফোন না থাকলেও চেনা যায়)
+  const pn=AC.createStereoPanner();pn.pan.value=P(side);pn.connect(master);
+  const t=AC.currentTime,f=neutral?660:(side<0?523.25:880);
+  tone(pn,f,t,1.2,"triangle",.3);tone(pn,f*2,t,.8,"sine",.1);
+  setTimeout(()=>kill([pn]),2500);
+}
+function ptone(f,pan){const pn=AC.createStereoPanner();pn.pan.value=P(pan);pn.connect(master);tone(pn,f,AC.currentTime,.6,"sine",.3);setTimeout(()=>kill([pn]),1500)}
+function ambient(p){
+  stopAmbient();
+  const dv=[.14,.1,.07,.04,.02][p],hv=[.03,.05,.07,.09,.12][p];
+  const c=curCfg||{leftFreq:70,rightFreq:528},lf=c.leftFreq,rb=c.rightFreq/2;
+  drone(lf,bL,dv*.5,"sawtooth",180);drone(lf*1.03,bL,dv*.5,"sawtooth",180);wind(dv*.6);
+  [rb,rb*1.25,rb*1.5].forEach(f=>drone(f,bR,hv*.33,"sine"));
+  drone(55,bL,.03,"sine");drone(55.8,bR,.03,"sine");drone(138.6,bR,.01,"sine"); // গভীর ধীর স্পন্দন ও রহস্যময় শান্ত সুর
+  ints.push(setInterval(()=>sweep(72,48,7),17000));
+  if(p<2)ints.push(setInterval(cricket,7000));
+  sceneFx(p);
+}
+function stopAmbient(){
+  if(!AC)return;
+  const t=AC.currentTime;
+  amb.forEach(o=>{try{o.g.gain.cancelScheduledValues(t);o.g.gain.setValueAtTime(o.g.gain.value,t);o.g.gain.linearRampToValueAtTime(0,t+.2);o.n.stop(t+.25)}catch(e){}});
+  {const ns=[];amb.forEach(o=>ns.push(o.n,o.g));setTimeout(()=>kill(ns),700)} // থেমে যাওয়া নোড মুছে ফেলা, যাতে গ্রাফ ফুলে না ওঠে
+  amb=[];ints.forEach(x=>typeof x==="function"?x():clearInterval(x));ints=[];
+}
+function sweep(f0,f1,dur){
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type="sine";
+  o.frequency.setValueAtTime(f0,t);o.frequency.linearRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.4);g.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(g);g.connect(bgm);o.start(t);o.stop(t+dur+.1);o.onended=()=>kill([o,g]);
+}
+let NB=null;
+function noiseBuf(){ // একটাই শেয়ার করা নয়েজ বাফার (প্রতিবার নতুন বাফার বানালে মেমোরি বাড়ে)
+  if(!NB){const len=AC.sampleRate*2,b=AC.createBuffer(1,len,AC.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=Math.random()*2-1;NB=b}
+  return NB;
+}
+// শ্বাসের আওয়াজ = ফিল্টার করা নয়েজ। শ্বাস নেওয়ার সময় আওয়াজ ওপরের দিকে ওঠে ও জোরালো হয়,
+// শ্বাস ছাড়ার সময় ঠিক তার উল্টো পথে নিচে নামে ও মিলিয়ে যায়।
+function breathSound(dur,inhaling){
+  const t=AC.currentTime,e=t+dur,N=96;
+  const f=u=>u<.88?Math.pow(Math.sin(Math.PI/2*(u/.88)),1.8):Math.cos(Math.PI/2*((u-.88)/.12));
+  const curve=new Float32Array(N);let fl=1;
+  for(let i=0;i<N;i++){
+    const u=i/(N-1);
+    fl+=((1+.18*(Math.random()-.5))-fl)*.35;
+    curve[i]=Math.max(0,(inhaling?f(u):f(1-u))*fl)*.12;
+  }
+  const src=AC.createBufferSource();src.buffer=noiseBuf();src.loop=true;
+  const bp=AC.createBiquadFilter();bp.type="bandpass";bp.Q.value=.6;
+  const lp=AC.createBiquadFilter();lp.type="lowpass";lp.Q.value=.5;
+  const a=inhaling?[250,700,700,1800]:[700,250,1800,700];
+  bp.frequency.setValueAtTime(a[0],t);bp.frequency.linearRampToValueAtTime(a[1],e);
+  lp.frequency.setValueAtTime(a[2],t);lp.frequency.linearRampToValueAtTime(a[3],e);
+  const g=AC.createGain();g.gain.value=0;g.gain.setValueCurveAtTime(curve,t,dur);
+  src.connect(bp);bp.connect(lp);lp.connect(g);g.connect(bgm);
+  src.start(t);src.stop(e+.1);amb.push({n:src,g:g});src.onended=()=>kill([src,bp,lp,g]);
+}
+function breathCue(k,dur){ // ওঠা সুর = শ্বাস নাও, স্থির = ধরে রাখো, নামা = ছাড়ো
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),a=k>0?[210,300]:k<0?[300,210]:[300,300];
+  o.type="sine";o.frequency.setValueAtTime(a[0],t);o.frequency.linearRampToValueAtTime(a[1],t+dur);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.045,t+.6);g.gain.setValueAtTime(.045,t+Math.max(.7,dur-.6));g.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(g);g.connect(bgm);o.start(t);o.stop(t+dur+.1);o.onended=()=>kill([o,g]);
+}
+function deepSound(sec){ // চিকিৎসা চলাকালীন ধীরে ধীরে আরও গভীর হতে থাকা শব্দ
+  const t=AC.currentTime,o=AC.createOscillator(),o2=AC.createOscillator(),lp=AC.createBiquadFilter(),g=AC.createGain();
+  o.type="triangle";o2.type="sine";lp.type="lowpass";
+  lp.frequency.setValueAtTime(900,t);lp.frequency.linearRampToValueAtTime(220,t+sec);
+  o.frequency.setValueAtTime(160,t);o.frequency.linearRampToValueAtTime(70,t+sec);
+  o2.frequency.setValueAtTime(164,t);o2.frequency.linearRampToValueAtTime(74,t+sec);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.09,t+sec);
+  o.connect(lp);o2.connect(lp);lp.connect(g);g.connect(bgm);o.start(t);o2.start(t);amb.push({n:o,g},{n:o2,g});
+}
+function tension(){ // লেভেলের শুরুতে রহস্যময় গুমগুম সুর, যা শান্তিতে মিলিয়ে যায়
+  const t=AC.currentTime,pn=AC.createStereoPanner(),o=AC.createOscillator(),lp=AC.createBiquadFilter(),g=AC.createGain();
+  pn.pan.value=P(-1);o.type="sawtooth";o.frequency.setValueAtTime(48,t);o.frequency.linearRampToValueAtTime(62,t+5);
+  lp.type="lowpass";lp.frequency.value=160;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+4);g.gain.linearRampToValueAtTime(0,t+6);
+  o.connect(lp);lp.connect(g);g.connect(pn);pn.connect(bgm);o.start(t);o.stop(t+6.2);o.onended=()=>kill([o,lp,g,pn]);
+}
+function brainSync(){ // থিটা (৬Hz) বাইনোরাল + নরম কাচের ইকো: মস্তিষ্কের সাড়ার অনুভূতি
+  const t=AC.currentTime,pl=AC.createStereoPanner(),pr=AC.createStereoPanner(),out=AC.createGain(),dl=AC.createDelay(1),fb=AC.createGain();
+  pl.pan.value=P(-1);pr.pan.value=P(1);out.gain.value=.8;dl.delayTime.value=.45;fb.gain.value=.12;
+  pl.connect(out);pr.connect(out);out.connect(bgm);out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(bgm);
+  tone(pl,396,t,4,"sine",.1);tone(pr,402,t,4,"sine",.1);tone(out,1188,t,2.5,"sine",.025);
+  setTimeout(()=>kill([pl,pr,out,dl,fb]),12000); // আগে এই ইকো-লুপ সারাক্ষণ চলতে থাকত ও প্রতিটা শ্বাসে একটা করে জমত
+}
+
+function heart(bpm){
+  const b=()=>{const t=AC.currentTime;tone(bgm,55,t,.16,"sine",.45*MIX.heart/100);tone(bgm,48,t+.2,.16,"sine",.28*MIX.heart/100)};
+  b();ints.push(setInterval(b,60000/bpm));
+}
+
+/* ---------- প্রসঙ্গ-অনুযায়ী জীবন্ত শব্দ: হাওয়া, থিটা ইকো, পাখি, বাঁশি, বৃষ্টি ---------- */
+function fxTry(sec){const n=AC.currentTime;if(n<fxUntil)return false;fxUntil=n+sec+.5;return true} // এক সময়ে শুধু একটা বিশেষ শব্দ (পাখি/বাঁশি/হাওয়া/বৃষ্টির দমকা)
+const fxEnd=(src,nodes)=>{src.onended=()=>{nodes.forEach(n=>{try{n.disconnect()}catch(e){}})}};
+function windSwell(sec){ // নিচ থেকে শুরু, ধীরে তীব্র হয়ে আকাশে মিলিয়ে যায়
+  if(!AC||!fxTry(sec))return;
+  const t=AC.currentTime,s=AC.createBufferSource(),bp=AC.createBiquadFilter(),g=AC.createGain(),pn=AC.createStereoPanner();
+  s.buffer=noiseBuf();s.loop=true;bp.type="bandpass";bp.Q.value=.7;
+  bp.frequency.setValueAtTime(160,t);bp.frequency.exponentialRampToValueAtTime(1300,t+sec*.7);bp.frequency.exponentialRampToValueAtTime(3400,t+sec);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.17,t+sec*.62);g.gain.exponentialRampToValueAtTime(.0001,t+sec);
+  pn.pan.setValueAtTime(P(-.6),t);pn.pan.linearRampToValueAtTime(P(.8),t+sec);
+  s.connect(bp);bp.connect(g);g.connect(pn);pn.connect(bgm);
+  s.start(t,Math.random()*1.5);s.stop(t+sec+.1);fxEnd(s,[s,bp,g,pn]);
+}
+function thetaDeep(sec){ // থিটা (৬Hz) স্পন্দন + প্রতিধ্বনি: নিচ থেকে শুরু হয়ে ধীরে আরও গভীরে নামে
+  if(!AC)return;
+  const t=AC.currentTime,o=AC.createOscillator(),o2=AC.createOscillator(),g2=AC.createGain(),trem=AC.createGain(),lfo=AC.createOscillator(),lg=AC.createGain(),
+    lp=AC.createBiquadFilter(),out=AC.createGain(),dl=AC.createDelay(2),fb=AC.createGain();
+  o.type="sine";o2.type="sine";g2.gain.value=.4;
+  o.frequency.setValueAtTime(220,t);o.frequency.linearRampToValueAtTime(98,t+sec);
+  o2.frequency.setValueAtTime(330,t);o2.frequency.linearRampToValueAtTime(147,t+sec);
+  trem.gain.value=.5;lfo.frequency.value=6;lg.gain.value=.5;lfo.connect(lg);lg.connect(trem.gain);
+  lp.type="lowpass";lp.frequency.setValueAtTime(1200,t);lp.frequency.linearRampToValueAtTime(260,t+sec);
+  out.gain.setValueAtTime(.0001,t);out.gain.linearRampToValueAtTime(.075,t+sec*.8);out.gain.linearRampToValueAtTime(0,t+sec);
+  dl.delayTime.value=.62;fb.gain.value=.12;
+  o.connect(trem);o2.connect(g2);g2.connect(trem);trem.connect(lp);lp.connect(out);out.connect(bgm);
+  out.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(bgm);
+  [o,o2,lfo].forEach(x=>{x.start(t);x.stop(t+sec+.3)});
+  amb.push({n:o,g:out});
+  fxEnd(o,[o,o2,g2,trem,lfo,lg,lp,out,dl,fb]);
+}
+function birdSong(n,dur,force){ return; // পাখির শব্দ বন্ধ করা হয়েছে
+  // কয়েকটা পাখি, ডান↔বাম কানে ঘুরে ঘুরে মিষ্টি সুরে গান গায়
+  if(!AC||!started||suspended)return;
+  n=n||3+(Math.random()*2|0);dur=dur||6;
+  if(!fxTry(dur*1.3+1))return; // অন্য কোনো বিশেষ শব্দ চললে এটা বাজবে না
+  const reg=[2200,2700,3200,3800,2500],sc=[1,1.125,1.25,1.5,1.667,2];
+  for(let b=0;b<n;b++){
+    const t0=AC.currentTime+b*(.4+Math.random()*.9),len=dur*(.8+Math.random()*.6),dir=Math.random()<.5?-1:1,base=reg[b%reg.length]*(.9+Math.random()*.2);
+    const pn=AC.createStereoPanner();pn.connect(birdBus||bgm);
+    pn.pan.setValueAtTime(P(.9*dir),t0);pn.pan.linearRampToValueAtTime(P(-.9*dir),t0+len); // এক কান থেকে অন্য কানে
+    const note=(f,s,d,v,glide)=>{
+      const o=AC.createOscillator(),h=AC.createOscillator(),g=AC.createGain(),hg=AC.createGain();
+      o.type="sine";h.type="sine";o.frequency.setValueAtTime(f,s);h.frequency.setValueAtTime(f*2,s);
+      if(glide){o.frequency.linearRampToValueAtTime(f*1.06,s+d*.7);h.frequency.linearRampToValueAtTime(f*2.12,s+d*.7)}
+      hg.gain.value=.12;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v,s+.015);g.gain.exponentialRampToValueAtTime(.0001,s+d);
+      o.connect(g);h.connect(hg);hg.connect(g);g.connect(pn);o.start(s);h.start(s);o.stop(s+d+.03);h.stop(s+d+.03);
+      o.onended=()=>{try{o.disconnect();h.disconnect();hg.disconnect();g.disconnect()}catch(e){}};
+    };
+    let s=t0;
+    while(s<t0+len){
+      if(Math.random()<.3){ // দ্রুত কাকলি
+        const f=base*sc[Math.random()*sc.length|0],k=5+(Math.random()*4|0);
+        for(let i=0;i<k;i++){note(i%2?f*1.06:f,s,.07,.07);s+=.075}
+        s+=.25+Math.random()*.3;
+      }else{ // সুরেলা শিস
+        const k=2+(Math.random()*3|0);
+        for(let i=0;i<k;i++){note(base*sc[Math.random()*sc.length|0],s,.28+Math.random()*.15,.08,true);s+=.3+Math.random()*.15}
+        s+=.4+Math.random()*.7;
+      }
     }
+    setTimeout(()=>{try{pn.disconnect()}catch(e){}},(t0-AC.currentTime+len+2.5)*1000);
+  }
+}
+function birdCall(){birdSong(3+(Math.random()*2|0),6)}
+function flutePhrase(){ // শান্ত বাঁশির ছোট সুর (পেন্টাটনিক স্কেল)
+  if(!AC||!started||suspended||!fxTry(7))return;
+  const sc=[392,440,523.25,587.33,659.25,784],n=3+(Math.random()*3|0),pn=AC.createStereoPanner();
+  pn.pan.value=P(Math.random()*.8-.4);pn.connect(bgm);
+  let t=AC.currentTime+.1,lastO=null,lastNodes=[];
+  for(let i=0;i<n;i++){
+    const f=sc[Math.random()*sc.length|0],d=1.1+Math.random()*1.3;
+    const o=AC.createOscillator(),h=AC.createOscillator(),hg=AC.createGain(),v=AC.createOscillator(),vg=AC.createGain(),g=AC.createGain();
+    o.type="sine";h.type="sine";o.frequency.value=f;h.frequency.value=f*2;hg.gain.value=.15;
+    v.frequency.value=5;vg.gain.value=f*.006;v.connect(vg);vg.connect(o.frequency);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.18);g.gain.setValueAtTime(.07,t+d*.6);g.gain.linearRampToValueAtTime(0,t+d);
+    o.connect(g);h.connect(hg);hg.connect(g);g.connect(pn);
+    [o,h,v].forEach(x=>{x.start(t);x.stop(t+d+.05)});
+    lastO=o;lastNodes=[o,h,hg,v,vg,g];t+=d*.85;
+  }
+  fxEnd(lastO,[...lastNodes,pn]);
+}
+function rain(vol,sec){ // ফিল্টার করা মসৃণ নয়েজ (কোনো টোকা-শব্দ নেই); sec না দিলে ambient থামা পর্যন্ত চলে
+  if(!AC||(sec&&!fxTry(sec)))return;
+  const t=AC.currentTime,s=AC.createBufferSource(),hpf=AC.createBiquadFilter(),bp=AC.createBiquadFilter(),g=AC.createGain(),lfo=AC.createOscillator(),lg=AC.createGain();
+  s.buffer=noiseBuf();s.loop=true;hpf.type="highpass";hpf.frequency.value=1200;bp.type="bandpass";bp.frequency.value=4000;bp.Q.value=.35;
+  lfo.frequency.value=.13;lg.gain.value=vol*.25;lfo.connect(lg);lg.connect(g.gain);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+(sec?sec*.3:3));
+  s.connect(hpf);hpf.connect(bp);bp.connect(g);g.connect(bgm);
+  s.start(t,Math.random()*1.5);lfo.start(t);
+  if(sec){g.gain.setValueAtTime(vol,t+sec*.7);g.gain.linearRampToValueAtTime(0,t+sec);s.stop(t+sec+.1);lfo.stop(t+sec+.1);fxEnd(s,[s,hpf,bp,g,lfo,lg])}
+  else amb.push({n:s,g},{n:lfo,g:lg});
+}
+function sched(fn,a,b){ // এলোমেলো বিরতিতে শব্দ বাজানো; ambient থামলে বন্ধ হয়
+  const h={on:true,id:0};
+  const go=()=>{if(!h.on)return;try{fn()}catch(e){}h.id=setTimeout(go,a+Math.random()*(b-a))};
+  h.id=setTimeout(go,a*.4+Math.random()*a*.6);
+  ints.push(()=>{h.on=false;clearTimeout(h.id)});
+}
+function sceneFx(p){ // লেভেলের ধরন অনুযায়ী পরিবেশ
+  if(!AC)return;const k=curMT,bi=curBI;
+  if(bi===6){rain(.07);sched(flutePhrase,12000,20000);sched(()=>windSwell(8),22000,34000);return} // ঝড়ের মাঝে বাঁশির সুর
+  if(bi===2){sched(birdCall,4000,9000);return}                                                    // পাখির ডাক
+  if(k==="soundFocus")sched(birdCall,9000,16000);
+  else if(k==="audioMemory")sched(birdCall,14000,24000);
+  else if(k==="thoughtRelease")sched(()=>windSwell(9),16000,26000);
+  else if(k==="gesturePuzzle")sched(flutePhrase,15000,24000);
+  else if(k==="bodyScan")rain(.035);
+  else if(k==="voiceDiary")sched(flutePhrase,18000,28000);
+  else sched(()=>windSwell(10),30000,45000);
+}
+function cueFx(t){ // মায়ার কথার সঙ্গে মিলিয়ে শব্দ
+  if(!AC||!started||suspended)return;
+  if(/মেঘের মতো|দূরে সরে যাচ্ছে|উড়ে যাচ্ছে/.test(t))windSwell(9);
+  else if(/ঝড়/.test(t))windSwell(7);
+  if(/পাখি/.test(t))birdSong(4,8,true);
+  if(/বৃষ্টি/.test(t))rain(.09,12);
+  if(/বাঁশি/.test(t))flutePhrase();
+  if(/প্রতিধ্বনি/.test(t))brainSync();
+}
+const inhale=d=>breathSound(d,true);
+const exhale=d=>breathSound(d,false);
 
-    function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
+/* =========================================================
+   ৫. স্পর্শ-নির্ভর জেশ্চার ইঞ্জিন
+   ========================================================= */
+const GNAME={left:"⬅ বামে সোয়াইপ",right:"➡ ডানে সোয়াইপ",up:"⬆ উপরে সোয়াইপ",dbl:"দুবার ট্যাপ"};
+const setWant=a=>{$("want").textContent=a?("এখন করো: "+a.filter(x=>x!=="down").map(x=>GNAME[x]).join("  অথবা  ")):""};
+let skipR=null;
+const wait=allowed=>new Promise(r=>{pending={allowed,r};setWant(allowed)});
+function tick(){try{if(AC)tone(master,880,AC.currentTime,.14,"sine",.12)}catch(e){}}
+function wrong(){
+  try{if(AC)tone(master,220,AC.currentTime,.22,"sine",.14)}catch(e){}
+  const w=$("want");w.style.color="#ff9b8a";setTimeout(()=>{w.style.color=""},600);
+}
+function fire(g){
+  if(!started){if(g==="dbl"){started=true;begin()}return}
+  if(suspended){
+    if(g==="dbl")resumeGame();
+    else if(g==="help"){suspended=false;$("pbtn").textContent="⏸";$("vset").style.display="none";try{AC&&AC.resume()}catch(e){}help()}
+    return;
+  }
+  if(g==="help"){help();return}
+  if(pending){
+    if(pending.allowed.includes(g)){const p=pending;pending=null;setWant(null);p.r(g)}
+    else if(g!=="down")wrong();
+    return;
+  }
+  if(g==="up"&&skipR){const r=skipR;skipR=null;r()}
+}
+let gStart=null,gLast=null,maxT=0,lastTap=0,lastTouch=0,mouseDown=false;
+const avg=ts=>{let x=0,y=0;for(const t of ts){x+=t.clientX;y+=t.clientY}return{x:x/ts.length,y:y/ts.length}};
+const pad=$("pad");
+const skip=e=>e.target&&e.target.closest&&e.target.closest("input,button,a,select");
+function endGesture(){
+  if(!gStart)return;
+  const dx=gLast.x-gStart.x,dy=gLast.y-gStart.y,ax=Math.abs(dx),ay=Math.abs(dy),mt=maxT;
+  gStart=null;
+  if(mt>=2){if(ay>ax&&dy<-40)fire("help");else if(ay>ax&&dy>40)suspendGame();return}
+  if(Math.max(ax,ay)<30){
+    const n=Date.now();
+    if(n-lastTap<400){lastTap=0;fire("dbl")}else lastTap=n;
+  }else{
+    lastTap=0;
+    if(ay>ax)fire(dy<0?"up":"down");else fire(dx<0?"left":"right");
+  }
+}
+pad.addEventListener("touchstart",e=>{
+  lastTouch=Date.now();
+  if(skip(e))return;
+  if(started)e.preventDefault();
+  gStart=avg(e.touches);gLast=gStart;
+  maxT=e.touches.length>=2?2:1;
+},{passive:false});
+pad.addEventListener("touchmove",e=>{
+  lastTouch=Date.now();
+  if(skip(e)||!gStart)return;
+  if(started)e.preventDefault();
+  gLast=avg(e.touches);
+},{passive:false});
+pad.addEventListener("touchend",e=>{
+  lastTouch=Date.now();
+  if(skip(e)||e.touches.length>0||!gStart)return;
+  if(started)e.preventDefault();
+  endGesture();
+},{passive:false});
+pad.addEventListener("touchcancel",()=>{gStart=null});
+// মাউস (কম্পিউটারে প্রিভিউর জন্য)
+pad.addEventListener("mousedown",e=>{
+  if(Date.now()-lastTouch<800||skip(e))return;
+  mouseDown=true;maxT=1;gStart={x:e.clientX,y:e.clientY};gLast=gStart;
+});
+window.addEventListener("mousemove",e=>{if(mouseDown&&gStart)gLast={x:e.clientX,y:e.clientY}});
+window.addEventListener("mouseup",()=>{if(mouseDown){mouseDown=false;endGesture()}});
+document.addEventListener("keydown",e=>{
+  const tn=e.target&&e.target.tagName;
+  if(tn==="INPUT"||tn==="BUTTON"||tn==="TEXTAREA"||tn==="SELECT")return;
+  const m={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",Enter:"dbl"," ":"dbl",h:"help",H:"help"}[e.key];
+  if(m){e.preventDefault();fire(m)}
+});
 
-        appendMessage(text, 'user');
-        userInput.value = '';
+/* =========================================================
+   ৬. কথা বলা ও শোনা (জেশ্চার কথার মাঝেও কাজ করে)
+   ========================================================= */
+const say=t=>{show(t);return live(speakRaw(t))};            // এগিয়ে দেওয়া যায় না
+async function speak(t){                                     // উপরে সোয়াইপ করলে পরের ধাপে যায়
+  show(t);
+  let r;const sk=new Promise(x=>{r=x});skipR=r;
+  const res=await live(Promise.race([speakRaw(t).then(()=>0),sk.then(()=>1)]));
+  if(skipR===r)skipR=null;
+  if(res===1)cancelVoice();
+}
+async function listen(t,allowed){
+  for(;;){
+    const w=wait([...allowed,"down"]);                       // আগে অপেক্ষা শুরু, তারপর কথা
+    show(t);
+    const first=await live(Promise.race([w.then(g=>({g})),speakRaw(t).then(()=>null)]));
+    let g;
+    if(first){g=first.g;cancelVoice()}else g=await live(w);
+    if(g!=="down"){tick();return g}
+    cancelVoice();
+  }
+}
+const ask=listen;
+const praise=()=>rnd([`চমৎকার, ${name}!`,`খুব ভালো করছো, ${name}।`,`আমি তোমার জন্য গর্বিত, ${name}।`,`ঠিক এভাবেই, ${name}।`]);
+async function readSeq(seq,K){
+  for(let i=0;i<seq.length;i++){
+    const w=wait([...K,"down"]);
+    $("want").textContent+=`  (ধাপ ${bn(i+1)}/${bn(seq.length)})`;
+    const g=await live(w);
+    if(i===0)cancelVoice();
+    if(g==="down")return "replay";
+    if(g!==seq[i]){wrong();return false}
+    tick();
+  }
+  return true;
+}
 
-        // Simulated AI response from Doctor Maya
-        setTimeout(() => {
-            const reply = "ধন্যবাদ আপনার বার্তার জন্য। আমি আপনার কথাটি বুঝতে পেরেছি।";
-            appendMessage(reply, 'bot');
-            speakText(reply);
-        }, 800);
+/* =========================================================
+   ৭. চ্যালেঞ্জ (প্রতিটা টাস্ক সঠিকভাবে শেষ না হলে পরের ধাপে যাবে না)
+   ========================================================= */
+async function breathCycle(){ // ৫-৬-৭ চক্র: ৫ সেকেন্ড নেওয়া, ৬ সেকেন্ড ধরা, ৭ সেকেন্ড ছাড়া
+  const ph=[["আস্তে আস্তে গভীর শ্বাস নাও...",5,1.2,inhale],["শ্বাস ধরে রাখো...",6,0,null],["ধীরে ধীরে মুখ দিয়ে শ্বাস ছাড়ো...",7,.6,exhale]];
+  for(const [txt,n,sc,snd] of ph){
+    await say(txt);
+    if(sc)orb(sc,n);if(snd)snd(n);breathCue(snd===inhale?1:snd===exhale?-1:0,n);
+    let c="";
+    
+    for(let k=1;k<=n;k++){cap(bn(k));countSay(k);await sleep(1000)}
+  }
+  cap("");brainSync();bcount++;if(bcount>=2)await speak(RESP[(bcount-2)%RESP.length]);else await sleep(2500);
+}
+async function neuralSession(p,sec){ // ৫ মিনিটের ব্রেন রিলাক্সেশন: ৬Hz থিটা বাইনোরাল বিট
+  ambient(p);deepSound(sec);thetaDeep(sec);
+  const t=AC.currentTime,pl=AC.createStereoPanner(),pr=AC.createStereoPanner(),g=AC.createGain();
+  pl.pan.value=P(-1);pr.pan.value=P(1);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.07,t+20);g.gain.setValueAtTime(.07,t+sec-15);g.gain.linearRampToValueAtTime(0,t+sec);
+  [[pl,200],[pr,206]].forEach(([pn,fr])=>{const o=AC.createOscillator();o.type="sine";o.frequency.value=fr;o.connect(pn);pn.connect(g);o.start(t);o.stop(t+sec+.2)});
+  if(!hp){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=6;lg.gain.value=.03;l.connect(lg);lg.connect(g.gain);l.start(t);l.stop(t+sec+.2);l.onended=()=>kill([l,lg])} // হেডফোন না থাকলে ৬Hz স্পন্দন
+  g.connect(bgm);setTimeout(()=>kill([pl,pr,g]),(sec+2)*1000);
+  const end=Date.now()+sec*1000,LN=["তোমার শ্বাস নিজে নিজেই ধীর হয়ে আসছে।","মাথা ধীরে ধীরে হালকা হচ্ছে।","চিন্তাগুলো মেঘের মতো ভেসে যাচ্ছে।","তোমার মস্তিষ্ক এখন শান্ত তরঙ্গে সাড়া দিচ্ছে।","শরীর আলগা, মন স্বচ্ছ।","কোনো তাড়া নেই। শুধু শোনো।","দূরে কোথাও হালকা বৃষ্টির শব্দ শোনো।","একটা পাখি দূরে ডাকছে, শোনো।","বাঁশির একটা নরম সুর ভেসে আসছে।"];
+  await speak(`${name}, এবার পাঁচ মিনিটের ব্রেন রিলাক্সেশন। ${hp?"হেডফোনে":"সুরটা"} শোনো, কিছু করতে হবে না।`);
+  for(let i=0;Date.now()<end-8000;i++){
+    await speak(LN[i%LN.length]);
+    await sleep(Math.min(50000,Math.max(0,end-Date.now()-8000)));
+  }
+}
+async function deepen(p,t0){
+  ambient(p);heart(66-p*3);thetaDeep(80);
+  await speak(`${name}, আমি এখানেই আছি। চলো, আরও গভীরে নামি, একসঙ্গে।`);
+  for(let i=0;i<2;i++){await breathCycle();await speak("মনে মনে বলো: "+rnd(PHASES[p].pos));}
+  await neuralSession(p,300);
+}
+async function breathTask(p){
+  const cycles=p<3?2:3;
+  ambient(p);heart(72-p*4);deepSound(cycles*34);thetaDeep(cycles*34);
+  const f=(curCfg&&curCfg.beatHz)||(p<3?10:6);
+  drone(200,bL,.05,"sine");drone(200+f,bR,.05,"sine");
+  await ask(`${name}, চোখ বন্ধ করো। আমি তোমার খুব কাছেই আছি, তোমার ভাবনার ভেতর থেকেই কথা বলছি। চাইলে যেকোনো সময় থামতে পারো। শুরু করতে দুবার ট্যাপ করো।`,["dbl"]);
+  for(let i=0;i<cycles;i++)await breathCycle();
+  await speak("অনুভব করো, তোমার মন ধীরে ধীরে সাড়া দিচ্ছে।");
+  await speak(praise());
+}
+async function soundTask(p){
+  ambient(p);
+  const rounds=2+p;
+  await speak(`${name}, এখন একটা শব্দ শুনবে। বাম কানের সুর নিচু, ডান কানের সুর উঁচু। শব্দটা যেদিক থেকে আসবে, সেদিকে সোয়াইপ করো।`);
+  for(let i=0;i<rounds;i++){
+    const side=Math.random()<.5?-1:1;let tries=0;
+    for(;;){
+      if(tries>=2)await speak(`এবার শব্দটা ${side<0?"বাম":"ডান"} কানে আসবে।`);
+      const w=wait(["left","right","down"]);
+      chime(side);
+      const g=await live(w);
+      if(g==="down")continue;
+      tick();
+      if((g==="left")===(side<0)){bell();await speak(praise());break}
+      tries++;
+      await speak(`শব্দটা ${side<0?"বাম দিক থেকে, নিচু সুরে":"ডান দিক থেকে, উঁচু সুরে"} এসেছিল। আবার শুনি।`);
     }
+  }
+}
+async function thoughtTask(p){
+  ambient(p);
+  const rounds=2+p,PH=PHASES[p];
+  await speak(`${name}, আমি একটা চিন্তা বলব। নেতিবাচক হলে বামে সোয়াইপ করে সরিয়ে দাও। ইতিবাচক হলে ডানে সোয়াইপ করে গ্রহণ করো।`);
+  for(let i=0;i<rounds;i++){
+    const neg=Math.random()<.5,th=rnd(neg?PH.neg:PH.pos);
+    for(;;){
+      neg?darkPulse():bell();await sleep(600);
+      const g=await listen(th,["left","right"]);
+      if((g==="left")===neg){
+        if(neg)await speak("চিন্তাটা সরে গেল।");else{bell();await speak("চিন্তাটা তোমার হলো।")}
+        await speak(praise());
+        break;
+      }
+      await speak(neg?"এই চিন্তাটা কষ্ট দেয়, তাই একে বামে সরিয়ে দিতে হয়। আবার শুনি।":"এটা একটা ভালো চিন্তা ছিল, ডানে গ্রহণ করতে হয়। আবার শুনি।");
+    }
+  }
+}
+async function memoryTask(p){
+  ambient(p);
+  const M={left:[440,-1],right:[660,1],up:[880,0]},K=Object.keys(M),NM={left:"বামে",right:"ডানে",up:"উপরে"};
+  const lens=[2,3+Math.min(2,p>>1)];
+  await speak(`${name}, আমি কয়েকটা সুর বাজাব। নিচু সুর মানে বামে সোয়াইপ, মাঝারি সুর মানে ডানে সোয়াইপ, আর সবচেয়ে উঁচু সুর মানে উপরে সোয়াইপ। আগে শুধু শুনবে। আমি এবার তুমি করো বললে, একই ক্রমে সোয়াইপ করবে।`);
+  for(let r=0;r<lens.length;r++){
+    let seq=Array.from({length:lens[r]},()=>rnd(K)),fails=0;
+    for(;;){
+      show("শোনো…");
+      await sleep(500);
+      for(const k of seq){ptone(M[k][0],M[k][1]);await sleep(800)}
+      await sleep(200);
+      show("এবার তুমি করো।");
+      say("এবার তুমি করো।");
+      const res=await readSeq(seq,K);
+      if(res===true){bell();await speak(praise());break}
+      if(res===false){
+        fails++;
+        await speak("প্রায় হয়ে গেছে। আবার শুনি।");
+        if(fails>=3)await speak("ক্রমটা ছিল: "+seq.map(k=>NM[k]).join(", তারপর ")+"।");
+        else if(fails%2===0&&seq.length>2)seq=seq.slice(0,-1);
+      }
+    }
+  }
+}
+async function puzzleTask(p){
+  ambient(p);
+  const G={right:"ডানে সোয়াইপ",left:"বামে সোয়াইপ",up:"উপরে সোয়াইপ",dbl:"দুবার ট্যাপ"},K=Object.keys(G),n0=3+(p>=3?1:0);
+  await speak(`${name}, আমি কয়েকটা ধাপ বলব। একই ক্রমে করে দেখাও।`);
+  for(let r=0;r<2;r++){
+    let seq=Array.from({length:n0},()=>rnd(K)),fails=0;
+    for(;;){
+      await say(seq.map(k=>G[k]).join(", তারপর ")+"।");
+      const res=await readSeq(seq,K);
+      if(res===true){bell();await speak(praise());break}
+      if(res===false){
+        fails++;
+        await speak("কোনো সমস্যা নেই, আমি আবার বলছি।");
+        if(fails%2===0&&seq.length>2)seq=seq.slice(0,-1);
+      }
+    }
+  }
+}
+async function bodyTask(p){
+  ambient(p);heart(66-p*3);
+  await ask(`${name}, আরাম করে বসো। শরীরের এক এক অংশ আলগা করতে বলব। শুরু করতে দুবার ট্যাপ করো।`,["dbl"]);
+  for(const x of ["পায়ের পাতা","পা","পেট","বুক","হাত আর কাঁধ","মুখ আর কপাল"]){
+    say(`এখন তোমার ${x} আলগা করো। ধীরে শ্বাস নাও।`);orb(1.1,3);await sleep(6000);orb(.7,3);await sleep(3000);
+  }
+  await speak(praise());
+}
+async function diaryTask(p){
+  ambient(p);
+  const q=rnd(["আজ কোন জিনিসটা তোমাকে সবচেয়ে বেশি কষ্ট দিয়েছে?","কোন ব্যাপারে তোমার রাগ বা ক্ষোভ জমে আছে?","আজ কোন ছোট জিনিসটা তোমাকে একটু ভালো লাগিয়েছে?"]);
+  await ask(`${name}, এটা তোমার নিজের ভয়েস ডায়রি। কিছুই রেকর্ড বা সেভ হবে না। প্রশ্নটা শোনো: ${q} জোরে বলো বা মনে মনে ভাবো। শেষ হলে দুবার ট্যাপ করো।`,["dbl"]);
+  await speak("মনের কথা বলে ফেললে অনেক সময় মন একটু হালকা হয়।");
+  await speak(praise());
+}
+async function finale(){
+  const t=AC.currentTime,CL=AC.sampleRate*.08|0,CB=AC.createBuffer(1,CL,AC.sampleRate),CD=CB.getChannelData(0);
+  for(let j=0;j<CL;j++)CD[j]=(Math.random()*2-1)*Math.exp(-j/(CL*.25));
+  for(let i=0;i<70;i++){
+    const pn=AC.createStereoPanner();pn.pan.value=Math.random()*2-1;pn.connect(master);
+    const s=AC.createBufferSource(),g=AC.createGain();s.buffer=CB;g.gain.value=.25;s.connect(g);g.connect(pn);s.start(t+Math.random()*7);
+    s.onended=()=>{try{s.disconnect();g.disconnect();pn.disconnect()}catch(e){}};
+  }
+  [[392,0],[392,.35],[523.25,.7],[523.25,1.4],[659.25,1.75],[783.99,2.4]].forEach(([f,o],i)=>{
+    const bp=AC.createStereoPanner();bp.pan.value=P(i%2?.6:-.6);bp.connect(master);tone(bp,f,t+o,.55,"sawtooth",.1);
+  });
+  for(let i=0;i<6;i++)setTimeout(()=>{if(!suspended)bell()},i*900);
+  orb(1.4,3);
+  await speak(`${name}, তুমি তোমার ভেতরের অন্ধকারের সমস্ত ভয় জয় করেছো! তুমি আর অন্ধকারের যাত্রী নও, তুমি নিজেই এখন মনের আলো।`);
+  await speak("গেম ক্রিয়েটর ও ডেভেলপার বাংলাদেশের এমডি রবিউল ইসলাম হাওলাদারের পক্ষ থেকে তোমাকে আন্তরিক শুভেচ্ছা ও বিজয়ের অভিনন্দন!");
+}
+const TASKS={breath:breathTask,sound:soundTask,thought:thoughtTask,memory:memoryTask,puzzle:puzzleTask,body:bodyTask,diary:diaryTask};
 
-    function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
+/* =========================================================
+   ৮. লেভেল ও গেমের প্রবাহ
+   ========================================================= */
+let bcount=0;
+const RESP=["তোমার মস্তিষ্ক খুব ধীরে ধীরে সাড়া দিচ্ছে।","একটু একটু করে তোমার মাথা হালকা হচ্ছে।","চিন্তাগুলো একটা একটা করে দূরে সরে যাচ্ছে।","তোমার মাথা আরও হালকা, আরও শান্ত।","কোনো তাড়া নেই। শুধু শ্বাস আর তুমি।","তোমার মন এখন পরিষ্কার আর স্বচ্ছ।","মাথা এখন পালকের মতো হালকা।"];
+const RESP_OLD=["অনুভব করো, তোমার মস্তিষ্ক তোমার ডাকে সাড়া দিচ্ছে।","তোমার মাথা ধীরে ধীরে হালকা হয়ে যাচ্ছে।","প্রতিটা শ্বাসের সঙ্গে একটা একটা করে চিন্তা দূরে চলে যাচ্ছে।","তোমার মন এখন শান্ত আর পরিষ্কার।"];
+const STORY=[["তুমি মনের করিডোরের একটা দরজা খুলে ফেলেছো। ভেতরে ভয় আর আলো পাশাপাশি বসে আছে।","ভয় আজ একটু ছোট হলো, আলো একটু কাছে এলো।"],
+["করিডোরের দেয়ালে এখন সুর বাজছে। তুমি সেই সুরের দিক চিনতে শিখছো।","তোমার কান এখন তোমার পথপ্রদর্শক।"],
+["করিডোরের গভীরে তুমি নিজের অনুভূতির ঘর খুঁজে পেয়েছো। সেখানে কোনো বিচার নেই।","ঘরটা আজ একটু উষ্ণ হলো।"],
+["করিডোরের জানালা দিয়ে বাইরের মানুষের আলো দেখা যাচ্ছে। তারা তোমার অপেক্ষায় আছে।","জানালাটা আজ আরেকটু খুলল।"],
+["শেষ দরজা এখন খুব কাছে। ওপারের আলোটা আসলে তোমারই।","তুমি এতদূর নিজের শক্তিতেই এসেছো।"]];
+function cue(side,sec){ // ডান = প্রশান্তির সুর ১০০% ডান কানে, বাম = ভয়ের শব্দ ১০০% বাম কানে
+  ensureAudio();const t=AC.currentTime,pn=AC.createStereoPanner();pn.pan.value=P(side);pn.connect(master);
+  (side>0?[523.25,659.25,783.99]:[82,87]).forEach(f=>{
+    const o=AC.createOscillator(),g=AC.createGain();o.type=side>0?"sine":"triangle";o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(side>0?.09:.14,t+.5);g.gain.linearRampToValueAtTime(0,t+sec);
+    o.connect(g);g.connect(pn);o.start(t);o.stop(t+sec+.1);
+  });
+  setTimeout(()=>kill([pn]),(sec+1)*1000);
+}
+async function sided(segs){for(const [txt,side] of segs){if(side)cue(side,Math.max(3,txt.length*.1));await speak(txt)}}
+async function runLevel(l){
+  const t0=Date.now();bcount=0;lvT0=t0;
+  const D=gameLevels[l-1],p=D.phase-1,type=MTYPE[D.meditationType];
+  curCfg=D.binauralAudioConfig;curMT=D.meditationType;curBI=Math.floor((l-1)/10);
+  $("lv").textContent=`লেভেল ${bn(l)} / ২০০ — পর্ব ${bn(p+1)}`;$("barfill").style.width=(l/2)+"%";
+  lvMin=[5,5,6,6,7][p];orb(.6,1);tension();
+  if((l-1)%40===0)await speak(`${name}, পর্ব ${bn(p+1)}: ${PHASES[p].n}। ${PHASES[p].intro}`);
+  await speak(`লেভেল ${bn(l)}: ${D.title}।`);
+  const nar=D.narrative.replace(/^ডক্টর মায়া:\s*'/,"").replace(/'\s*$/,"").replace(/\[PlayerName\]/g,name).replace(/\.+\s*$/,"।");
+  curNarr=nar;curNarrL=l;await listen(nar,[GST[D.requiredGesture]]);curNarr="";
+  if(l===200)await finale();else{await TASKS[type](p);await deepen(p,t0)}
+  stopAmbient();orb(.8,2);bell();
+  await speak("আজকে তোমার জন্য ছোট কাজ। "+D.socialMission);
+  if(l<200)await speak(STORY[p][l%2]);
+  if(l%10===0&&l<200){
+    const g=await ask(`${name}, এখন কেমন বোধ করছো? ভালো লাগলে ডানে সোয়াইপ করো, খারাপ লাগলে বামে।`,["left","right"]);
+    if(g==="left")await speak(`ঠিক আছে ${name}, খারাপ লাগাটা বলতে পারা একটা সাহসের কাজ। যেকোনো সময় দুই আঙুলে উপরে সোয়াইপ করলে আমি সাহায্যের কথা বলব। তোমার বিশ্বস্ত কাউকে আজ জানাতে পারো কেমন লাগছে।`);
+    else await speak("শুনে ভালো লাগলো।");
+  }
+  await sleep(600);
+}
+let nameRec=null;
+function startNameRec(){
+  const SRc=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SRc)return;
+  try{
+    nameRec=new SRc();nameRec.lang="bn-BD";nameRec.maxAlternatives=1;
+    nameRec.onresult=e=>{const t=((e.results[0]||[])[0]||{}).transcript;if(t&&t.trim())$("nameIn").value=t.trim()};
+    nameRec.onerror=()=>{};nameRec.start();
+  }catch(e){}
+}
+function stopNameRec(){try{nameRec&&nameRec.abort()}catch(e){}nameRec=null}
+function getName(){return new Promise(res=>{
+  const fin=()=>{const n=$("nameIn").value.trim()||"বন্ধু";$("form").style.display="none";res(n)};
+  $("form").style.display="flex";
+  $("nameBtn").onclick=fin;
+  $("nameIn").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();fin()}};
+})}
+async function headphoneTest(){
+  let again=false;
+  for(;;){
+    for(let attempt=1;attempt<=3;attempt++){
+      await speak(again||attempt>1
+        ?"আবার চেষ্টা করি। হেডফোন দুই কানে ঠিকমতো লাগিয়ে নাও।"
+        :`${name}, প্রথমে হেডফোন ঠিক আছে কিনা দেখি। হেডফোন কানে লাগিয়ে নাও। তিনবার সুর বাজবে। সুর যে কানে আসবে, সেদিকে সোয়াইপ করো।`);
+      const order=[1,-1,1],ans=[];
+      for(let i=0;i<order.length;i++){
+        for(;;){
+          await sleep(600);
+          const w=wait(["left","right","down"]);
+          show("সুরটা কোন কানে এলো?");
+          chime(order[i],true);
+          const g=await live(w);
+          if(g==="down")continue;
+          tick();ans.push(g==="left"?-1:1);
+          break;
         }
+        if(i<order.length-1)await speak("আরেকবার শুনি।");
+      }
+      const ok=ans.every((a,i)=>a===order[i]),rev=ans.every((a,i)=>a===-order[i]);
+      if(ok){await speak("খুব ভালো, হেডফোন ঠিক আছে।");return}
+      if(rev){setFlip();await speak("বুঝেছি, তোমার হেডফোনের বাম-ডান উল্টো। আমি বদলে নিলাম।");return}
+      if(attempt<3)await speak("সুরগুলো ঠিকমতো ধরা যায়নি। হেডফোন কানে ঠিকমতো লাগিয়ে আবার শুনি।");
     }
-
-    function speakText(text) {
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'bn-BD';
-            window.speechSynthesis.speak(utterance);
-        }
+    again=true;
+    await ask("হেডফোন ঠিকমতো না হলে গেমে ঢোকা যাবে না। হেডফোন ঠিকমতো লাগিয়ে দুবার ট্যাপ করে আবার চেষ্টা করো।",["dbl"]);
+  }
+}
+// ----- লেভেল শেষের বার্তা (কোনো সময়ের লক নেই) -----
+const QZ=[["ধীরে গভীর শ্বাস নিলে শরীর ও মন শান্ত হতে সাহায্য করে।",1,"ধীর শ্বাস শরীরকে শান্ত হওয়ার সংকেত দেয়, তাই কথাটা সত্য।"],
+["ভয়কে পুরোপুরি এড়িয়ে চললে ভয় ধীরে ধীরে কমে যায়।",0,"এড়িয়ে গেলে ভয় আরও বড় হয়। ধীরে ধীরে সামনে গেলে তবেই কমে।"],
+["মনে এলেই কোনো চিন্তা সত্য হয়ে যায়।",0,"চিন্তা শুধু চিন্তা। সেটা সবসময় সত্য নয়, আমরা তাকে ছেড়ে দিতে পারি।"],
+["নিজের প্রতি দয়ালু হওয়া দুর্বলতা নয়, শক্তি।",1,"নিজের প্রতি দয়া মনকে দাঁড়াতে শক্তি দেয়, তাই কথাটা সত্য।"],
+["মন খারাপ হলে প্রিয় কারও সঙ্গে কথা বললে হালকা লাগতে পারে।",1,"মন খুলে কথা বললে ভার কমে, তাই কথাটা সত্য।"],
+["একবারে অনেকটা এগোনোর চেয়ে ধীরে ধীরে এগোনো মনের জন্য ভালো।",1,"ধীরে এগোলে মন নতুন অভ্যাস সহজে গ্রহণ করে, তাই কথাটা সত্য।"],
+["অনুভূতি চেপে রাখলে সেটা সবসময় চলে যায়।",0,"চেপে রাখা অনুভূতি প্রায়ই ফিরে আসে। তাকে চিনে নিলে সে নরম হয়।"],
+["নিজের অনুভূতির নাম দিতে পারলে তাকে সামলানো সহজ হয়।",1,"অনুভূতিকে নাম দিলে সে স্পষ্ট হয় আর সামলানো সহজ হয়, তাই কথাটা সত্য।"]];
+async function reflect(l){ // লেভেল শেষে ৩টি প্রতিফলনের প্রশ্ন; ঠিক উত্তরের পরই পরের লেভেলের পথ খোলে
+  lvT0=0;$("clk").textContent="";$("lv").textContent="ভেবে দেখো";
+  await say("লেভেলটা কেমন গেল, একটু ভেবে দেখি। তিনটে ছোট প্রশ্ন আছে। কথাটা সত্য হলে ডানে, মিথ্যা হলে বামে সোয়াইপ করো।");
+  for(let j=0;j<3;j++){
+    const q=QZ[(l*3+j)%QZ.length];
+    for(;;){
+      const g=await ask(`প্রশ্ন ${bn(j+1)}: ${q[0]}`,["left","right"]);
+      if((g==="right")===!!q[1]){await say("ঠিক বলেছো।");break}
+      await say("আরেকবার ভাবো। "+q[2]);
     }
+  }
+  await say("খুব ভালো। তুমি আজকের পাঠটা বুঝে নিয়েছো।");
+}
+async function levelGate(){
+  lvT0=0;$("clk").textContent="";$("lv").textContent="লেভেল সম্পন্ন ✓";
+  await say("তোমার সামনে আরেকটা দরজা আছে, ওপারে একটা নতুন সুর অপেক্ষা করছে। তবে তাড়া নেই। প্রতিদিন একটি একটি করে লেভেল খেললে তা তোমার চিন্তাভাবনা ও অভ্যাসে সবচেয়ে সুন্দর প্রভাব ফেলে। ধীরে ধীরে খেললে এটি তোমার জন্য সবচেয়ে ভালো হবে।");
+  await ask("তবুও যদি তুমি আজকেই পরবর্তী অংশে যেতে চাও, তবে স্ক্রিনের যেকোনো স্থানে ডাবল ট্যাপ করো।",["dbl"]);
+}
+async function startFlow(){
+  VOL=MIX.voice/100;token++;pending=null;skipR=null;setWant(null);
+  if(!name){
+    const intro="আমি ডক্টর মায়া। আজ তোমার সঙ্গে থাকতে পেরে আমার খুব ভালো লাগছে। তোমার নাম নিচের বক্সে লেখো, তারপর ঠিক আছে বোতাম চাপো। চাইলে নামটা বলতেও পারো।";
+    const nm=getName();
+    show(intro);
+    const first=await live(Promise.race([nm,speakRaw(intro).then(()=>null)]));
+    if(first){name=first;cancelVoice()}
+    else{startNameRec();name=await live(nm)}
+    stopNameRec();
+    saveProg(level);
+    await speak(`${name}, তোমাকে স্বাগতম।`);
+    await sided([[`${name}, আমরা ভয়ের সাথে ধীরে ধীরে বন্ধুত্ব করব...`,0],["বাম কানে তুমি ভয়ের শব্দ শুনবে, ভারী আর গম্ভীর।",-1],["আর ডান কানে শুনবে আলোর সুর, নরম আর প্রশান্ত।",1],["ভয়কে শুনতে শেখো, আর আলোকে একটু একটু করে কাছে টেনে নাও।",0]]);
+  }
+  if(!tested){if(hp)await headphoneTest();else await speak("ঠিক আছে, হেডফোন ছাড়াই খেলব। নিচু সুর মানে বাম, উঁচু সুর মানে ডান, মনে রেখো।");tested=true}
+  if(!briefed){
+    await speak(`${name}, আজ থেকে আমরা একসঙ্গে মনের আলো খুঁজব। উপরে সোয়াইপ করলে এগোবে। নিচে সোয়াইপ করলে আবার শুনবে। বামে সোয়াইপ করলে নেতিবাচক চিন্তা দূরে যাবে, ডানে সোয়াইপ করলে ইতিবাচক চিন্তা আসবে। দুবার ট্যাপ করলে নিশ্চিত হবে। আর কখনো খারাপ লাগলে, দুই আঙুলে উপরে সোয়াইপ করো, আমি সঙ্গে আছি।`);
+    briefed=true;
+  }
+  for(;level<=200;level++){
+    await runLevel(level);
+    if(level<200)await reflect(level);
+    saveProg(level+1);
+    if(level===200)break;
+    await levelGate();
+  }
+  await speak(`${name}, তুমি ২০০টি লেভেল পার করেছো। তোমার মনের আলো এখন তোমার সঙ্গেই আছে। নিজের জন্য গর্ব করো। নতুন লেভেল আর আপডেট খুব শিগগিরই দেওয়ার চেষ্টা করব। আশা করি ততদিন এই সেবাটি ব্যবহার করবে।`);
+}
+function suspendGame(){
+  cancelVoice();
+  if(!started){try{AC&&AC.suspend()}catch(e){}return}
+  if(suspended)return;
+  suspended=true;
+  token++;pending=null;skipR=null;setWant(null);
+  try{stopAmbient()}catch(e){}
+  try{AC&&AC.suspend()}catch(e){}
+  show("খেলা থেমে আছে। চাইলে ওপরের ⚙ বোতাম থেকে সেটিংসে কণ্ঠের পিচ ও গতি বদলাতে পারো। আবার চালু করতে স্ক্রিনে দুবার ট্যাপ করো।");
+  $("pbtn").textContent="▶";$("vset").style.display="flex";if(window.__setBtn)__setBtn.style.display="block";
+}
+function resumeGame(){
+  if(!suspended)return;
+  suspended=false;$("pbtn").textContent="⏸";$("vset").style.display="none";if(window.__setBtn)__setBtn.style.display="none";const _p=document.getElementById("pnl");if(_p)_p.style.display="none";
+  try{AC&&AC.resume()}catch(e){}
+  startFlow();
+}
+const spell=n=>[...n].map(c=>bn(c)).join(" ");
+async function help(){
+  token++;pending=null;skipR=null;setWant(null);stopAmbient();cancelVoice();
+  await say(`${name||"বন্ধু"}, আমি এখানে আছি। একটা লম্বা শ্বাস নাও, ধীরে ছাড়ো। মন খুব খারাপ লাগলে বা নিজের ক্ষতি করার কথা মনে এলে, এখনই কারও সঙ্গে কথা বলো। কান পেতে রই, মানসিক স্বাস্থ্য হেল্পলাইন: ${spell("09612119911")}, অথবা ${spell("01779554391")}। শিশুদের জন্য শিশু হেল্পলাইন: ${spell("1098")}। কাছের কোনো বিশ্বস্ত মানুষকেও ডেকে নাও। তুমি একা নও। খেলায় ফিরতে উপরে সোয়াইপ করো।`);
+  await live(wait(["up","dbl"]));
+  startFlow();
+}
+function begin(){
+  try{if(lsGet(UKEY,null))toast(MSG,4000)}catch(e){}
+  $("go").style.display="none";$("prev").style.display="none";$("vset").style.display="none";
+  document.body.classList.add("play");suspended=false;
+  if(DEV)level=Math.min(200,Math.max(1,parseInt($("jump").value)||1));
+  ensureAudio();
+  try{if(navigator.wakeLock)navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+  startFlow();
+}/* =========================================================
+   ৯. শুরুর পর্দার বাটন
+   ========================================================= */
+const introText=()=>level>1
+  ?`ফিরে আসার জন্য স্বাগতম। তুমি লেভেল ${bn(level)} থেকে শুরু করবে। শুরু করতে স্ক্রিনে দুবার ট্যাপ করো, অথবা নিচের বাটন চাপো।`
+  :"হেডফোন কানে লাগাও। শুরু করতে স্ক্রিনে দুবার ট্যাপ করো, অথবা নিচের বাটন চাপো।";
+$("go").onclick=()=>{if(!started){started=true;begin()}};
+const SAMPLE="আমি ডক্টর মায়া। আমি তোমার সঙ্গে আছি।";
+const testVoice=()=>{ensureAudio();cancelVoice();if(!recMode&&langIsEn()){const e="Hello, this is your selected voice.";show(e);deviceSpeak(e,2);return}show(SAMPLE);speakRaw(SAMPLE)};
+$("vmode").onclick=()=>{if(recMode&&!bnVoices.length){toast("ফোনে বাংলা ডিভাইস ভয়েস পাওয়া যায়নি, তাই ডক্টর মায়ার কোড ভয়েসেই চলবে।",4500);return}recMode=!recMode;recPref=recMode?"1":"0";try{localStorage.setItem("lom_rec",recPref)}catch(e){}prefSaved=true;savePrefs();showVoice();testVoice()};
+$("pitr").value=pit;$("spdr").value=spd;
+const onSlide=()=>{pit=Math.round(Math.min(1.3,Math.max(.8,+$("pitr").value||1))*100)/100;spd=Math.round(Math.min(1.8,Math.max(.6,+$("spdr").value||1))*100)/100;applyVoice();savePrefs();showVoice()};
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const e=$(b.dataset.s),v=+e.value+Math.sign(+b.dataset.d)*(STEPS[b.dataset.s]||Math.abs(+b.dataset.d));e.value=Math.min(+e.max,Math.max(+e.min,Math.round(v*100)/100));onSlide();testVoice()});
+$("pitr").oninput=onSlide;$("spdr").oninput=onSlide;
+$("pitr").onchange=()=>{onSlide();testVoice()};
+$("spdr").onchange=()=>{onSlide();testVoice()};
+$("vnext").onclick=()=>{if(!useCode&&bnVoices.length){if(vChosen)vIdx=(vIdx+1)%bnVoices.length;else{vChosen=true;vIdx=0}showVoice();testVoice()}};
+$("vtest").onclick=testVoice;
+$("vsel").onchange=()=>{vp=+$("vsel").value;applyVoice();savePrefs();showVoice();testVoice()};
+$("reset").onclick=()=>{
+  name="";level=1;saveProg(1);$("jump").value=1;refreshStat();show("অগ্রগতি মুছে ফেলা হয়েছে। নতুন করে শুরু করতে পারো। "+introText());
+};
+if("speechSynthesis" in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
 
-    function startVoice() {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'bn-BD';
-
-            recognition.onstart = function() {
-                userInput.placeholder = "শুনছি... বলুন...";
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                userInput.value = transcript;
-                sendMessage();
-            };
-
-            recognition.onend = function() {
-                userInput.placeholder = "এখানে লিখুন...";
-            };
-
-            recognition.start();
-        } else {
-            alert("আপনার ব্রাউজারে ভয়েস রেকর্ড সাপোর্ট করছে না।");
-        }
+$("ntLang").onchange=()=>{LANG=$("ntLang").value;try{localStorage.setItem("lom_lang",LANG)}catch(e){}if(NT.on)ntFillVoices(true);loadVoices();showVoice();testVoice()};
+$("ntMode").onchange=()=>{const core=$("ntMode").value==="core";if(!core&&!NT.on&&!bnVoices.length&&!enVoices.length){toast("এই ডিভাইসে কোনো ডিভাইস ভয়েস পাওয়া যায়নি।",4500);showVoice();return}recMode=core;recPref=core?"1":"0";try{localStorage.setItem("lom_rec",recPref)}catch(e){}prefSaved=true;savePrefs();showVoice();testVoice()};
+$("ntEng").onchange=async()=>{NT.engine=$("ntEng").value;ntSave();await ntInit(NT.engine);testVoice()};
+$("ntVoice").onchange=()=>{NT.sel[langIsEn()?"en":"bn"]=$("ntVoice").value;ntSave();testVoice()};
+$("ntAll").onchange=()=>{NT.all=$("ntAll").checked;ntSave();ntFillVoices(false)};
+$("ntRate").oninput=()=>{NT.rate=Math.round(+$("ntRate").value*100)/100;ntSave();ntLabels()};
+$("ntRate").onchange=()=>testVoice();
+$("ntPit").oninput=()=>{NT.pit=Math.round(+$("ntPit").value*100)/100;ntSave();ntLabels()};
+$("ntPit").onchange=()=>testVoice();
+$("ntReset").onclick=()=>{NT.rate=null;NT.pit=null;ntSave();$("ntRate").value=ntRate();$("ntPit").value=ntPit();ntLabels();testVoice()};
+if(ntAvail())ntInit();else window.addEventListener("flutterInAppWebViewPlatformReady",()=>ntInit(),{once:true});
+showVoice();
+$("pbtn").onclick=()=>{if(suspended)resumeGame();else suspendGame()};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)suspendGame()});
+window.addEventListener("pagehide",suspendGame);
+window.addEventListener("beforeunload",()=>{cancelVoice();try{AC&&AC.close()}catch(e){}});
+showVoice();
+function refreshStat(){
+  $("stat").textContent=DEV?"🔓 সব লেভেল আনলক করা আছে":`✅ সম্পন্ন ${bn(level-1)} · ▶ এখন লেভেল ${bn(level)} · 🔒 বাকি ${bn(200-level)}`;
+  $("jumprow").style.display=DEV?"block":"none";
+}
+const restoreCode=v=>{ // অন্য ফোনে প্রগতি ফিরিয়ে আনার কোড
+  if(!v.startsWith("LOM-"))return false;
+  try{const o=JSON.parse(decodeURIComponent(escape(atob(v.slice(4)))));if(!(o.l>=1&&o.l<=200))throw 0;
+    name=String(o.n||"").slice(0,30);level=o.l|0;saveProg(level);$("jump").value=level;$("pmsg").textContent="প্রগতি ফিরে এসেছে: লেভেল "+bn(level)+"।"}
+  catch(e){$("pmsg").textContent="কোডটা ঠিক নয়, আবার চেষ্টা করো।"}
+  refreshStat();return true;
+};
+$("pcode").onclick=()=>{const c="LOM-"+btoa(unescape(encodeURIComponent(JSON.stringify({n:name,l:level}))));$("pmsg").textContent="তোমার প্রগতি কোড (অন্য ফোনে প্রমো কোড বক্সে বসিয়ে প্রয়োগ চাপো): "+c;try{navigator.clipboard.writeText(c)}catch(e){}};
+$("jump").value=level;refreshStat();
+show(introText());
+const TUT=[["ডানে সোয়াইপ করো।","আঙুল পর্দার ওপর দিয়ে ডান দিকে টানো"],["বামে সোয়াইপ করো।","আঙুল বাম দিকে টানো"],["উপরে সোয়াইপ করো।","আঙুল ওপরের দিকে টানো, পরের ধাপে যেতে"],["স্ক্রিনে দুবার ট্যাপ করো।","যেকোনো জায়গায় পরপর দুবার আলতো ছোঁও"],["আস্তে আস্তে গভীর শ্বাস নাও।","ধীরে শ্বাস নাও, ১ থেকে ৫ গুনে"],["শ্বাস ধরে রাখো।","শ্বাস আটকে রাখো, ১ থেকে ৬ গুনে"],["ধীরে ধীরে মুখ দিয়ে শ্বাস ছাড়ো।","১ থেকে ৭ গুনে ধীরে ছাড়ো"],["এবার তুমি করো।","শোনা সুর বা ক্রম মনে করে সোয়াইপ করো"],["চমৎকার!","ঠিক হয়েছে"],["আবার শুনি।","ভুল হলে ঘাবড়াবে না, মায়া আবার শোনাবেন"]];
+function openTut(){
+  let h='<button class="sm" id="tclose">← ফিরে যাও</button><h3>📖 টিউটোরিয়াল</h3><div class="row">ডক্টর মায়ার কোন কথা শুনলে কী করতে হয়, একটা একটা করে শুনে শিখে নাও। (বাংলা কোড-ভয়েসের জন্য কাজ চলছে। পরিষ্কার শুনতে "কণ্ঠ" বোতামে ডিভাইস ভয়েস বেছে নাও।)</div><h3>১. মায়ার কথা ও তোমার কাজ</h3>';
+  TUT.forEach((r,i)=>h+=`<div class="row"><button class="sm" data-t="${i}">🔊 ${r[0]}</button> ${r[1]}</div>`);
+  h+=`<h3>২. সুর শুনে চেনা</h3><div class="row"><button class="sm" data-c="-1">🔊 নিচু সুর</button> বাম কানে আসে, বামে সোয়াইপ করো</div><div class="row"><button class="sm" data-c="1">🔊 উঁচু সুর</button> ডান কানে আসে, ডানে সোয়াইপ করো</div>
+<h3>৩. হেডফোন থাকলে ও না থাকলে</h3><div class="row">হেডফোন থাকলে প্রথমে পরীক্ষা হবে: প্রথমে ডান কানে সুর আসবে (ডানে সোয়াইপ), তারপর বাম কানে (বামে সোয়াইপ), তারপর আবার ডানে। হেডফোন না থাকলে শুরুর পর্দায় "হেডফোন: নেই" বেছে নাও। তখন নিচু সুর মানে বাম আর উঁচু সুর মানে ডান ধরে খেলবে।</div>
+<h3>৪. শ্বাসের সুর (কথা না শুনলেও বোঝা যায়)</h3><div class="row"><button class="sm" data-b="1">🔊 ওঠা সুর</button> শ্বাস নাও (৫ গোনা)</div><div class="row"><button class="sm" data-b="0">🔊 স্থির সুর</button> শ্বাস ধরে রাখো (৬ গোনা)</div><div class="row"><button class="sm" data-b="-1">🔊 নামা সুর</button> শ্বাস ছাড়ো (৭ গোনা)</div><div class="row">এই সময় ভেতরে একটা গভীর শব্দ চলতে থাকে, যা ধীরে ধীরে আরও গভীর হয়। তোমার মাথা হালকা হচ্ছে, এমনটা অনুভব করো।</div>
+<h3>৫. মায়ার কথা বন্ধ করা</h3><div class="row">কথা শুনতে না চাইলে ওপরে বাঁ দিকের 🔊 বোতামে চাপো। তখন কথা পর্দায় লেখা থাকবে, শুধু সুর বাজবে। আবার চাপলে কথা ফিরে আসবে।</div>
+<h3>৬. সাহায্য ও বিরতি</h3><div class="row">খারাপ লাগলে দুই আঙুলে একসঙ্গে উপরে সোয়াইপ করো। দুই আঙুলে নিচে সোয়াইপ করলে খেলা থামবে। এক আঙুলে নিচে সোয়াইপ করলে মায়া কথাটা আবার বলবেন।</div>
+<h3>৭. চোখে দেখতে না পেলে</h3><div class="row">পুরো খেলা শুনেই খেলা যায়। সব কথা বাংলায় শুনতে "কণ্ঠ" বোতামে ডিভাইস ভয়েস বেছে নাও। টকব্যাক চালু থাকলে এক আঙুলের সোয়াইপ আটকে যেতে পারে, তাই খেলার সময় টকব্যাক বন্ধ রাখাই ভালো।</div>
+<h3>৮. ২০০ লেভেল</h3><div class="row">প্রতিটা লেভেল ৫ থেকে ৭ মিনিটের। প্রতিটা লেভেলে শেষে ৩টি ছোট প্রশ্ন থাকে (সত্য হলে ডানে, মিথ্যা হলে বামে সোয়াইপ), ঠিক উত্তর দিলে তবেই পরের লেভেল খোলে। এক লেভেল শেষ না করে পরেরটায় যাওয়া যায় না। এই টিউটোরিয়াল যেকোনো সময় আবার দেখতে পারো।</div>`;
+  if(!started)h+='<div class="row"><button class="sm" id="tdone" style="font-size:17px;padding:12px 18px;background:#f2b84b;color:#1a1204">✅ শেখা শেষ, গেমে ঢুকি</button></div>';
+  const t=$("tut");t.innerHTML=h;t.style.display="block";t.scrollTop=0;document.body.classList.remove("play");cancelVoice();
+}
+function closeTut(){$("tut").style.display="none";if(started)document.body.classList.add("play");cancelVoice()}
+$("tut").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.id==="tclose")closeTut();
+  else if(b.id==="tdone"){closeTut();$("go").onclick()}
+  else if(b.dataset.t!==undefined){ensureAudio();cancelVoice();speakRaw(TUT[+b.dataset.t][0])}
+  else if(b.dataset.c!==undefined){ensureAudio();cancelVoice();chime(+b.dataset.c,false)}
+  else if(b.dataset.b!==undefined){ensureAudio();cancelVoice();breathCue(+b.dataset.b,3)}
+};
+$("dsel").onchange=()=>{const i=+$("dsel").value;if(i<0)return;vChosen=true;vIdx=i;dvName=bnVoices[i].name;savePrefs();showVoice();testVoice()};
+const testCount=()=>{ensureAudio();cancelVoice();[1,2,3].forEach((k,i)=>setTimeout(()=>countSay(k),i*900))};
+$("clang").onchange=()=>{cntLang=$("clang").value;cvName="";fillSel();savePrefs();testCount()};
+$("csel").onchange=()=>{cvName=$("csel").value;savePrefs();testCount()};
+$("tutbtn").onclick=openTut;$("tutbtn2").onclick=openTut;
+$("mbtn").onclick=()=>{mute=!mute;if(mute)cancelVoice();$("mbtn").textContent=mute?"🔇":"🔊";$("mbtn").setAttribute("aria-label",mute?"ডক্টর মায়ার কথা চালু করো":"ডক্টর মায়ার কথা বন্ধ করো")};
+{let n=0;const iv=setInterval(()=>{loadVoices();if(bnVoices.length||++n>20)clearInterval(iv)},500)} // অ্যান্ড্রয়েড ওয়েবভিউতে ভয়েস দেরিতে লোড হয়
+const showHp=()=>{$("hpbtn").textContent=hp?"🎧 হেডফোন: আছে (বদলাতে চাপো)":"📱 হেডফোন: নেই (বদলাতে চাপো)"};
+$("hpbtn").onclick=()=>{hp=!hp;savePrefs();showHp();applyEcho()};showHp();
+const showCnt=()=>{$("cntbtn").textContent=cntOn?"🔢 গণনার আওয়াজ: চালু (বদলাতে চাপো)":"🔇 গণনার আওয়াজ: বন্ধ, সংখ্যা পর্দায় দেখা যাবে (বদলাতে চাপো)"};
+$("cntbtn").onclick=()=>{cntOn=!cntOn;savePrefs();showCnt()};showCnt();
+$("ctl").onclick=e=>{const b=e.target.closest("button");if(b){ensureAudio();fire(b.dataset.g)}};
+setInterval(()=>{if(!lvT0||suspended)return;const f=n=>bn(Math.floor(n/60))+":"+bn(String(n%60).padStart(2,"0"));$("clk").textContent=`⏱ ${f(Math.floor((Date.now()-lvT0)/1000))} / ${f(lvMin*60)}`},5000);
+/* =========================================================
+   ১০. ডেভেলপার কন্ট্রোল ও ইউজার লাইসেন্সিং সিস্টেম
+   ========================================================= */
+const CLOUD_URL=""; // ঐচ্ছিক: Firebase Realtime Database URL (যেমন https://xxxx-default-rtdb.firebaseio.com) বসালে অন্য ডিভাইসে প্রগতি ফেরত পাওয়া যাবে
+const LSEC="f2fa0ff5d78643223252b654";
+const MASTER_H="ac51a3089b3af244c8509f8335e72375869585921c16168b6b24badae8f9f522",LEGACY_H="2653352647a3b9367cb9bb24aab4fc8d0f410d9dd2c02a22e63ab229fbcb02f3";
+const SHA_K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0xfc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x6ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2],SHA_H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+function sha(s){
+  const m=new TextEncoder().encode(s),l=m.length,n=((l+9+63)>>6)<<4,w=new Uint32Array(n),x=new Uint32Array(64);
+  for(let i=0;i<l;i++)w[i>>2]|=m[i]<<(24-8*(i&3));
+  w[l>>2]|=0x80<<(24-8*(l&3));w[n-1]=l*8;
+  let h=SHA_H.slice();
+  const R=(v,k)=>(v>>>k)|(v<<(32-k));
+  for(let o=0;o<n;o+=16){
+    for(let i=0;i<16;i++)x[i]=w[o+i];
+    for(let i=16;i<64;i++){const a=x[i-15],b=x[i-2];x[i]=(x[i-16]+(R(a,7)^R(a,18)^(a>>>3))+x[i-7]+(R(b,17)^R(b,19)^(b>>>10)))>>>0}
+    let [a,b,c,d,e,f,g,hh]=h;
+    for(let i=0;i<64;i++){
+      const t1=(hh+(R(e,6)^R(e,11)^R(e,25))+((e&f)^(~e&g))+SHA_K[i]+x[i])>>>0;
+      const t2=((R(a,2)^R(a,13)^R(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
+      hh=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
     }
+    h=[h[0]+a,h[1]+b,h[2]+c,h[3]+d,h[4]+e,h[5]+f,h[6]+g,h[7]+hh].map(v=>v>>>0);
+  }
+  return h.map(v=>v.toString(16).padStart(8,"0")).join("");
+}
+const HS=s=>sha("lom|"+s);
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+const lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MSG="আপনার নিজস্ব প্রমো কোডের মাধ্যমে গেমটি সফলভাবে পরিচালিত হচ্ছে।";
+const LK="lom_lic_db_v1",UKEY="lom_user_lic_v1",IK="lom_inj_v1",DK="lom_del_v1",CK="lom_cloud_v1";
+const safeMode=location.hash==="#safe";
+
+/* ---------- সহায়ক ---------- */
+const normC=c=>{c=String(c||"").trim().toLowerCase();if(/^[+\d\s\-()]{6,}$/.test(c)){c=c.replace(/\D/g,"");if(c.startsWith("88")&&c.length>=12)c=c.slice(2);if(/^1\d{9}$/.test(c))c="0"+c}return c};
+const normX=x=>String(x||"").trim().toLowerCase();
+const hC=c=>HS("c:"+normC(c));
+const tagOf=(c,x)=>sha("tag|"+LSEC+"|"+normC(c)+"|"+normX(x)).slice(0,8).toUpperCase();
+const finalCode=(c,x)=>String(x).trim()+"-"+tagOf(c,x);
+function checkLic(c,code){const m=String(code||"").trim().match(/^(.+)-([0-9a-fA-F]{8})$/);if(!m)return false;return tagOf(c,m[1])===m[2].toUpperCase()}
+const mask=c=>/@/.test(c)?c.trim().replace(/^(.{1,2}).*(@.*)$/,"$1***$2"):(c.trim().length>5?c.trim().slice(0,2)+"***"+c.trim().slice(-3):c.trim());
+function copyTxt(t){try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;opacity:0";document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}catch(e){}}
+let toastT=0;
+function toast(t,ms){const e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>{e.style.display="none"},ms||6000)}
+
+/* ---------- ক্লাউড (ঐচ্ছিক) ---------- */
+const cloudBase=()=>{let u=CLOUD_URL;try{u=localStorage.getItem(CK)||u}catch(e){}return String(u||"").trim().replace(/\/+$/,"")};
+async function cj(path,method,body){
+  const b=cloudBase();if(!b)return undefined;
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);
+  try{
+    const r=await fetch(`${b}/${path}.json`,{method:method||"GET",body:body===undefined?undefined:JSON.stringify(body),signal:c.signal,headers:body===undefined?undefined:{"Content-Type":"application/json"}});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return await r.json();
+  }finally{clearTimeout(t)}
+}
+
+/* ---------- ইউজার সাইড: লাইসেন্স সক্রিয়করণ ও প্রগতি ব্যাকআপ ---------- */
+function lcShow(){
+  const u=lsGet(UKEY,null);
+  $("lcStat").textContent=u?`✅ লাইসেন্স সক্রিয়: ${u.lbl}। তোমার নাম, লেভেল ও প্রগতি সুরক্ষিত।`+(cloudBase()?" (ক্লাউড ব্যাকআপ চালু)":" অন্য ফোনে নিতে '📋 প্রগতি কোড' ব্যবহার করো।"):"লাইসেন্স সক্রিয় নেই (ঐচ্ছিক)";
+  $("lcOff").style.display=u?"inline-block":"none";
+}
+function applyBk(d){
+  if(!d||!(d.l>=1&&d.l<=200)||started)return false;
+  if(!(d.l>level||(!name&&d.n)))return false;
+  name=String(d.n||name).slice(0,30);level=d.l|0;
+  if(d.pf){if(d.pf.spd>=.6&&d.pf.spd<=1.8)spd=+d.pf.spd;if(d.pf.pit>=.8&&d.pf.pit<=1.3)pit=+d.pf.pit;if(d.pf.vp>=0&&d.pf.vp<12)vp=d.pf.vp|0;$("pitr").value=pit;$("spdr").value=spd;applyVoice();savePrefs();showVoice()}
+  saveProg(level);$("jump").value=level;refreshStat();show(introText());
+  toast("আগের প্রগতি ফিরে পেয়েছো: লেভেল "+bn(level)+"।",7000);
+  return true;
+}
+async function cloudPull(u){if(!cloudBase())return false;return applyBk(await cj("prog/"+u.hc+"_"+u.hk))}
+async function cloudPush(u,d){try{await cj("prog/"+u.hc+"_"+u.hk,"PUT",d)}catch(e){}}
+let cT=0;
+function licSync(l){ // saveProg থেকে ডাকা হয় (l = সংরক্ষিত লেভেল)
+  const u=lsGet(UKEY,null);if(!u)return;
+  const d={n:name,l:l||level,t:Date.now(),pf:{spd,pit,vp}};
+  lsSet("lom_bk_"+u.hc,d);
+  clearTimeout(cT);cT=setTimeout(()=>cloudPush(u,d),1200);
+}
+async function lcActivate(){
+  const c=$("lcContact").value.trim(),k=$("lcCode").value.trim(),m=$("lcStat");
+  if(!c||!k){m.textContent="জিমেইল/ফোন নম্বর এবং প্রমো কোড, দুটোই লেখো।";return}
+  if(!checkLic(c,k)){m.textContent="❌ এই জিমেইল/ফোনের সাথে কোডটি মিলছে না। ডেভেলপারের দেওয়া কোড হুবহু লেখো।";return}
+  const u={hc:hC(c),hk:HS("k:"+k.toLowerCase()),lbl:mask(c)};
+  try{if(cloudBase()&&(await cj("revoked/"+u.hc))===true){m.textContent="❌ এই লাইসেন্সটি বাতিল করা হয়েছে।";return}}catch(e){}
+  lsSet(UKEY,u);lcShow();toast(MSG,7000);
+  try{await cloudPull(u)}catch(e){}
+  licSync(level);
+}
+async function lcVerifyCloud(){
+  const u=lsGet(UKEY,null);if(!u||!cloudBase())return;
+  try{if((await cj("revoked/"+u.hc))===true){lsDel(UKEY);lcShow();toast("এই লাইসেন্সটি বাতিল করা হয়েছে।")}else await cloudPull(u)}catch(e){}
+}
+function promoApply(){
+  const v=$("promo").value.trim(),m=$("pmsg");
+  if(restoreCode(v))return;
+  const h=HS(v);
+  if(h===MASTER_H){$("promo").value="";m.textContent="✅ ডেভেলপার মোড চালু হয়েছে।";openDev();return}
+  if(h===LEGACY_H){DEV=true;try{localStorage.setItem("all_levels_unlocked","true")}catch(e){}m.textContent="সব লেভেল আনলক হয়েছে।";refreshStat();return}
+  const c=$("lcContact").value.trim();
+  if(c&&v&&checkLic(c,v)){$("lcCode").value=v;lcActivate();return}
+  m.textContent="কোডটা ঠিক নয়, আবার চেষ্টা করো।";refreshStat();
+}
+
+/* ---------- সাউন্ড মিক্সার (লাইভ) ---------- */
+function applyMix(){
+  VOL=MIX.voice/100;
+  if(!AC)return;
+  try{
+    if(master)master.gain.value=MIX.master/100;
+    if(bgm)bgm.gain.value=.27*MIX.bgm/100;
+    if(wetG)wetG.gain.value=.25*MIX.reverb/100;
+    if(ecoG)ecoG.gain.value=.25*MIX.echo/100;
+    if(fbG)fbG.gain.value=Math.min(.8,.07*MIX.fb/100);
+    if(dlN)dlN.delayTime.value=MIX.dly/1000;
+    if(birdBus)birdBus.gain.value=.27*MIX.bird/100;
+    if(vgain)vgain.gain.value=VOL;
+    amb.forEach(o=>{if(o.dr)o.g.gain.value=o.dr*MIX.drone/100});
+  }catch(e){}
+}
+const CTL=[...MX.map(r=>({k:r[0],n:r[1],min:r[2],max:r[3],def:r[4],st:r[5],u:r[6],rs:1})),
+  {k:"pitr",n:"কণ্ঠের পিচ",min:.8,max:1.3,def:1.18,st:.05,u:"×",rs:.01},
+  {k:"spdr",n:"কথা বলার গতি",min:.6,max:1.8,def:.85,st:.05,u:"×",rs:.01}];
+const cget=k=>k==="pitr"?pit:k==="spdr"?spd:MIX[k];
+const fmt=(c,v)=>bn(c.rs<1?(+v).toFixed(2):Math.round(v))+c.u;
+function cset(k,v){
+  const c=CTL.find(x=>x.k===k);if(!c||!isFinite(v))return;
+  v=Math.min(c.max,Math.max(c.min,v));v=c.rs<1?Math.round(v*100)/100:Math.round(v);
+  if(k==="pitr"||k==="spdr"){$(k).value=v;onSlide()}else{MIX[k]=v;applyMix();saveMix()}
+  const r=document.querySelector(`.mxr[data-k="${k}"]`);if(r)r.value=v;
+  const b=$("mv_"+k);if(b)b.textContent=fmt(c,v);
+}
+const mxRow=c=>`<div class="mx"><div class="mxh"><span>${c.n}</span><b id="mv_${c.k}">${fmt(c,cget(c.k))}</b></div><input type="range" class="mxr" data-k="${c.k}" min="${c.min}" max="${c.max}" step="${c.rs}" value="${cget(c.k)}" aria-label="${c.n}"><div class="mxb"><button class="sm" data-a="dec" data-k="${c.k}" aria-label="কমাও">−</button><button class="sm" data-a="inc" data-k="${c.k}" aria-label="বাড়াও">+</button><span style="font-size:12px;opacity:.8">১ ক্লিকে ধাপ:</span><input type="number" class="mxs" data-k="${c.k}" value="${STEPS[c.k]}" min="0.01" step="any" aria-label="ধাপের মান"></div></div>`;
+function mixPreview(){
+  if(started){$("mxMsg").textContent="খেলা চলার সময় প্রিভিউ নেই। স্লাইডার লাইভ কাজ করছে।";return}
+  ensureAudio();curCfg=curCfg||{leftFreq:80,rightFreq:528};
+  ambient(1);heart(66);$("mxMsg").textContent="৮ সেকেন্ড প্রিভিউ চলছে…";
+  setTimeout(()=>{if(!started){stopAmbient();$("mxMsg").textContent=""}},8000);
+}
+function birdPreview(){
+  if(started){$("mxMsg").textContent="খেলা চলার সময় প্রিভিউ নেই।";return}
+  ensureAudio();const s0=started,f0=fxUntil;started=true;fxUntil=0;try{birdSong(3,4,true)}finally{started=s0}fxUntil=f0;
+}
+
+/* ---------- কাস্টম ভয়েস প্যাক (জিপ → ডক্টর মায়ার অফলাইন ভয়েস) ---------- */
+const idb=(m,k,v)=>new Promise((res,rej)=>{
+  if(!window.indexedDB)return rej(new Error("IndexedDB নেই"));
+  const r=indexedDB.open("lom_db",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("kv");
+  r.onerror=()=>rej(r.error);
+  r.onsuccess=()=>{const db=r.result,tx=db.transaction("kv",m==="get"?"readonly":"readwrite"),s=tx.objectStore("kv"),q=m==="get"?s.get(k):m==="put"?s.put(v,k):s.delete(k);tx.oncomplete=()=>{res(q.result);db.close()};tx.onerror=()=>{rej(tx.error);db.close()}};
+});
+async function unzip(buf){
+  const u8=new Uint8Array(buf),dv=new DataView(buf);let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-65558);i--){if(dv.getUint32(i,!0)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error("এটি ঠিক জিপ ফাইল নয়");
+  const n=dv.getUint16(e+10,!0);let p=dv.getUint32(e+16,!0);const out=[];
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,!0)!==0x02014b50)break;
+    const meth=dv.getUint16(p+10,!0),csz=dv.getUint32(p+20,!0),nl=dv.getUint16(p+28,!0),el=dv.getUint16(p+30,!0),cl=dv.getUint16(p+32,!0),lo=dv.getUint32(p+42,!0);
+    const nm=new TextDecoder("utf-8").decode(u8.subarray(p+46,p+46+nl));
+    p+=46+nl+el+cl;
+    if(nm.endsWith("/")||/__MACOSX|(^|\/)\._/.test(nm))continue;
+    const lnl=dv.getUint16(lo+26,!0),lel=dv.getUint16(lo+28,!0),ds=lo+30+lnl+lel;
+    out.push({name:nm,meth,raw:u8.subarray(ds,ds+csz)});
+  }
+  return out;
+}
+async function inflate(raw){
+  if(typeof DecompressionStream==="undefined")throw new Error("এই ব্রাউজারে জিপ খোলা যায় না; জিপ 'Store' (কম্প্রেশন ছাড়া) করে দাও");
+  const ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(raw);w.close();
+  return await new Response(ds.readable).arrayBuffer();
+}
+const pkKey=s=>String(s).normalize("NFC").toLowerCase().replace(/[।,.!?;:"'“”‘’()\[\]{}…—–\-_\/]+/g," ").replace(/\s+/g," ").trim();
+const AUD=/\.(wav|mp3|ogg|oga|m4a|aac|flac|opus|webm)$/i;
+async function loadPack(buf,label){
+  const ents=await unzip(buf),map=new Map(),byName=new Map();let man=null;PKS.lv=new Map();LVB.clear();
+  for(const e of ents){
+    const base=e.name.split(/[\\/]/).pop();
+    if(/^manifest\.json$/i.test(base)){const d=e.meth===0?e.raw.slice().buffer:await inflate(e.raw);try{man=JSON.parse(new TextDecoder().decode(d))}catch(x){}continue}
+    {const lm=base.match(/^level[_-]?0*(\d{1,3})\.[a-z0-9]+$/i);if(lm&&+lm[1]>=1&&+lm[1]<=200)PKS.lv.set(+lm[1],e)}
+    if(AUD.test(base)){byName.set(base.toLowerCase(),e);map.set(pkKey(base.replace(AUD,"")),e)}
+  }
+  if(man){const src=man.words||man.map||man;for(const t in src){if(typeof src[t]!=="string")continue;const f=byName.get(src[t].split(/[\\/]/).pop().toLowerCase());if(f)map.set(pkKey(t),f)}if(man.phrases)for(const t in man.phrases){const f=byName.get(String(man.phrases[t]).split(/[\\/]/).pop().toLowerCase());if(f)map.set(pkKey(t),f)}}
+  if(!map.size)throw new Error("জিপে কোনো অডিও ফাইল (wav/mp3/ogg) পাওয়া যায়নি");
+  PKS.map=map;PKS.cache.clear();PKS.ready=true;PKS.n=map.size;PKS.name=label||"ভয়েস প্যাক";
+}
+async function packBuf(e){
+  if(PKS.cache.has(e))return PKS.cache.get(e);
+  const d=e.meth===0?e.raw.slice().buffer:await inflate(e.raw);
+  const b=await AC.decodeAudioData(d);PKS.cache.set(e,b);return b;
+}
+function playBuf(b,rate){return new Promise(res=>{
+  if(!pg){pg=AC.createGain();pg.connect(AC.destination)}
+  pg.gain.value=VOL;const s=AC.createBufferSource();s.buffer=b;s.playbackRate.value=rate||Math.min(2,Math.max(.5,spd/.85));s.connect(pg);vsrc=s;
+  s.onended=()=>{try{s.disconnect()}catch(e){}if(vsrc===s)vsrc=null;res()};s.start();
+})}
+function packPlan(t){
+  const toks=t.match(/\S+/g)||[],segs=[];let i=0,miss=0,hit=0;
+  while(i<toks.length){
+    let h=null;
+    for(let j=Math.min(toks.length,i+8);j>i;j--){const k=pkKey(toks.slice(i,j).join(" "));if(k&&PKS.map.has(k)){h={e:PKS.map.get(k),j};break}}
+    const last=toks[(h?h.j:i+1)-1],p=/[।!?.]$/.test(last)?.35:/[,;:]$/.test(last)?.18:.05;
+    if(h){segs.push({e:h.e,p});hit+=h.j-i;i=h.j}
+    else{const w=toks[i];if(pkKey(w)){const l=segs[segs.length-1];if(l&&l.f){l.f+=" "+w;l.p=p}else segs.push({f:w,p});miss++}i++}
+  }
+  return{segs,hit,miss};
+}
+async function packSpeak(t){
+  ensureAudio();const my=vtok,{segs}=packPlan(t);
+  for(const sg of segs){
+    if(my!==vtok)return;
+    if(sg.e){let b=null;try{b=await packBuf(sg.e)}catch(e){console.error(e)}if(my!==vtok)return;if(b)await playBuf(b)}
+    else await deviceSpeak(sg.f,0);
+    if(my!==vtok)return;
+    await new Promise(r=>setTimeout(r,sg.p*1000));
+  }
+}
+async function packFromFile(f){
+  const st=$("pkStat");st.className="";st.textContent="লোড হচ্ছে…";
+  try{
+    const buf=await f.arrayBuffer();await loadPack(buf,f.name);
+    try{await idb("put","zip",buf);await idb("put","zipname",f.name)}catch(e){st.textContent="⚠ ডিভাইসে সংরক্ষণ করা গেল না (এই সেশনে চলবে)। "}
+    packOn=true;savePrefs();showVoice();devRefresh();
+  }catch(e){st.className="er";st.textContent="❌ "+(e&&e.message||e)}
+}
+async function packRemove(){PKS.map=new Map();PKS.cache.clear();PKS.ready=false;PKS.n=0;packOn=false;try{await idb("del","zip");await idb("del","zipname")}catch(e){}savePrefs();showVoice();devRefresh()}
+async function packBoot(){try{const b=await idb("get","zip");if(b){await loadPack(b,await idb("get","zipname"));showVoice()}}catch(e){}}
+
+
+/* ---------- বিল্ট-ইন মায়া ক্লিপ: লেভেলের মায়ার কথা (level_NNN = লেভেল NNN) ---------- */
+const LVC=(()=>{try{return JSON.parse(document.getElementById("mayaClips").textContent)}catch(e){return{}}})();
+const LVB=new Map();
+const lvClipOK=l=>PKS.lv.has(l)||!!LVC[l];
+async function lvBuf(l){
+  if(LVB.has(l))return LVB.get(l);
+  let b;
+  if(PKS.lv.has(l))b=await packBuf(PKS.lv.get(l));
+  else{const bin=atob(LVC[l]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);b=await AC.decodeAudioData(u.buffer)}
+  LVB.set(l,b);return b;
+}
+async function playLevelClip(l){
+  ensureAudio();const my=vtok,txt=curNarr;
+  let b=null;try{b=await lvBuf(l)}catch(e){console.error(e)}
+  if(my!==vtok)return;
+  if(!b)return deviceSpeak(txt,0);
+  await playBuf(b,1);
+}
+
+/* ---------- কোড ইনজেক্ট / ডিলিট ---------- */
+const AF=Object.getPrototypeOf(async function(){}).constructor;
+async function runInj(it){
+  try{
+    if(it.t==="css"){let s=document.getElementById("inj_"+it.id);if(!s){s=document.createElement("style");s.id="inj_"+it.id;document.head.appendChild(s)}s.textContent=it.c}
+    else if(it.t==="html"){let d=document.getElementById("inj_"+it.id);if(!d){d=document.createElement("div");d.id="inj_"+it.id;document.body.appendChild(d)}d.innerHTML=it.c}
+    else await new AF(it.c)();
+    return"";
+  }catch(e){return String(e&&e.message||e)}
+}
+function removeInjDom(id){const e=document.getElementById("inj_"+id);if(e)e.remove()}
+const PROT=["devp","devbtn","promo","papply","toast","lcBtn"];
+function applyDel(r){
+  try{
+    if(r.startsWith("fn:")){const n=r.slice(3).trim();if(!/^[A-Za-z_$][\w$]*$/.test(n))return"নাম ঠিক নয়";if(new Function("return typeof "+n)()!=="function")return"এই নামে ফাংশন নেই";new Function(n+"=function(){}")();return""}
+    if(r.startsWith("inj:")){const id=r.slice(4).trim(),l=lsGet(IK,[]).filter(x=>x.id!==id);lsSet(IK,l);removeInjDom(id);return""}
+    let c=0;document.querySelectorAll(r).forEach(el=>{if(el===document.body||el===document.documentElement||PROT.some(i=>{const p=$(i);return p&&el.contains(p)}))return;el.remove();c++});
+    return c?"":"কিছু মেলেনি";
+  }catch(e){return String(e&&e.message||e)}
+}
+const applyDelAll=()=>lsGet(DK,[]).forEach(r=>applyDel(r));
+
+/* ---------- ডেভেলপার ড্যাশবোর্ড ---------- */
+let devOK=false,wasPlay=false;
+function devHTML(){return `
+<div class="r" style="justify-content:space-between"><h2>👨‍💻 ডেভেলপার ড্যাশবোর্ড</h2><button class="sm" id="dvClose">✕ বন্ধ</button></div>
+<div class="c"><div class="r"><button class="sm" id="dvAll"></button><button class="sm" id="dvLock">🔒 ডেভ মোড বন্ধ</button><button class="sm" id="dvReload">🔄 রিলোড</button></div>
+<div style="font-size:12px;opacity:.75;margin-top:6px">জরুরি রিসেট: ফাইলের লিংকের শেষে <b>#safe</b> যোগ করে খুললে সব সংরক্ষিত ইনজেক্ট ও ডিলিট রুল বন্ধ থাকবে।</div></div>
+
+<div class="c"><h3>🔑 ইউজার লাইসেন্স ও প্রমো কোড জেনারেটর</h3>
+<input type="text" id="dvEmail" placeholder="User Email / Contact (জিমেইল আইডি বা ফোন নম্বর)" autocomplete="off" autocapitalize="off">
+<input type="text" id="dvCode" placeholder="Assign Promo Code (ইউজারের নাম বা সিক্রেট কোড)" autocomplete="off" autocapitalize="off">
+<div class="r"><button class="sm" id="dvGen">🎲 র‍্যান্ডম কোড</button><button class="sm" id="dvSave" style="background:#f2b84b;color:#1a1204">💾 Generate / Save</button></div>
+<div id="dvOut" class="mono" style="margin-top:6px"></div>
+<ul id="dvList" style="padding-left:18px;margin:8px 0"></ul>
+<div class="r"><button class="sm" id="dvExp">📤 তালিকা এক্সপোর্ট</button><button class="sm" id="dvImp">📥 ইমপোর্ট</button></div>
+<textarea id="dvIO" placeholder="এক্সপোর্ট/ইমপোর্টের JSON এখানে"></textarea></div>
+
+<div class="c"><h3>🎙 ডক্টর মায়ার কাস্টম ভয়েস (জিপ ফাইল)</h3>
+<div style="font-size:12px;opacity:.8;line-height:1.6">জিপের ভেতরে অডিও ফাইল (wav/mp3/ogg) রাখো। ফাইলের নামই শব্দ বা বাক্যাংশ (যেমন <b>আমি.mp3</b>, <b>স্বাগতম.wav</b>, <b>তোমার সঙ্গে.mp3</b>)। চাইলে <b>manifest.json</b> দিয়ে লেখা→ফাইল মিলিয়ে দেওয়া যায়। জিপ খুলে ভিতরের ক্লিপ থেকে নতুন লেখাও জোড়া লাগিয়ে পড়া হয়; যে শব্দ জিপে নেই সেটি ডিভাইসের বাংলা ভয়েসে পড়া হয়।</div>
+<input type="file" id="pkFile" accept=".zip,application/zip,application/x-zip-compressed" style="margin:8px 0;width:100%">
+<div id="lvInfo" style="font-size:12px;opacity:.85;line-height:1.6;margin:6px 0"></div><div id="pkStat" style="font-size:13px"></div>
+<div class="r"><button class="sm" id="pkOn"></button><button class="sm" id="pkDel">🗑 প্যাক মুছো</button></div>
+<input type="text" id="pkTxt" placeholder="নতুন যেকোনো লেখা লেখো, মায়া পড়ে শোনাবে" autocomplete="off">
+<div class="r"><button class="sm" id="pkTest">🔊 পড়ে শোনাও</button></div><div id="pkRes" style="font-size:12px;opacity:.85"></div></div>
+
+<div class="c"><h3>🎚 সাউন্ড স্লাইডার ও স্টেপ কন্ট্রোল</h3>
+<div style="font-size:12px;opacity:.8">স্লাইডার টানলে বা − / + চাপলে মান বদলাবে। প্রতিটির ডানে নিজের ধাপের মান (১ ক্লিকে কত বাড়বে/কমবে) বসানো যায়। সবকিছু লাইভ কাজ করে এবং সংরক্ষিত থাকে।</div>
+<div id="mxBox"></div>
+<div class="r" style="margin-top:8px"><button class="sm" id="mxPrev">▶ প্রিভিউ (ইকো/রিভার্ব/ড্রোন/হার্টবিট)</button><button class="sm" id="mxBird">🐦 পাখি</button><button class="sm" id="mxVoice">🗣 কণ্ঠ</button><button class="sm" id="mxReset">↺ ডিফল্ট</button></div><div id="mxMsg" style="font-size:12px;color:#f2b84b;min-height:16px"></div></div>
+
+<div class="c"><h3>🧩 কোড কন্ট্রোল: ডিলিট ও ইনজেক্ট</h3>
+<div style="font-size:12px;opacity:.8;line-height:1.6"><b>ডিলিট:</b> CSS সিলেক্টর (যেমন <b>#hint</b>) দিলে ওই অংশ সরে যাবে। <b>fn:নাম</b> (যেমন <b>fn:cricket</b>) দিলে ওই ফাংশন অকেজো হবে। <b>inj:আইডি</b> দিলে সংরক্ষিত ইনজেক্ট মুছবে। রুল সংরক্ষিত থাকে ও প্রতিবার চালু হলে প্রয়োগ হয়।</div>
+<input type="text" id="dlIn" placeholder="ডিলিট কোড: #hint অথবা fn:cricket" autocomplete="off" autocapitalize="off">
+<div class="r"><button class="sm" id="dlBtn">🗑 ডিলিট করো</button></div><div id="dlMsg" style="font-size:12px;color:#f2b84b"></div>
+<ul id="dlList" style="padding-left:18px;margin:6px 0"></ul>
+<div style="font-size:12px;opacity:.8;margin-top:8px"><b>ইনজেক্ট:</b> JavaScript, CSS বা HTML বসাও। গেমের ভ্যারিয়েবল (level, spd, pit…) ও ফাংশন সরাসরি পাওয়া যায়।</div>
+<select id="ijType"><option value="js">JavaScript</option><option value="css">CSS</option><option value="html">HTML</option></select>
+<textarea id="ijIn" placeholder="ইনজেক্ট কোড, যেমন: document.body.style.background='#000'" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+<div class="r"><button class="sm" id="ijRun">▶ এখনই চালাও</button><button class="sm" id="ijSave">💾 সংরক্ষণ করে প্রতিবার চালাও</button></div><div id="ijMsg" style="font-size:12px;color:#f2b84b;word-break:break-word"></div>
+<ul id="ijList" style="padding-left:18px;margin:6px 0"></ul></div>
+
+<div class="c"><h3>☁ ক্লাউড ব্যাকআপ (ঐচ্ছিক)</h3>
+<div style="font-size:12px;opacity:.8;line-height:1.6">Firebase Realtime Database-এর URL দিলে লাইসেন্স করা ইউজারের নাম ও লেভেল ক্লাউডে জমা হবে, অন্য ডিভাইসে কোড দিলে ফিরে আসবে। সব ইউজারের ফোনে কাজ করাতে একই URL মূল HTML ফাইলের <b>CLOUD_URL</b> ধ্রুবকেও বসাও।</div>
+<input type="text" id="clUrl" placeholder="https://xxxx-default-rtdb.firebaseio.com" autocomplete="off" autocapitalize="off">
+<div class="r"><button class="sm" id="clSave">💾 সংরক্ষণ</button><button class="sm" id="clTest">🔌 পরীক্ষা</button></div><div id="clMsg" style="font-size:12px;color:#f2b84b"></div></div>`}
+
+function devRefresh(){
+  $("dvAll").textContent=DEV?"🔓 সব লেভেল আনলক: চালু (বন্ধ করতে চাপো)":"🔒 সব লেভেল আনলক: বন্ধ (চালু করতে চাপো)";
+  const db=lsGet(LK,[]);
+  $("dvList").innerHTML=db.length?db.map((e,i)=>`<li>${esc(e.c)} → <b>${esc(e.x)}</b><br><button class="sm" data-a="cp" data-i="${i}">📋 চূড়ান্ত কোড কপি</button><button class="sm" data-a="rm" data-i="${i}">🗑 বাতিল</button></li>`).join(""):"<li style='list-style:none;opacity:.7'>এখনো কোনো লাইসেন্স নেই</li>";
+  $("mxBox").innerHTML=CTL.map(mxRow).join("");
+  const st=$("pkStat");
+  if(PKS.ready){st.className="ok";st.textContent=`✅ ${PKS.name}: ${bn(PKS.n)}টি শব্দ/বাক্যাংশ লোড হয়েছে`}else if(!st.textContent.startsWith("❌")){st.className="";st.textContent="কোনো ভয়েস প্যাক নেই"}
+  $("lvInfo").textContent=`মায়ার একটি অডিও ফাইল থেকে সময় মতো কথা বাজছে (${bn(Object.keys(SPD?SPD.txt:{}).length)}টি অংশ)। অডিওতে নেই এমন কথা ডিভাইস ভয়েসে শোনা যাবে।`;
+  $("pkOn").textContent=packOn&&PKS.ready?"✅ কাস্টম ভয়েস: চালু (বন্ধ করতে চাপো)":"⭕ কাস্টম ভয়েস: বন্ধ (চালু করতে চাপো)";
+  const inj=lsGet(IK,[]);
+  $("ijList").innerHTML=inj.length?inj.map(it=>`<li>[${it.t.toUpperCase()}] <span class="mono">${esc(it.c.slice(0,50))}</span> <i style="opacity:.6">(id: ${it.id})</i><br><button class="sm" data-a="ijt" data-id="${it.id}">${it.on===false?"▶ চালু করো":"⏸ বন্ধ করো"}</button><button class="sm" data-a="ijd" data-id="${it.id}">🗑 মুছো</button></li>`).join(""):"<li style='list-style:none;opacity:.7'>কোনো সংরক্ষিত ইনজেক্ট নেই</li>";
+  const dl=lsGet(DK,[]);
+  $("dlList").innerHTML=dl.length?dl.map((r,i)=>`<li><span class="mono">${esc(r)}</span> <button class="sm" data-a="dlx" data-i="${i}">রুল সরাও</button></li>`).join(""):"<li style='list-style:none;opacity:.7'>কোনো ডিলিট রুল নেই</li>";
+  $("clUrl").value=(()=>{try{return localStorage.getItem(CK)||""}catch(e){return""}})();
+}
+function openDev(){
+  devOK=true;$("devbtn").style.display="block";
+  const p=$("devp");
+  if(!p.dataset.b){p.innerHTML=devHTML();p.dataset.b="1";devInit()}
+  if(p.style.display!=="block")wasPlay=document.body.classList.contains("play");
+  document.body.classList.remove("play");
+  devRefresh();p.style.display="block";p.scrollTop=0;
+}
+function closeDev(){$("devp").style.display="none";if(started&&wasPlay)document.body.classList.add("play")}
+function devInit(){
+  const p=$("devp");
+  p.addEventListener("click",async e=>{
+    const b=e.target.closest("button");if(!b)return;
+    const a=b.dataset.a,id=b.id;
+    if(a==="dec"||a==="inc"){const c=CTL.find(x=>x.k===b.dataset.k),s=STEPS[c.k]||c.st;cset(c.k,cget(c.k)+(a==="inc"?s:-s));if(c.k==="pitr"||c.k==="spdr")testVoice();return}
+    if(a==="cp"){const e2=lsGet(LK,[])[+b.dataset.i];if(e2){copyTxt(finalCode(e2.c,e2.x));$("dvOut").textContent="কপি হয়েছে: "+finalCode(e2.c,e2.x)}return}
+    if(a==="rm"){const db=lsGet(LK,[]),e2=db[+b.dataset.i];if(!e2)return;db.splice(+b.dataset.i,1);lsSet(LK,db);cj("revoked/"+hC(e2.c),"PUT",true).catch(()=>{});devRefresh();$("dvOut").textContent="লাইসেন্স বাতিল করা হলো"+(cloudBase()?" (ক্লাউডে বাতিল চিহ্নিত)।":"। দ্রষ্টব্য: ক্লাউড ছাড়া ইতিমধ্যে সক্রিয় ফোন থেকে এটি সরে না।");return}
+    if(a==="ijt"){const l=lsGet(IK,[]),it=l.find(x=>x.id===b.dataset.id);if(it){it.on=it.on===false;lsSet(IK,l);if(it.on===false)removeInjDom(it.id);else runInj(it)}devRefresh();return}
+    if(a==="ijd"){lsSet(IK,lsGet(IK,[]).filter(x=>x.id!==b.dataset.id));removeInjDom(b.dataset.id);devRefresh();$("ijMsg").textContent="মুছে ফেলা হয়েছে (JS-এর প্রভাব সরাতে রিলোড দাও)";return}
+    if(a==="dlx"){const l=lsGet(DK,[]);l.splice(+b.dataset.i,1);lsSet(DK,l);devRefresh();$("dlMsg").textContent="রুল সরানো হয়েছে (ফিরিয়ে আনতে রিলোড দাও)";return}
+    switch(id){
+      case"dvClose":closeDev();break;
+      case"dvAll":DEV=!DEV;try{localStorage.setItem("all_levels_unlocked",DEV?"true":"false")}catch(x){}refreshStat();devRefresh();break;
+      case"dvLock":devOK=false;$("devbtn").style.display="none";closeDev();break;
+      case"dvReload":location.reload();break;
+      case"dvGen":{const al="ABCDEFGHJKMNPQRSTUVWXYZ23456789";let s="";const r=new Uint8Array(6);try{crypto.getRandomValues(r)}catch(x){for(let i=0;i<6;i++)r[i]=Math.random()*256}for(let i=0;i<6;i++)s+=al[r[i]%al.length];$("dvCode").value=s;break}
+      case"dvSave":{
+        const c=$("dvEmail").value.trim(),x=$("dvCode").value.replace(/\s+/g,""),o=$("dvOut");o.className="mono";
+        if(!(/@/.test(c)||c.replace(/\D/g,"").length>=7)){o.className="mono er";o.textContent="সঠিক জিমেইল বা ফোন নম্বর দাও।";break}
+        if(x.length<3){o.className="mono er";o.textContent="প্রমো কোড অন্তত ৩ অক্ষরের হতে হবে।";break}
+        const nc=normC(c),nx=normX(x);let db=lsGet(LK,[]);
+        if(db.some(e=>normX(e.x)===nx&&normC(e.c)!==nc)){o.className="mono er";o.textContent="এই কোডটি অন্য ইউজারের নামে আছে। অন্য কোড দাও।";break}
+        db=db.filter(e=>normC(e.c)!==nc);db.unshift({c:c.trim(),x,t:Date.now()});lsSet(LK,db);
+        const fc=finalCode(c,x);copyTxt(fc);cj("revoked/"+hC(c),"DELETE").catch(()=>{});
+        o.className="mono ok";o.textContent="✅ সংরক্ষিত। ইউজারকে এই চূড়ান্ত কোডটি দিন (কপি হয়েছে): "+fc+"\nইউজার তার জিমেইল/ফোন ("+c+") ও এই কোড দিয়ে সক্রিয় করবে। কোডটি শুধু এই জিমেইল/ফোনেই কাজ করবে।";
+        o.style.whiteSpace="pre-line";devRefresh();break}
+      case"dvExp":$("dvIO").value=JSON.stringify(lsGet(LK,[]),null,1);break;
+      case"dvImp":{try{const a=JSON.parse($("dvIO").value);if(!Array.isArray(a))throw 0;const db=lsGet(LK,[]);let n=0;a.forEach(e=>{if(e&&e.c&&e.x&&!db.some(d=>normC(d.c)===normC(e.c))&&!db.some(d=>normX(d.x)===normX(e.x))){db.push({c:String(e.c),x:String(e.x),t:e.t||Date.now()});n++}});lsSet(LK,db);devRefresh();$("dvOut").className="mono ok";$("dvOut").textContent=bn(n)+"টি নতুন লাইসেন্স যোগ হয়েছে।"}catch(x){$("dvOut").className="mono er";$("dvOut").textContent="JSON ঠিক নয়।"}break}
+      case"pkOn":if(!PKS.ready){$("pkStat").className="er";$("pkStat").textContent="আগে একটি জিপ আপলোড করো।";break}packOn=!packOn;savePrefs();showVoice();devRefresh();break;
+      case"pkDel":packRemove();break;
+      case"pkTest":{const t=$("pkTxt").value.trim();if(!t)break;if(!PKS.ready){$("pkRes").textContent="আগে জিপ আপলোড করো।";break}ensureAudio();cancelVoice();const pl=packPlan(t);$("pkRes").textContent=`ক্লিপ থেকে মিলেছে ${bn(pl.hit)}টি শব্দ, ডিভাইস ভয়েসে ${bn(pl.miss)}টি`;packSpeak(t);break}
+      case"mxPrev":mixPreview();break;
+      case"mxBird":birdPreview();break;
+      case"mxVoice":testVoice();break;
+      case"mxReset":MX.forEach(r=>{MIX[r[0]]=r[4];STEPS[r[0]]=r[5]});STEPS.pitr=.05;STEPS.spdr=.05;saveMix();applyMix();devRefresh();break;
+      case"dlBtn":{const r=$("dlIn").value.trim();if(!r)break;const m=applyDel(r);$("dlMsg").textContent=m||"✅ প্রয়োগ হয়েছে ও সংরক্ষিত।";if(!m||m==="কিছু মেলেনি"){const l=lsGet(DK,[]);if(!r.startsWith("inj:")&&!l.includes(r)){l.push(r);lsSet(DK,l)}}$("dlIn").value="";devRefresh();break}
+      case"ijRun":case"ijSave":{
+        const c=$("ijIn").value;if(!c.trim())break;
+        const it={id:Date.now().toString(36),t:$("ijType").value,c,on:true};
+        const err=await runInj(it);$("ijMsg").textContent=err?"❌ ত্রুটি: "+err:"✅ চালানো হয়েছে।";
+        if(id==="ijSave"){const l=lsGet(IK,[]);l.push(it);lsSet(IK,l);devRefresh()}
+        break}
+      case"clSave":{const v=$("clUrl").value.trim();if(v)lsSet2(CK,v);else lsDel(CK);$("clMsg").textContent="সংরক্ষিত।";lcShow();break}
+      case"clTest":{$("clMsg").textContent="পরীক্ষা চলছে…";try{const v=$("clUrl").value.trim();if(v)lsSet2(CK,v);await cj("ping","PUT",{t:Date.now()});$("clMsg").textContent="✅ ক্লাউড সংযোগ ঠিক আছে।"}catch(x){$("clMsg").textContent="❌ সংযোগ হয়নি: "+(x&&x.message||x)+" (URL ও ডেটাবেস রুলস দেখো)"}break}
+    }
+  });
+  p.addEventListener("input",e=>{const t=e.target;if(t.classList.contains("mxr"))cset(t.dataset.k,+t.value)});
+  p.addEventListener("change",e=>{
+    const t=e.target;
+    if(t.classList.contains("mxs")){const c=CTL.find(x=>x.k===t.dataset.k),v=+t.value;STEPS[c.k]=v>0?Math.max(.01,v):c.st;t.value=STEPS[c.k];saveMix()}
+    else if(t.classList.contains("mxr")){if(t.dataset.k==="pitr"||t.dataset.k==="spdr")testVoice()}
+    else if(t.id==="pkFile"&&t.files&&t.files[0]){packFromFile(t.files[0]);t.value=""}
+  });
+}
+const lsSet2=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+
+/* ---------- চালু করা ---------- */
+$("lcBtn").onclick=lcActivate;
+$("lcOff").onclick=()=>{lsDel(UKEY);lcShow()};
+$("papply").onclick=promoApply;
+$("devbtn").onclick=openDev;
+lcShow();
+if(lsGet(UKEY,null)){toast(MSG,5000);lcVerifyCloud()}
+packBoot();
+if(!safeMode){lsGet(IK,[]).forEach(it=>{if(it.on!==false)runInj(it)});applyDelAll();setTimeout(applyDelAll,1000)}
+else toast("সেফ মোড: ইনজেক্ট ও ডিলিট রুল বন্ধ আছে।",6000);
+
+</script>
+<script>
+/* =========================================================
+   ডক্টর মায়ার একটি অডিও ফাইল: কথা অনুযায়ী সময় মতো প্লে ও পজ
+   (প্রতিটি কথার শুরু-শেষ সময় mayaUnits-এ আছে; কথা শেষে নিজে থেকেই থামে)
+   ========================================================= */
+const SPD=(()=>{try{return JSON.parse(document.getElementById("mayaUnits").textContent)}catch(e){console.error(e);return null}})();
+const SPM=new Map(),SPB=new Map();
+const spKey=s=>String(s).replace(/[।॥?!.,:;…"'“”‘’()\[\]{}\-–—_]/g," ").replace(/\s+/g," ").trim();
+(function(){
+  if(!SPD)return;
+  const ids=Object.keys(SPD.txt).map(Number).sort((a,b)=>a-b);
+  let run=[];
+  const flush=()=>{
+    for(let i=0;i<run.length;i++){let k="";for(let j=i;j<run.length;j++){k+=(j>i?" ":"")+spKey(SPD.txt[run[j]]);if(!SPM.has(k))SPM.set(k,[[run[i],run[j]]])}}
+    run=[];
+  };
+  for(const id of ids){if(run.length&&id!==run[run.length-1]+1)flush();run.push(id)}
+  flush();
+})();
+function spPlan(t){
+  if(!SPD)return null;
+  let s=String(t);
+  if(name)s=s.split(name).join("বন্ধু");
+  const toks=spKey(s).split(" ").filter(Boolean),out=[];
+  let i=0;
+  while(i<toks.length){
+    let hit=null;
+    for(let j=Math.min(toks.length,i+220);j>i;j--){const v=SPM.get(toks.slice(i,j).join(" "));if(v){hit={r:v[0],j};break}}
+    if(hit){out.push(hit.r);i=hit.j;continue}
+    const w=toks[i];
+    if(w==="বন্ধু"||/^[০-৯0-9\/]+$/.test(w)||(w==="প্রশ্ন"&&/^[০-৯0-9]+$/.test(toks[i+1]||""))){i++;continue}
+    return null; // অডিওতে নেই এমন কথা: আগের মতো ডিভাইস ভয়েস
+  }
+  return out.length?out:null;
+}
+function spChunk(i){
+  if(SPB.has(i))return SPB.get(i);
+  const c=SPD.ck[i];
+  const p=(async()=>{const bin=atob(c.b),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return await AC.decodeAudioData(u.buffer)})();
+  p.catch(()=>SPB.delete(i));
+  SPB.set(i,p);
+  if(SPB.size>4){for(const k of SPB.keys()){if(Math.abs(k-i)>1){SPB.delete(k);break}}}
+  return p;
+}
+const spParts=(s,e)=>{const o=[];SPD.ck.forEach((c,i)=>{const a=Math.max(s,c.t0),b=Math.min(e,c.t1);if(b-a>.02)o.push([i,a-c.t0,b-a])});return o};
+function spPlayPart(buf,off,d){return new Promise(res=>{
+  if(!pg){pg=AC.createGain();pg.connect(AC.destination)}
+  pg.gain.value=VOL;const s=AC.createBufferSource();s.buffer=buf;s.playbackRate.value=Math.min(2,Math.max(.5,spd/.85));s.connect(pg);vsrc=s;
+  s.onended=()=>{try{s.disconnect()}catch(e){}if(vsrc===s)vsrc=null;res()};
+  s.start(0,Math.max(0,off),d); // নির্দিষ্ট সময় থেকে শুরু, d সেকেন্ড পর নিজে থেকে পজ
+})}
+async function spriteSpeak(t,plan){
+  ensureAudio();const my=vtok,S=SPD.seg,m=[];
+  for(const r of plan){const l=m[m.length-1];if(l&&r[0]===l[1]+1)l[1]=r[1];else m.push([r[0],r[1]])}
+  try{
+    for(let k=0;k<m.length;k++){
+      if(my!==vtok)return;
+      const [a,b]=m[k],s=Math.max(0,S[a][0]-.07),e=S[b][1]+.1;
+      for(const [ci,off,d] of spParts(s,e)){
+        const buf=await spChunk(ci);
+        if(my!==vtok)return;
+        if(ci+1<SPD.ck.length)spChunk(ci+1).catch(()=>0);
+        await spPlayPart(buf,off,d);
+        if(my!==vtok)return;
+      }
+      if(k<m.length-1)await new Promise(r=>setTimeout(r,250));
+    }
+  }catch(err){console.error(err);if(my===vtok)return deviceSpeak(t,0)}
+}
+
+function spOK(t){if(!recMode)return null;const p=spPlan(t);return p?spriteSpeak(t,p):null}
+
+</script>
+<script>
+/* =========================================================
+   হোম স্ক্রিনের নতুন সাজ: মেনু, সেটিংস, যোগাযোগ, নোটিশ
+   ========================================================= */
+const CT=[ // যোগাযোগের তথ্য এনকোড করা, পর্দায় বা পেজে সরাসরি দেখা যায় না
+  {n:"এমডি রবিউল ইসলাম হাওলাদার",r:"ডেভেলপার",m:"bWRyb2JpdWxpc2xhbWhhd2xhZGVyMEBnbWFpbC5jb20=",w:"ODgwMTgyOTkxMTk5NQ=="},
+  {n:"এইচ. এম. সম্রাট",r:"পার্টনার",m:"bTI4Mjk5Nzk5QGdtYWlsLmNvbQ==",w:"ODgwMTg3NDU3OTgyNA=="}
+];
+const NOTICE_URL=""; // ঐচ্ছিক: নোটিশের JSON ফাইলের লিংক (যেমন GitHub raw লিংক)। খালি রাখলে ক্লাউড/ভেতরের নোটিশ চলবে।
+const NOTICES=[ // এখানে নতুন নোটিশ লিখলে অ্যাপে সবাই দেখতে পাবে: {d:"২০২৬-১০-২০",t:"শিরোনাম",m:"বার্তা"}
+  {d:"2026-10-20",t:"মনের আলো-তে স্বাগতম",m:"ডক্টর মায়ার নতুন কণ্ঠ, সেটিংস ও যোগাযোগ পাতা যোগ হয়েছে। নতুন আপডেটের খবর এখানেই পাবে।"}
+];
+(function(){
+  const css=document.createElement("style");
+  css.textContent=`
+  #menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:340px;margin-top:18px}
+  #menu button{position:relative;font-size:16px;padding:14px 8px;border-radius:14px;border:1px solid #3a4470;background:#141b33;color:#f4efe0}
+  #menu button:active{background:#1f2a52}
+  #menu .bd{position:absolute;top:6px;right:8px;min-width:18px;height:18px;border-radius:9px;background:#e5484d;color:#fff;font-size:11px;line-height:18px;padding:0 4px;display:none}
+  #pnl{display:none;position:fixed;inset:0;z-index:25;background:#0b1020;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;text-align:left;padding:0 18px 30px}
+  #pnl .hd{position:sticky;top:0;background:#0b1020;display:flex;justify-content:space-between;align-items:center;padding:14px 0 10px;z-index:2;border-bottom:1px solid #242c4d;margin-bottom:12px}
+  #pnl .hd h2{margin:0;font-size:20px;color:#f2b84b}
+  #pnl .sec{max-width:420px;margin:0 auto;display:none;flex-direction:column;gap:12px;align-items:center}
+  #pnl .card{width:100%;border:1px solid #334;border-radius:14px;background:#101733;padding:14px}
+  #pnl .card h3{margin:0 0 2px;font-size:17px}#pnl .card .rl{font-size:12px;opacity:.7;margin-bottom:10px}
+  #pnl .row2{display:flex;gap:8px}#pnl .row2 button{flex:1;font-size:15px;padding:12px 6px;border-radius:12px;border:0;background:#f2b84b;color:#1a1204;font-weight:600}
+  #pnl .row2 button.wa{background:#25d366;color:#04210f}
+  #pnl .nt{width:100%;border-left:3px solid #f2b84b;background:#101733;border-radius:8px;padding:10px 12px}
+  #pnl .nt b{display:block;font-size:16px;margin-bottom:4px}#pnl .nt i{display:block;font-size:11px;opacity:.6;margin-top:6px;font-style:normal}
+  #pnl .sh{width:100%;font-size:13px;opacity:.8;margin-top:4px}
+  #setBtn{display:none;position:fixed;top:10px;left:10px;z-index:5;font-size:18px;width:46px;height:46px;border-radius:50%;border:0;background:#2a3358;color:#fff;opacity:.9}
+  `;
+  document.head.appendChild(css);
+  const $=id=>document.getElementById(id);
+  // মেনু
+  const menu=document.createElement("div");menu.id="menu";
+  menu.innerHTML='<button data-p="set">⚙ সেটিংস</button><button data-p="not">📢 নোটিশ<span class="bd" id="ntBd"></span></button><button data-p="con">✉ যোগাযোগ</button><button id="tutbtn3">📖 টিউটোরিয়াল</button>';
+  $("go").insertAdjacentElement("afterend",menu);
+  // প্যানেল
+  const pnl=document.createElement("div");pnl.id="pnl";pnl.setAttribute("role","dialog");
+  pnl.innerHTML='<div class="hd"><h2 id="pnT"></h2><button class="sm" id="pnX">✕ বন্ধ</button></div><div class="sec" id="pn_set"></div><div class="sec" id="pn_con"></div><div class="sec" id="pn_not"></div>';
+  document.body.appendChild(pnl);
+  const sb=document.createElement("button");sb.id="setBtn";sb.setAttribute("aria-label","সেটিংস");sb.textContent="⚙";document.body.appendChild(sb);
+  // সেটিংস: পুরনো নিয়ন্ত্রণগুলো সরিয়ে আনা (আইডি ও কাজ একই থাকে)
+  const set=$("pn_set");
+  const h=(t)=>{const d=document.createElement("div");d.className="sh";d.innerHTML="<b>"+t+"</b>";return d};
+  set.appendChild(h("🎙 কণ্ঠ, পিচ ও গতি"));set.appendChild($("vset"));
+  set.appendChild(h("🎧 হেডফোন, লাইসেন্স ও প্রগতি"));set.appendChild($("prev"));
+  $("vset").style.marginTop="0";$("prev").style.marginTop="0";
+  const nt=$("note");if(nt)nt.remove();
+  const dv=$("dev");if(dv)dv.remove();
+  const t2=$("tutbtn");if(t2&&t2.parentElement)t2.parentElement.style.display="none";
+  $("tutbtn3").onclick=()=>$("tutbtn").click&&0;
+  // যোগাযোগ
+  const con=$("pn_con");
+  con.innerHTML='<div class="sh">কোনো সমস্যা বা মতামত থাকলে নিচের বোতাম চাপো। কোন লেভেলে ছিলে আর কী হলো, সংক্ষেপে জানিও। 🙏</div>';
+  CT.forEach((c,i)=>{const d=document.createElement("div");d.className="card";
+    d.innerHTML=`<h3>${c.n} 🇧🇩</h3><div class="rl">${c.r}</div><div class="row2"><button data-k="m" data-i="${i}">✉ ইমেইল</button><button class="wa" data-k="w" data-i="${i}">💬 WhatsApp</button></div>`;con.appendChild(d)});
+  con.onclick=e=>{const b=e.target.closest("button");if(!b)return;const c=CT[+b.dataset.i],lv=typeof level!=="undefined"?level:1;
+    const msg="আসসালামু আলাইকুম, আমি 'মনের আলো' গেম থেকে মেসেজ করছি। (লেভেল "+bn(lv)+")";
+    if(b.dataset.k==="m")go("mailto:"+atob(c.m)+"?subject="+encodeURIComponent("মনের আলো গেম")+"&body="+encodeURIComponent(msg));
+    else go("https://wa.me/"+atob(c.w)+"?text="+encodeURIComponent(msg))};
+  const go=u=>{try{window.open(u,"_blank")||(location.href=u)}catch(e){location.href=u}};
+  // প্যানেল খোলা/বন্ধ
+  const T={set:"⚙ সেটিংস",con:"✉ যোগাযোগ",not:"📢 নোটিশ"};
+  window.openPanel=function(k){
+    ["set","con","not"].forEach(x=>$("pn_"+x).style.display=x===k?"flex":"none");
+    $("pnT").textContent=T[k];pnl.style.display="block";pnl.scrollTop=0;
+    if(k==="not")showNotices(true);
+    if(k==="set"&&window.showVoice)try{showVoice()}catch(e){}
+  };
+  const close=()=>{pnl.style.display="none"};
+  $("pnX").onclick=close;
+  menu.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="tutbtn3"){$("tutbtn").click()}else openPanel(b.dataset.p)};
+  sb.onclick=()=>openPanel("set");
+  window.__setBtn=sb;
+  // নোটিশ
+  const SEEN="lom_notice_seen";let list=NOTICES.slice();
+  const norm=a=>{if(!a)return[];if(!Array.isArray(a))a=Object.values(a);return a.filter(x=>x&&(x.t||x.m)).map(x=>({d:String(x.d||""),t:String(x.t||""),m:String(x.m||"")}))};
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const key=n=>n.d+"|"+n.t;
+  function render(){
+    const el=$("pn_not");
+    list.sort((a,b)=>b.d.localeCompare(a.d));
+    el.innerHTML=list.length?list.map(n=>`<div class="nt"><b>${esc(n.t)}</b>${esc(n.m).replace(/\n/g,"<br>")}<i>${esc(n.d)}</i></div>`).join(""):'<div class="sh">এখনো কোনো নোটিশ নেই।</div>';
+  }
+  function unread(){let s="";try{s=localStorage.getItem(SEEN)||""}catch(e){}return list.filter(n=>key(n)>s).length}
+  function badge(){const u=unread(),b=$("ntBd");b.style.display=u?"block":"none";b.textContent=bn(u)}
+  window.showNotices=function(mark){
+    render();
+    if(mark){try{const m=list.map(key).sort().pop()||"";localStorage.setItem(SEEN,m)}catch(e){}}
+    badge();
+  };
+  async function load(){
+    let extra=[];
+    try{if(NOTICE_URL){const r=await fetch(NOTICE_URL,{cache:"no-store"});if(r.ok)extra=extra.concat(norm(await r.json()))}}catch(e){}
+    try{if(typeof cj==="function"){const c=await cj("notices");if(c)extra=extra.concat(norm(c))}}catch(e){}
+    if(extra.length){const seen=new Set(list.map(key));extra.forEach(n=>{if(!seen.has(key(n))){list.push(n);seen.add(key(n))}});try{localStorage.setItem("lom_notice_cache",JSON.stringify(extra))}catch(e){}}
+    render();badge();
+    if(unread()&&typeof toast==="function")toast("📢 নতুন নোটিশ আছে। হোমের নোটিশ বোতামে দেখো।",5000);
+  }
+  try{const c=JSON.parse(localStorage.getItem("lom_notice_cache")||"[]");const seen=new Set(list.map(key));c.forEach(n=>{if(!seen.has(key(n)))list.push(n)})}catch(e){}
+  render();badge();load();
+  // ডেভেলপার ড্যাশবোর্ডে নোটিশ প্রকাশের অংশ
+  const dp=$("devp");
+  new MutationObserver(()=>{
+    if(!dp.firstChild||$("ntSec"))return;
+    const s=document.createElement("div");s.className="c";s.id="ntSec";
+    s.innerHTML='<h3>📢 নোটিশ প্রকাশ (সবাই অ্যাপে দেখবে)</h3><input type="text" id="ntT" placeholder="শিরোনাম"><textarea id="ntM" placeholder="নোটিশের বার্তা" style="width:100%;min-height:70px;background:#141b33;color:#fff;border:1px solid #556;border-radius:8px;padding:8px;font-size:14px"></textarea><div class="r"><button class="sm" id="ntPub" style="background:#f2b84b;color:#1a1204">📤 প্রকাশ করো</button></div><div id="ntOut" style="font-size:12px;margin-top:6px"></div>';
+    dp.appendChild(s);
+    $("ntPub").onclick=async()=>{
+      const t=$("ntT").value.trim(),m=$("ntM").value.trim(),o=$("ntOut");
+      if(!t||!m){o.textContent="শিরোনাম ও বার্তা দুটোই লেখো।";return}
+      if(typeof cloudBase!=="function"||!cloudBase()){o.textContent="আগে ওপরে Firebase URL বসাও (সব ইউজারের কাছে পৌঁছাতে ফাইলের CLOUD_URL-এও একই URL দিতে হবে)।";return}
+      try{const d=new Date().toISOString().slice(0,10);await cj("notices/n"+Date.now(),"PUT",{d,t,m});o.textContent="✅ প্রকাশ হয়েছে।";$("ntT").value="";$("ntM").value="";load()}catch(e){o.textContent="❌ "+(e.message||e)}
+    };
+  }).observe(dp,{childList:true});
+})();
+
 </script>
 
-</body>
-</html><!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Light of Mind</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: #1e293b;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        header {
-            text-align: center;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 16px;
-        }
-        header h1 {
-            font-size: 1.8rem;
-            color: #38bdf8;
-            margin-bottom: 6px;
-        }
-        header p {
-            font-size: 0.95rem;
-            color: #94a3b8;
-        }
-        .chat-box {
-            height: 350px;
-            overflow-y: auto;
-            background: #0f172a;
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            border: 1px solid #334155;
-        }
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-        }
-        .bot-message {
-            align-self: flex-start;
-            background: #334155;
-            color: #f8fafc;
-            border-bottom-left-radius: 2px;
-        }
-        .user-message {
-            align-self: flex-end;
-            background: #0284c7;
-            color: #ffffff;
-            border-bottom-right-radius: 2px;
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
-        input[type="text"] {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: #f8fafc;
-            font-size: 1rem;
-            outline: none;
-        }
-        input[type="text"]:focus {
-            border-color: #38bdf8;
-        }
-        button {
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
-            background: #0284c7;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #0369a1;
-        }
-        .voice-btn {
-            background: #059669;
-        }
-        .voice-btn:hover {
-            background: #047857;
-        }
-    </style>
-</head>
-<body>
+<!-- Light of Mind v2 shell: home, pages, settings, voice panels. Game 1 engine is untouched. -->
+<style id="lz-style">
+body:not(.lzG1) #pad,body:not(.lzG1) #mbtn,body:not(.lzG1) #pbtn,body:not(.lzG1) #hint,body:not(.lzG1) #ctl{display:none!important}
+#lzApp{position:fixed;inset:0;z-index:10;background:#0b1020;color:#f4efe0}
+body.lzG1 #lzApp{display:none}
+.lzPg{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:0 14px 48px;text-align:left;user-select:text;-webkit-user-select:text}
+.lzPg[hidden]{display:none}
+.lzBar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;background:#0b1020;padding:12px 0;border-bottom:1px solid #303b61;margin-bottom:14px}
+.lzBar h2{margin:0;font-size:18px;color:#f2b84b;flex:1}
+.lzBtn{font:inherit;font-size:14px;font-weight:700;border:0;border-radius:10px;padding:10px 14px;background:#f2b84b;color:#241a04}
+.lzBtn.s{background:#2a3659;color:#fff;border:1px solid #45547e}
+.lzBtn.r{background:#642c3a;color:#fff}
+.lzBtn.on{background:#c0392b;color:#fff}
+.lzCard{background:#121a32;border:1px solid #303b61;border-radius:14px;padding:14px;margin:0 0 12px}
+.lzCard h3{margin:0 0 8px;font-size:15px;color:#f2b84b}
+.lzCard p,.lzSm{font-size:13px;line-height:1.7;color:#c7d0e8;margin:6px 0}
+.lzSm{font-size:11px;color:#aab4d0}
+.lzPg input,.lzPg select,.lzPg textarea{font:inherit;font-size:14px;color:#fff;background:#0b1020;border:1px solid #465477;border-radius:9px;padding:10px;width:100%;margin:5px 0}
+.lzPg textarea{min-height:80px}
+.lzRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#lzUser{display:flex;gap:12px;align-items:center;padding:22px 0 16px}
+#lzAv{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#ffe6a0,#e9a82f);font-size:28px}
+#lzName{font-size:19px;font-weight:800}
+#lzLvl{font-size:13px;color:#f2b84b;margin-top:3px}
+.lzBig{display:block;width:100%;font:inherit;font-size:17px;font-weight:800;text-align:center;border:1px solid #303b61;background:#151e39;color:#f4efe0;border-radius:16px;padding:20px 10px;margin:0 0 12px}
+.lzBig.g{background:#f2b84b;color:#241a04;border:0}
+.lzDuo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lzDuo .lzBig{font-size:14px;padding:18px 6px}
+.lzMsg{border-top:1px solid #2b3555;padding:8px 0;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.lzMsg:first-child{border:0}
+.lzMsg b{color:#f2b84b}
+#lzToast{display:none;position:fixed;z-index:80;top:12px;left:12px;right:12px;max-width:460px;margin:auto;padding:12px 14px;border-radius:12px;background:#1c7548;color:#fff;text-align:center;font-size:14px}
+#lzGBack{display:none;position:fixed;z-index:9;top:64px;left:10px;border:0;border-radius:20px;padding:8px 14px;background:#2a3358;color:#fff;font:inherit;font-size:13px;opacity:.9}
+body.lzG1 #lzGBack{display:block}
+</style>
+<div id="lzApp"></div>
+<button id="lzGBack" aria-label="হোমে ফিরে যাও">← হোম</button>
+<div id="lzToast" role="status" aria-live="polite"></div>
+<script id="lzLayer">
+(function(){"use strict";
+const $=id=>document.getElementById(id);
+const HA="69577c4c5fe024b62219fb68f9fa29faa4181eb03815e950323828bca366b4b7",HD="3cc6e0677d45b76e6e2760fc5148b0508cc5ef4afd65fb2fd6d57e7add4ccbaf";
+const WA="8801829911995",MAIL="mdrobiulislamhawlader0@gmail.com";
+const L=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const Sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toast=t=>{const e=$("lzToast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",3800)};
+const openUrl=u=>{const a=document.createElement("a");a.href=u;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()};
+const prog=()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch(e){return{}}};
+const isPrem=()=>{try{return !!lsGet(UKEY,null)||localStorage.getItem("all_levels_unlocked")==="true"}catch(e){return false}};
+const isTok=(v,h)=>{try{return v!==""&&HS("tok|"+v)===h}catch(e){return false}};
 
-<div class="container">
-    <header>
-        <h1>Light of Mind</h1>
-        <p>ডক্টর মায়া (Doctor Maya) - এআই সহকারী</p>
-    </header>
+/* ---------- পেজ কাঠামো ---------- */
+const app=$("lzApp");
+const mk=(id,title,body)=>`<section class="lzPg" id="pg_${id}" hidden><div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">← ব্যাক (Back)</button><h2>${title}</h2></div>${body}</section>`;
+const vbtn=(t,i)=>`<div class="lzRow"><button class="lzBtn s" data-dict="${i}">🎤 ${t}</button></div>`;
+app.innerHTML=`
+<section class="lzPg" id="pg_home">
+  <div id="lzUser"><div id="lzAv" aria-hidden="true">🙂</div><div><div id="lzName"></div><div id="lzLvl"></div></div></div>
+  <div class="lzDuo"><button class="lzBig" data-go="notif">🔔<br>নোটিফিকেশন ও আপডেট</button><button class="lzBig" data-go="shop">💎<br>শপ / প্রিমিয়াম</button></div>
+  <button class="lzBig" data-go="explore">🧭 এক্সপ্লোর (Explore)</button>
+  <button class="lzBig g" data-go="games">🎮 প্লে গেম (Play Game)</button>
+</section>`+
+mk("notif","🔔 নোটিফিকেশন ও আপডেট",`<div class="lzCard" id="lzNoticeList"></div>`)+
+mk("shop","💎 শপ / প্রিমিয়াম",`<div class="lzCard"><h3 id="lzPremSt"></h3><p>প্রিমিয়াম লাইসেন্স পেতে ডেভেলপারের সঙ্গে হোয়াটসঅ্যাপে যোগাযোগ করো। কোড পেলে <b>সেটিংস</b> পেজে জিমেইল/ফোন নম্বরসহ কোডটি বসিয়ে সক্রিয় করো।</p><div class="lzRow"><button class="lzBtn" id="lzShopWa">💬 হোয়াটসঅ্যাপে জানাও</button><button class="lzBtn s" data-go="settings">⚙ সেটিংসে কোড দাও</button></div></div>`)+
+mk("explore","🧭 এক্সপ্লোর",`<button class="lzBig" data-go="settings">⚙ সেটিংস (Settings)</button><button class="lzBig" id="lzTut">📖 টিউটোরিয়াল (Tutorial)</button><button class="lzBig" data-go="contact">📞 কন্টাক্ট আস (Contact Us)</button><button class="lzBig" data-go="feedback">💬 ফিডব্যাক (Feedback)</button>`)+
+mk("settings","⚙ সেটিংস",`
+<div class="lzCard"><h3>👤 প্রোফাইল</h3><input id="sName" placeholder="তোমার নাম" autocomplete="off" aria-label="প্রোফাইলের নাম"></div>
+<div class="lzCard"><h3>🔑 কোড ও যোগাযোগ</h3>
+<input id="sPromo" placeholder="ডেভেলপারের দেওয়া প্রমো কোড" autocomplete="off" autocapitalize="off" aria-label="প্রমো কোড">
+<input id="sProg" placeholder="ইন-গেম অগ্রগতি কোড (Progress Code)" autocomplete="off" autocapitalize="off" aria-label="অগ্রগতি কোড">
+<input id="sGmail" type="email" placeholder="তোমার জিমেইল" autocomplete="off" autocapitalize="off" aria-label="জিমেইল">
+<input id="sPhone" type="tel" placeholder="ফোন নম্বর" autocomplete="off" aria-label="ফোন নম্বর">
+<div class="lzRow"><button class="lzBtn" id="sApply">✅ প্রয়োগ করো</button><button class="lzBtn s" id="sGen">📋 আমার অগ্রগতি কোড</button></div>
+<div id="sMsgs"></div></div>
+<div class="lzCard"><h3>🔊 কণ্ঠ ও শব্দ</h3><div id="sVoice"></div></div>
+<div class="lzCard"><h3>🗑 অগ্রগতি</h3><div id="sReset"></div></div>
+<div id="lzLegacy" style="display:none"></div>`)+
+mk("contact","📞 কন্টাক্ট আস",`<div class="lzCard"><h3>👨‍💻 ডেভেলপার</h3><p><b>এমডি রবিউল ইসলাম হাওলাদার</b> 🇧🇩</p><div class="lzRow"><button class="lzBtn" id="cWa">💬 হোয়াটসঅ্যাপ: 01829911995</button><button class="lzBtn s" id="cMail">✉ ${MAIL}</button></div></div>`)+
+mk("feedback","💬 ফিডব্যাক",`<div class="lzCard"><h3>তোমার মতামত জানাও</h3><textarea id="fbTxt" placeholder="কোন লেভেলে ছিলে, কী হলো, কী ভালো লাগলো..." aria-label="ফিডব্যাক"></textarea><div class="lzRow"><button class="lzBtn" id="fbMail">✉ ইমেইলে পাঠাও</button><button class="lzBtn s" id="fbWa">💬 হোয়াটসঅ্যাপে পাঠাও</button></div></div>`)+
+mk("games","🎮 প্লে গেম",`<div class="lzCard"><h3>গেম ১: মনের আলো (Light of Mind)</h3><p>ক্লাসিক সাইকোলজিক্যাল অডিও গেম, ডক্টর মায়ার সঙ্গে মাইন্ডফুলনেস যাত্রা।</p><button class="lzBtn" id="g1">▶ খেলো</button></div>`)+
+mk("voice","🎙",`
+<div class="lzCard"><h3>⚙ ভয়েস সেটিংস</h3><select id="vLang" aria-label="ভাষা"><option value="bn-BD">বাংলা (bn-BD)</option><option value="en-US">English (en-US)</option></select><label class="lzSm"><input type="checkbox" id="vRead" style="width:auto"> নতুন বার্তা পড়ে শোনাও</label></div>
+<div class="lzCard"><h3>📻 ইন্টারকম</h3><div id="vChat" aria-live="polite"></div><textarea id="vTxt" placeholder="মাইক্রোফোনে বলো বা লেখো" aria-label="বার্তা"></textarea>${vbtn("বলে লেখো","vTxt")}<div class="lzRow"><button class="lzBtn" id="vSend">📤 পাঠাও</button><button class="lzBtn s" id="vWa">📲 হোয়াটসঅ্যাপে পাঠাও</button><button class="lzBtn r" id="vClr">🗑 চ্যাট মুছো</button></div><p class="lzSm">চ্যাট এই ডিভাইসের ব্রাউজারে সংরক্ষিত থাকে। অন্য ফোনে পাঠাতে হোয়াটসঅ্যাপ বোতাম ব্যবহার করো।</p></div>
+<div class="lzCard" id="vDevOnly"><h3>📢 নোটিফিকেশন প্রকাশ (ডেভেলপার)</h3><input id="nTitle" placeholder="শিরোনাম" aria-label="শিরোনাম">${vbtn("শিরোনাম বলো","nTitle")}<textarea id="nBody" placeholder="বার্তা" aria-label="বার্তা"></textarea>${vbtn("বার্তা বলো","nBody")}<div class="lzRow"><button class="lzBtn" id="nPub">প্রকাশ করো</button><button class="lzBtn s" id="vDash">🛠 লাইসেন্স ড্যাশবোর্ড</button></div></div>`);
 
-    <div class="chat-box" id="chatBox">
-        <div class="message bot-message">
-            নমস্কার, আমি ডক্টর মায়া। আপনার 'Light of Mind' অ্যাপ্লিকেশনের জন্য আমি সম্পূর্ণ প্রস্তুত আছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?
-        </div>
-    </div>
+const st=["home"],enter={},leave={};
+function show(id){document.querySelectorAll(".lzPg").forEach(p=>p.hidden=p.id!=="pg_"+id);const f=enter[id];if(f)f();const s=$("pg_"+id);if(s)s.scrollTop=0}
+function go(id){st.push(id);try{history.pushState({lz:id},"")}catch(e){}show(id)}
+function back(){if(st.length<2)return;const o=st.pop();if(leave[o])leave[o]();show(st[st.length-1])}
+window.addEventListener("popstate",back);
+app.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b)go(b.dataset.go);if(e.target.closest(".lzBack"))history.back()});
+$("lzGBack").onclick=()=>history.back();
 
-    <div class="controls">
-        <input type="text" id="userInput" placeholder="এখানে লিখুন..." onkeypress="handleKeyPress(event)">
-        <button onclick="sendMessage()">পাঠান</button>
-        <button class="voice-btn" onclick="startVoice()">🎤</button>
-    </div>
-</div>
+/* ---------- হোম ---------- */
+function paint(){const p=prog(),n=L("lom2_name","")||p.name||"বন্ধু",lv=p.level||1;
+ $("lzName").textContent=n;$("lzLvl").textContent="Lv "+lv+" · "+(isPrem()||lv>=50?"Pro Player":lv>=10?"Skilled Player":"Beginner")}
+enter.home=paint;
+const notices=()=>L("lom2_notices",[{t:"মনের আলো-তে স্বাগতম",b:"নতুন হোম, শপ ও এক্সপ্লোর যুক্ত হয়েছে।",d:"২০২৬"}]);
+enter.notif=()=>{$("lzNoticeList").innerHTML=notices().map(n=>`<div class="lzMsg"><b>${esc(n.t)}</b><br>${esc(n.b)}<div class="lzSm">${esc(n.d)}</div></div>`).join("")};
+enter.shop=()=>{$("lzPremSt").textContent=isPrem()?"✅ প্রিমিয়াম সক্রিয়":"🆓 ফ্রি ভার্সন"};
+$("lzShopWa").onclick=()=>openUrl("https://wa.me/"+WA+"?text="+encodeURIComponent("আসসালামু আলাইকুম, মনের আলো অ্যাপের প্রিমিয়াম লাইসেন্স সম্পর্কে জানতে চাই। নাম: "+$("lzName").textContent));
+$("lzTut").onclick=()=>{try{openTut()}catch(e){toast("টিউটোরিয়াল খোলা যায়নি")}};
+$("cWa").onclick=()=>openUrl("https://wa.me/"+WA);
+$("cMail").onclick=()=>openUrl("mailto:"+MAIL);
+const fbText=()=>{const t=$("fbTxt").value.trim();if(!t){toast("আগে মতামত লেখো।");return""}return "মনের আলো ফিডব্যাক ("+$("lzName").textContent+"): "+t};
+$("fbMail").onclick=()=>{const t=fbText();if(t)openUrl("mailto:"+MAIL+"?subject="+encodeURIComponent("মনের আলো ফিডব্যাক")+"&body="+encodeURIComponent(t))};
+$("fbWa").onclick=()=>{const t=fbText();if(t)openUrl("https://wa.me/"+WA+"?text="+encodeURIComponent(t))};
 
-<script>
-    const chatBox = document.getElementById('chatBox');
-    const userInput = document.getElementById('userInput');
+/* ---------- সেটিংস: পুরনো প্রমো/লাইসেন্স এলিমেন্ট এখানে আনা হয়েছে ---------- */
+(function(){const lg=$("lzLegacy");
+ lg.appendChild($("lic"));lg.appendChild($("promo").parentNode);
+ $("lic").querySelectorAll("*").forEach(x=>{});
+ $("sMsgs").appendChild($("pmsg"));$("sMsgs").appendChild($("lcStat"));
+ $("sVoice").appendChild($("vset"));$("sReset").appendChild($("reset").parentNode);
+ $("sName").value=L("lom2_name","");$("sName").oninput=e=>{Sv("lom2_name",e.target.value.trim());paint()};
+ $("sGmail").value=L("lom2_gmail","");$("sPhone").value=L("lom2_phone","");
+})();
+enter.settings=()=>{$("vset").style.display="flex"};
+$("sGen").onclick=()=>{$("pcode").click()};
+$("sApply").onclick=()=>{
+ const promo=$("sPromo").value.trim(),pg=$("sProg").value.trim(),g=$("sGmail").value.trim(),ph=$("sPhone").value.trim(),m=$("pmsg");
+ Sv("lom2_gmail",g);Sv("lom2_phone",ph);
+ if(isTok(promo,HA)){$("sPromo").value="";unlock("admin");return}
+ if(isTok(promo,HD)){$("sPromo").value="";unlock("dev");return}
+ if(!promo&&!pg){m.textContent="প্রমো কোড বা অগ্রগতি কোড লেখো।";return}
+ $("lcContact").value=g||ph;
+ if(pg){$("promo").value=pg;promoApply()}
+ if(promo){$("promo").value=promo;$("lcCode").value=promo;promoApply()}
+ paint();
+};
 
-    function appendMessage(text, sender) {
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
-        msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-        msgDiv.innerText = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
+/* ---------- গোপন প্যানেল: অ্যাডমিন / ডেভেলপার ভয়েস ---------- */
+let role="";
+function unlock(r){role=r;go("voice");toast(r==="dev"?"ডেভেলপার প্যানেল খুলেছে":"অ্যাডমিন প্যানেল খুলেছে")}
+const chat=()=>L("lom2_chat",[]);
+function renderChat(){$("vChat").innerHTML=chat().slice(-30).map(m=>`<div class="lzMsg"><b>${esc(m.r)}</b>: ${esc(m.t)}<div class="lzSm">${new Date(m.d).toLocaleString("bn-BD")}</div></div>`).join("")||'<p class="lzSm">কোনো বার্তা নেই।</p>'}
+enter.voice=()=>{const dv=role==="dev";$("pg_voice").querySelector("h2").textContent=dv?"🎙 ডেভেলপার ভয়েস প্যানেল":"🎙 অ্যাডমিন ভয়েস প্যানেল";$("vDevOnly").hidden=!dv;renderChat()};
+leave.voice=()=>{stopDict();role=""};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,recBtn=null;
+function stopDict(){try{rec&&rec.stop()}catch(e){}}
+function dict(tid,btn){
+ if(!SR){toast("এই ব্রাউজারে ভয়েস ডিক্টেশন নেই। Chrome ব্যবহার করো।");return}
+ if(rec){const same=recBtn===btn;stopDict();if(same)return}
+ const t=$(tid),base=t.value?t.value+" ":"";let fin="";
+ const r=new SR();r.lang=$("vLang").value;r.continuous=true;r.interimResults=true;
+ r.onresult=e=>{let it="";for(let i=e.resultIndex;i<e.results.length;i++){const x=e.results[i];if(x.isFinal)fin+=x[0].transcript+" ";else it+=x[0].transcript}t.value=base+fin+it};
+ r.onerror=e=>toast("মাইক্রোফোন সমস্যা: "+e.error);
+ r.onend=()=>{if(rec===r){rec=null}btn.classList.remove("on");btn.textContent=btn.dataset.l};
+ btn.dataset.l=btn.dataset.l||btn.textContent;btn.classList.add("on");btn.textContent="⏹ থামাও (শুনছি...)";
+ rec=r;recBtn=btn;try{r.start()}catch(e){rec=null;btn.classList.remove("on");btn.textContent=btn.dataset.l}
+}
+document.querySelectorAll("[data-dict]").forEach(b=>b.onclick=()=>dict(b.dataset.dict,b));
+$("vSend").onclick=()=>{const t=$("vTxt").value.trim();if(!t)return;stopDict();const a=chat();a.push({r:role==="dev"?"ডেভেলপার":"অ্যাডমিন",t,d:Date.now()});Sv("lom2_chat",a.slice(-100));$("vTxt").value="";renderChat()};
+$("vWa").onclick=()=>{const t=$("vTxt").value.trim();if(t)openUrl("https://wa.me/"+WA+"?text="+encodeURIComponent(t))};
+$("vClr").onclick=()=>{Sv("lom2_chat",[]);renderChat()};
+window.addEventListener("storage",e=>{if(e.key!=="lom2_chat"||!role)return;renderChat();if($("vRead").checked&&window.speechSynthesis){const m=chat().slice(-1)[0];if(m){const u=new SpeechSynthesisUtterance(m.r+": "+m.t);u.lang=$("vLang").value;speechSynthesis.speak(u)}}});
+$("nPub").onclick=()=>{const t=$("nTitle").value.trim(),b=$("nBody").value.trim();if(!t||!b){toast("শিরোনাম ও বার্তা লেখো।");return}const a=notices();a.unshift({t,b,d:new Date().toLocaleDateString("bn-BD")});Sv("lom2_notices",a.slice(0,30));$("nTitle").value=$("nBody").value="";toast("নোটিফিকেশন প্রকাশিত হয়েছে।")};
+$("vDash").onclick=()=>{try{openDev()}catch(e){toast("ড্যাশবোর্ড খোলা যায়নি")}};
 
-    function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
+/* ---------- গেম ১ ---------- */
+$("g1").onclick=()=>go("g1");
+enter.g1=()=>{document.body.classList.add("lzG1")};
+leave.g1=()=>{location.reload()};
 
-        appendMessage(text, 'user');
-        userInput.value = '';
 
-        setTimeout(() => {
-            const reply = "আপনার কথাটি নোট করা হয়েছে। ডক্টর মায়া এই বিষয়ে আপনাকে আরও সহায়তা করতে প্রস্তুত।";
-            appendMessage(reply, 'bot');
-            speakText(reply);
-        }, 800);
-    }
-
-    function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    }
-
-    function speakText(text) {
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'bn-BD';
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    function startVoice() {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'bn-BD';
-
-            recognition.onstart = function() {
-                userInput.placeholder = "শুনছি... বলুন...";
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                userInput.value = transcript;
-                sendMessage();
-            };
-
-            recognition.onend = function() {
-                userInput.placeholder = "এখানে লিখুন...";
-            };
-
-            recognition.start();
-        } else {
-            alert("আপনার ব্রাউজারে ভয়েস রেকর্ড সাপোর্ট করছে না।");
-        }
-    }
+paint();show("home");
+try{history.replaceState({lz:"home"},"")}catch(e){}
+})();
 </script>
 
 </body>
