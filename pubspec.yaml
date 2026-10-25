@@ -1,29 +1,14 @@
 name: light_of_mind
-description: মনের আলো (Light of Mind) - ফ্লাটার ওয়েবভিউ ও ডিভাইস টিটিএস অ্যাপ
+description: মনের আলো (Light of Mind)
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
-  flutter: '>=3.24.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_inappwebview: ^6.1.5
-  flutter_tts: ^4.2.0
-  wakelock_plus: 1.2.8
-  cupertino_icons: ^1.0.8
-
-dependency_overrides:
-  package_info_plus: 8.0.2
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/index.html
