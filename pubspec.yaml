@@ -12,8 +12,11 @@ dependencies:
     sdk: flutter
   flutter_inappwebview: ^6.1.5
   flutter_tts: ^4.2.0
-  wakelock_plus: ^1.2.8
+  wakelock_plus: 1.2.8
   cupertino_icons: ^1.0.8
+
+dependency_overrides:
+  package_info_plus: 8.0.2
 
 dev_dependencies:
   flutter_test:
