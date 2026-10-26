@@ -40,10 +40,10 @@ jobs:
           s=re.sub(r'(<application\b[^>]*>)',lambda m:m.group(1)+'<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="'+a+'"/>',s,count=1)
           open(p,"w",encoding="utf-8").write(s)
           MF_PY
-          GR=$(ls android/app/build.gradle android/app/build.gradle.kts 2>/dev/null | head -1)
+          if [ -f android/app/build.gradle ]; then GR=android/app/build.gradle; else GR=android/app/build.gradle.kts; fi
           grep -q 'play-services-ads' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.android.gms:play-services-ads:23.2.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.android.gms:play-services-ads:23.2.0'\n}\n" >> "$GR";; esac; }
-          grep -c 'play-services-ads' "$GR" | tee -a "$L"
-          grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L"
+          grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
+          grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
           MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
           [ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
           PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
@@ -207,4 +207,3 @@ jobs:
                       }
                       "ttsStop" -> {
                           tts?.stop()
-                          resolve(id, "true")
