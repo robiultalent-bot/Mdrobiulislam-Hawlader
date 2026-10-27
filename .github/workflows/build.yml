@@ -44,6 +44,12 @@ jobs:
           grep -q 'play-services-ads' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.android.gms:play-services-ads:23.2.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.android.gms:play-services-ads:23.2.0'\n}\n" >> "$GR";; esac; }
           grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
           grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
+          for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
+            if [ -f "$KF" ]; then
+              sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"
+              grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+            fi
+          done
           MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
           [ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
           PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
@@ -130,13 +136,13 @@ jobs:
               private var tts: TextToSpeech? = null
               private var ttsReady = false
               private var engineName = ""
-              private val pending = ConcurrentHashMap<String, String>()
-              private var uttCounter = 0
+              private val pending = ConcurrentHashMap<String, String>()private var uttCounter = 0
               private var rewarded: RewardedAd? = null
               private var adLoading = false
 
               override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                  super.onCreate(savedInstanceState)
+                  window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                   try {
                       MobileAds.initialize(this) {}
                   } catch (e: Exception) {
@@ -289,9 +295,9 @@ jobs:
                       runOnUiThread {
                           ttsReady = (status == TextToSpeech.SUCCESS)
                           if (ttsReady) {
-                              tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                                  override fun onStart(utteranceId: String?) {}
-                                  override fun onDone(utteranceId: String?) {utteranceDone(utteranceId)
+                              tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {override fun onStart(utteranceId: String?) {}
+                                  override fun onDone(utteranceId: String?) {
+                                      utteranceDone(utteranceId)
                                   }
 
                                   @Deprecated("Deprecated in Java")
