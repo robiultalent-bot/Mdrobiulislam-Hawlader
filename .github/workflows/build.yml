@@ -46,8 +46,7 @@ jobs:
           grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
           for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
             if [ -f "$KF" ]; then
-              sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"
-              grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+              sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
             fi
           done
           MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
@@ -93,7 +92,7 @@ jobs:
           echo "=========== REAL ERROR START ==========="
           grep -E "^e: |error:" build.log | head -20 || true
           P=$(find . -name pubspec.yaml -not -path "*/.*" -not -path "*/build/*" | head -1)
-          cd "$(dirname "$P")/android" && ./gradlew :app:compileReleaseKotlin --console=plain 2>&1 | grep -E "^e: |Unresolved|Incompatible|metadata|Type mismatch|None of the following" | head -25 || true
+          cd "$(dirname "$P")/android" && ./gradlew :app:compileReleaseKotlin --console=plain 2>&1 | tail -70 || true
           echo "=========== REAL ERROR END ==========="
       - uses: actions/upload-artifact@v4
         if: always()
