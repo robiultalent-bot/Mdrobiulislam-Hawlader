@@ -91,8 +91,9 @@ jobs:
         run: |
           echo "=========== REAL ERROR START ==========="
           grep -E "^e: |error:" build.log | head -20 || true
-          P=$(find . -name pubspec.yaml -not -path "*/.*" -not -path "*/build/*" | head -1)
-          cd "$(dirname "$P")/android" && ./gradlew :app:compileReleaseKotlin --console=plain 2>&1 | tail -70 || true
+          grep -n -B2 -A4 "^e: " build.log | head -60 || true
+          echo "----------- LAST LINES -----------"
+          tail -60 build.log || true
           echo "=========== REAL ERROR END ==========="
       - uses: actions/upload-artifact@v4
         if: always()
