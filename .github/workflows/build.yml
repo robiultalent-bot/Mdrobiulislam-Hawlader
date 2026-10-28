@@ -27,7 +27,8 @@ jobs:
           M=$(find lib -iname main.dart 2>/dev/null | head -1)
           [ -z "$M" ] && echo "ERROR: lib/main.dart not found" | tee -a "$L" && exit 1
           [ -f assets/index.html ] || { echo "ERROR: assets/index.html not found" | tee -a "$L"; exit 1; }
-          [ -f android/app/build.gradle ] || [ -f android/app/build.gradle.kts ] || flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
+          rm -rf android
+          flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
           sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
           MF=android/app/src/main/AndroidManifest.xml
           grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
@@ -46,9 +47,17 @@ jobs:
           grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
           for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
             if [ -f "$KF" ]; then
-              sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+              sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"
+              grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
             fi
           done
+          for SF in android/settings.gradle android/settings.gradle.kts; do
+            if [ -f "$SF" ] && ! grep -Eq "include[ (]+['\"]:app['\"]" "$SF"; then
+              case "$SF" in *.kts) printf '\ninclude(":app")\n' >> "$SF";; *) printf "\ninclude ':app'\n" >> "$SF";; esac
+              echo "added include :app to $SF" | tee -a "$L"
+            fi
+          done
+          cat android/settings.gradle* 2>/dev/null | head -30 | tee -a "$L" || true
           MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
           [ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
           PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
