@@ -1,4 +1,4 @@
-name: Build APK
+ name: Build APK
 on:
   push:
   workflow_dispatch:
@@ -33,6 +33,7 @@ jobs:
           MF=android/app/src/main/AndroidManifest.xml
           grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
           grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
+          grep -q 'permission.CAMERA' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.CAMERA"/><uses-feature android:name="android.hardware.camera" android:required="false"/>|' $MF
           APPID="ca-app-pub-5481902015314492~1735182591"
           grep -q 'ads.APPLICATION_ID' $MF || python3 - "$MF" "$APPID" <<'MF_PY'
           import re,sys
@@ -43,6 +44,7 @@ jobs:
           MF_PY
           if [ -f android/app/build.gradle ]; then GR=android/app/build.gradle; else GR=android/app/build.gradle.kts; fi
           grep -q 'play-services-ads' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.android.gms:play-services-ads:23.2.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.android.gms:play-services-ads:23.2.0'\n}\n" >> "$GR";; esac; }
+          if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n}\n" >> "$GR";; esac; }; fi
           grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
           grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
           for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
@@ -69,7 +71,7 @@ jobs:
           cp native/shim.js "$ASSETS/shim.js"
           sed -i '0,/<head>/s//<head><script src="shim.js"><\/script>/' "$ASSETS/index.html"
           grep -c 'shim.js' "$ASSETS/index.html" | tee -a "$L"
-          for MODJS in soundscape.js ads.js; do
+          for MODJS in soundscape.js ads.js extra.js; do
             if [ -f "assets/$MODJS" ]; then
               cp "assets/$MODJS" "$ASSETS/$MODJS"
               python3 - "$ASSETS/index.html" "$MODJS" <<'SND_PY'
@@ -91,11 +93,37 @@ jobs:
           cp native/MainActivity.kt "$MD/MainActivity.kt"
           cp native/AdHelper.kt "$MD/AdHelper.kt"
           sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/MainActivity.kt" "$MD/AdHelper.kt"
+          VIS=0
+          if [ -f native/Vision.kt ]; then
+            cp native/Vision.kt "$MD/Vision.kt"
+            sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/Vision.kt"
+            if python3 - "$MD/MainActivity.kt" <<'VIS_PY'
+          import sys
+          p=sys.argv[1]
+          s=open(p,encoding="utf-8").read()
+          s=s.replace("    private lateinit var ads: AdHelper\n","    private lateinit var ads: AdHelper\n    private lateinit var vision: Vision\n",1)
+          s=s.replace("        ads.init()\n","        ads.init()\n        vision = Vision(this) { cid, json -> resolve(cid, json) }\n",1)
+          s=s.replace("        web.webChromeClient = WebChromeClient()\n","        web.webChromeClient = object : WebChromeClient() {\n            override fun onPermissionRequest(request: android.webkit.PermissionRequest) {\n                runOnUiThread {\n                    try {\n                        request.grant(request.resources)\n                    } catch (e: Exception) {\n                    }\n                }\n            }\n        }\n",1)
+          s=s.replace('            else -> reject(id, "unknown handler: " + name)\n','            else -> if (!vision.handle(name, args, id)) reject(id, "unknown handler: " + name)\n',1)
+          for k in ["private lateinit var vision","vision = Vision(","onPermissionRequest","vision.handle("]:
+              assert k in s,k
+          open(p,"w",encoding="utf-8").write(s)
+          VIS_PY
+            then VIS=1; echo "Vision enabled" | tee -a "$L"; else echo "Vision patch failed, skipped" | tee -a "$L"; rm -f "$MD/Vision.kt"; fi
+          fi
           head -3 "$MD/MainActivity.kt" | tee -a "$L"
           flutter pub get 2>&1 | tee -a "$L"
-          flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"
+          if ! flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then
+            [ "$VIS" = "1" ] || exit 1
+            echo "FALLBACK: first build failed, rebuilding without camera features" | tee -a "$L"
+            rm -f "$MD/Vision.kt"
+            cp native/MainActivity.kt "$MD/MainActivity.kt"
+            sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/MainActivity.kt"
+            sed -i '/com.google.mlkit/d' "$GR"
+            flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"
+          fi
       - name: Show real error
-        if: failure()
+        if: always()
         shell: bash
         run: |
           echo "=========== REAL ERROR START ==========="
