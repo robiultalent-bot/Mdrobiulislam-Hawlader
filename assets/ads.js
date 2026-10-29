@@ -6,6 +6,7 @@
 (function(){
 "use strict";
 if(window.__LOM_ADS)return;
+try{if(!localStorage.getItem("lom_cloud_v1"))localStorage.setItem("lom_cloud_v1","https://sonicmind-72928-default-rtdb.firebaseio.com")}catch(e){}
 
 /* ---------- এখানে শুধু এই কয়েকটা সংখ্যা বদলালেই চলে ---------- */
 const TEST=true;   // true = Google-এর টেস্ট অ্যাড (প্রিভিউয়ের জন্য)।  আসল অ্যাডের জন্য false করো
