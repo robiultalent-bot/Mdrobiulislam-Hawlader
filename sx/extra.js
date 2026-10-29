@@ -1,3 +1,39 @@
+  vid.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
+  document.body.appendChild(vid);
+  await vid.play();await sleep(800);
+}
+function camOff(){
+  try{if(stream)stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  stream=null;if(vid){try{vid.remove()}catch(e){}vid=null}
+}
+function grab(){
+  if(!vid||!vid.videoWidth)return null;
+  const w=Math.min(640,vid.videoWidth),h=Math.round(vid.videoHeight*w/vid.videoWidth);
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  c.getContext("2d").drawImage(vid,0,0,w,h);
+  return c.toDataURL("image/jpeg",0.7).split(",")[1];
+}
+
+/* ---------- টর্চ ও আলো ---------- */
+let torchOn=false,autoLight=0,autoTorch=false,wasDark=false;
+async function setTorch(on){
+  let ok=false;
+  if(native()){try{ok=(await nat("torch",on))===true}catch(e){}}
+  if(!ok&&stream){try{await stream.getVideoTracks()[0].applyConstraints({advanced:[{torch:on}]});ok=true}catch(e){}}
+  if(ok)torchOn=on;
+  return ok;
+}
+async function getLux(){
+  if(!native())return -1;
+  try{return Number(await nat("lux"))}catch(e){return -1}
+}
+async function torchBtn(){
+  const want=!torchOn,ok=await setTorch(want);
+  if(ok){setSt("tSt",want?"টর্চ চালু":"টর্চ বন্ধ");say(want?"টর্চ চালু হয়েছে।":"টর্চ বন্ধ হয়েছে।")}
+  else{setSt("tSt","টর্চ চালানো যায়নি");say("টর্চ চালানো যায়নি। এই ফোনে টর্চ নেই, অথবা অন্য অ্যাপ ক্যামেরা ব্যবহার করছে।")}
+}
+async function lightBtn(){
+  const v=await getLux();
   if(v<0){setSt("tSt","আলোর সেন্সর পাওয়া যায়নি");say("এই ফোনে আলোর সেন্সর পাওয়া যায়নি।");return}
   setSt("tSt","আলো: "+Math.round(v)+" লাক্স");
   say(v<15?"চারপাশে আলো অনেক কম।":v<80?"আলো কিছুটা কম।":"চারপাশে যথেষ্ট আলো আছে।");
