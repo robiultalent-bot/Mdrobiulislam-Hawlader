@@ -69,3 +69,63 @@ if(native())setTimeout(()=>{try{nat("adLoad",unit()).catch(()=>0)}catch(e){}},40
 
 window.__LOM_ADS={get coins(){return coins},setCoins(n){coins=n;save();paint()},gate,watch,cfg:{TEST,FREE,COST,PER_AD}};
 })();
+
+(function(){
+"use strict";
+if(window.__LOM_EXTRA)return;window.__LOM_EXTRA=1;
+
+const TITLE="🧠 মাইন্ড এআই (স্মার্ট গাইড)";
+const DISC="প্রিয় ব্যবহারকারী, এই ডিজিটাল গাইড অ্যাপ্লিকেশনটি আপনার দৈনন্দিন চলাফেরা ও পরিবেশ অনুধাবনে সহায়তার উদ্দেশ্যে অত্যন্ত যত্নের সাথে তৈরি করা হয়েছে। তবে অনুগ্রহ করে মনে রাখবেন, এটি কোনোভাবেই মানবীয় সচেতনতা, দৃষ্টিশক্তি কিংবা অভিজ্ঞ গাইডের বিকল্প নয়। এটি কেবল আপনার যাত্রাকে কিছুটা সহজ করার একটি আধুনিক প্রযুক্তিগত মাধ্যম মাত্র। আপনার ব্যক্তিগত নিরাপত্তা ও সার্বিক সুরক্ষার স্বার্থে যাতায়াতের সময় সর্বদা সাদা ছড়ি ব্যবহারের জন্য বিশেষভাবে অনুরোধ করা হচ্ছে।";
+const SOON=[
+ ["💵 মানি রিডার (২ থেকে ১০০০ টাকা)","ক্যামেরায় টাকার নোট চেনা"],
+ ["🛒 আজকের বাজার দর","অনলাইনে এলে দর জমা হবে, অফলাইনেও দেখা যাবে"],
+ ["👤 ব্যক্তি চেনা ও স্মৃতি","কাকে কবে কোথায় দেখা গেছে মনে রাখা"],
+ ["🤳 ভয়েস গাইডেড সেলফি","ফোন ডানে বামে ঘোরানোর নির্দেশনা"],
+ ["🔎 হারানো জিনিস খোঁজা","৩০ সেকেন্ডের সার্চিং সাউন্ড"],
+ ["🔦 অটো লাইট ও টর্চ","আলো কম হলে জানানো"]
+];
+
+function nm(){const e=document.getElementById("lzName");return(e&&e.textContent.trim())||"বন্ধু"}
+function stopSay(){try{cancelVoice()}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
+function say(t){
+  stopSay();
+  try{if(typeof ntSpeak==="function"){ntSpeak(t,0);return}}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="bn-BD";speechSynthesis.speak(u)}catch(e){}
+}
+function welcome(){return "প্রিয় "+nm()+", তুমি এখানে এসেছো, এটাই একটা সুন্দর শুরু। প্রতিটা ছোট পদক্ষেপই তোমার সাহস আর শক্তির পরিচয়। আমরা ধাপে ধাপে তোমার পাশে আছি।"}
+
+function build(){
+  const app=document.getElementById("lzApp"),home=document.getElementById("pg_home");
+  if(!app||!home||document.getElementById("pg_mind"))return !!document.getElementById("pg_mind");
+  const ex=home.querySelector('[data-go="explore"]');if(!ex)return false;
+
+  const btn=document.createElement("button");
+  btn.className="lzBig";btn.id="lzMindBtn";btn.setAttribute("data-go","mind");btn.textContent=TITLE;
+  ex.insertAdjacentElement("afterend",btn);
+
+  const sec=document.createElement("section");
+  sec.className="lzPg";sec.id="pg_mind";sec.hidden=true;
+  let h='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">← ব্যাক (Back)</button><h2>'+TITLE+'</h2></div>';
+  h+='<div class="lzCard"><h3>💛 স্বাগতম</h3><p id="mindWel"></p><div class="lzRow"><button class="lzBtn" id="mindSay">🔊 আবার শোনো</button><button class="lzBtn s" id="mindStop">⏹ থামাও</button></div></div>';
+  h+='<div class="lzCard"><h3>⚠ গুরুত্বপূর্ণ বার্তা</h3><p id="mindDisc"></p><div class="lzRow"><button class="lzBtn s" id="mindDiscSay">🔊 বার্তাটি শোনো</button></div></div>';
+  h+='<div class="lzCard"><h3>🚧 শীঘ্রই আসছে</h3><p>নিচের ফিচারগুলো ধাপে ধাপে যুক্ত হবে। এখনো চালু হয়নি।</p>';
+  SOON.forEach(function(x){h+='<div class="lzMsg"><b>'+x[0]+'</b><br>'+x[1]+'</div>'});
+  h+='</div>';
+  sec.innerHTML=h;app.appendChild(sec);
+  document.getElementById("mindDisc").textContent=DISC;
+
+  const q=function(i){return document.getElementById(i)};
+  q("mindSay").onclick=function(){say(welcome())};
+  q("mindStop").onclick=stopSay;
+  q("mindDiscSay").onclick=function(){say(DISC)};
+
+  new MutationObserver(function(){
+    if(sec.hidden){stopSay();return}
+    q("mindWel").textContent=welcome();
+    say(welcome()+" "+DISC);
+  }).observe(sec,{attributes:true,attributeFilter:["hidden"]});
+  return true;
+}
+let n=0;
+(function wait(){if(build()||++n>100)return;setTimeout(wait,200)})();
+})();
