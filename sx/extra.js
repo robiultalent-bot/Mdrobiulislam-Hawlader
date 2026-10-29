@@ -1,3 +1,29 @@
+const store=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
+function nm(){const e=$("lzName");return(e&&e.textContent.trim())||"বন্ধু"}
+function stopSay(){try{cancelVoice()}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
+function say(t){
+  stopSay();
+  try{if(typeof ntSpeak==="function")return ntSpeak(t,0)}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="bn-BD";speechSynthesis.speak(u)}catch(e){}
+  return Promise.resolve();
+}
+function sayW(t){return Promise.race([say(t),sleep(9000)])}
+function setSt(id,t){const e=$(id);if(e)e.textContent=t}
+function welcome(){return "প্রিয় "+nm()+", তুমি এখানে এসেছো, এটাই একটা সুন্দর শুরু। প্রতিটা ছোট পদক্ষেপই তোমার সাহস আর শক্তির পরিচয়। আমরা ধাপে ধাপে তোমার পাশে আছি।"}
+
+/* ---------- ক্যামেরা ---------- */
+let stream=null,vid=null;
+async function camOn(front){
+  camOff();
+  if(native()){
+    let ok=false;
+    try{ok=(await nat("camPerm",true))===true}catch(e){}
+    for(let i=0;i<24&&!ok;i++){await sleep(500);try{ok=(await nat("camPerm",false))===true}catch(e){}}
+    if(!ok)throw new Error("perm");
+  }
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:front?"user":{ideal:"environment"},width:{ideal:640},height:{ideal:480}},audio:false});
+  vid=document.createElement("video");
+  vid.setAttribute("playsinline","");vid.muted=true;vid.srcObject=stream;
   vid.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
   document.body.appendChild(vid);
   await vid.play();await sleep(800);
