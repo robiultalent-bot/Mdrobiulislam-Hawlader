@@ -1,3 +1,16 @@
+    sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"
+    grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+  fi
+done
+for SF in android/settings.gradle android/settings.gradle.kts; do
+  if [ -f "$SF" ] && ! grep -Eq "include[ (]+['\"]:app['\"]" "$SF"; then
+    case "$SF" in *.kts) printf '\ninclude(":app")\n' >> "$SF";; *) printf "\ninclude ':app'\n" >> "$SF";; esac
+    echo "added include :app to $SF" | tee -a "$L"
+  fi
+done
+cat android/settings.gradle* 2>/dev/null | head -30 | tee -a "$L" || true
+MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
+[ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
 PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
 echo "Native package: $PK  file: $MA" | tee -a "$L"
 ASSETS=android/app/src/main/assets
