@@ -1,3 +1,52 @@
+  try{if(typeof ntSpeak==="function")return ntSpeak(t,0)}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="bn-BD";speechSynthesis.speak(u)}catch(e){}
+  return Promise.resolve();
+}
+function sayEn(t){
+  stopSay();
+  try{if(typeof ntSpeak==="function")return ntSpeak(t,true)}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="en-US";speechSynthesis.speak(u)}catch(e){}
+  return Promise.resolve();
+}
+const sayW=function(t){return Promise.race([say(t),sleep(12000)])};
+const sayEnW=function(t){return Promise.race([sayEn(t),sleep(15000)])};
+const setSt=function(id,t){const e=$(id);if(e)e.textContent=t};
+
+/* ---------- ক্যামেরা ---------- */
+let stream=null,vid=null;
+async function camOn(){
+  camOff();
+  if(native()){
+    let ok=false;
+    try{ok=(await nat("camPerm",true))===true}catch(e){}
+    for(let i=0;i<24&&!ok;i++){await sleep(500);try{ok=(await nat("camPerm",false))===true}catch(e){}}
+    if(!ok)throw new Error("perm");
+  }
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+  vid=document.createElement("video");
+  vid.setAttribute("playsinline","");vid.muted=true;vid.srcObject=stream;
+  vid.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
+  document.body.appendChild(vid);
+  await vid.play();await sleep(800);
+}
+function camOff(){
+  try{if(stream)stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  stream=null;if(vid){try{vid.remove()}catch(e){}vid=null}
+}
+function grab(w0){
+  if(!vid||!vid.videoWidth)return null;
+  const w=Math.min(w0,vid.videoWidth),h=Math.round(vid.videoHeight*w/vid.videoWidth);
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  c.getContext("2d").drawImage(vid,0,0,w,h);
+  return c.toDataURL("image/jpeg",0.7).split(",")[1];
+}
+
+/* ---------- টর্চ ও আলো ---------- */
+let torchOn=false,torchAuto=false,torchT=0;
+async function setTorch(on){
+  let ok=false;
+  if(native()){try{ok=(await nat("torch",on))===true}catch(e){}}
+  if(!ok&&stream){try{await stream.getVideoTracks()[0].applyConstraints({advanced:[{torch:on}]});ok=true}catch(e){}}
   if(ok){torchOn=on;torchT=Date.now()}
   return ok;
 }
