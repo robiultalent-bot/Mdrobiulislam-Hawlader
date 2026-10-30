@@ -1,3 +1,38 @@
+    }
+    okN=msg.indexOf("ঠিক আছে")===0?okN+1:0;
+    setSt("sSt",msg);
+    if(okN===3){ping(true);await sayW("মুখ মাঝখানে আছে। এখন ছবি তুলতে পারো।")}
+    else if(okN<3&&(msg!==last||Date.now()-lastT>5000)){last=msg;lastT=Date.now();await sayW(msg)}
+  }
+  if(run===selRun)selRun++;
+  camOff();
+}
+function selfieStop(){selRun++;camOff();stopSay();setSt("sSt","থামানো হয়েছে")}
+function selfieFlip(){flip=!flip;say(flip?"দিক উল্টানো হয়েছে।":"দিক আগের মতো করা হয়েছে।")}
+
+/* ---------- সব থামাও ---------- */
+function stopAll(){
+  moneyRun++;selRun++;findRun++;camOff();stopSay();
+  if(autoLight){clearInterval(autoLight);autoLight=0}
+}
+
+/* ---------- পেজ ---------- */
+function card(title,body){return '<div class="lzCard"><h3>'+title+'</h3>'+body+'</div>'}
+function btn(id,t,s){return '<button class="lzBtn'+(s?' s':'')+'" id="'+id+'">'+t+'</button>'}
+function build(){
+  const app=$("lzApp"),home=$("pg_home");
+  if(!app||!home)return false;
+  const old=$("pg_mind");
+  if(old&&old.getAttribute("data-v")==="2")return true;
+  if(old)old.remove();
+  const oldBtn=$("lzMindBtn");if(oldBtn)oldBtn.remove();
+  const ex=home.querySelector('[data-go="explore"]');if(!ex)return false;
+
+  const b0=document.createElement("button");
+  b0.className="lzBig";b0.id="lzMindBtn";b0.setAttribute("data-go","mind");b0.textContent=TITLE;
+  ex.insertAdjacentElement("afterend",b0);
+
+  const sec=document.createElement("section");
   sec.className="lzPg";sec.id="pg_mind";sec.hidden=true;sec.setAttribute("data-v","2");
   let h='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">← ব্যাক (Back)</button><h2>'+TITLE+'</h2></div>';
   h+=card("💛 স্বাগতম",'<p id="mindWel"></p><div class="lzRow">'+btn("mindSay","🔊 আবার শোনো")+btn("mindStop","⏹ সব থামাও",1)+'</div>');
