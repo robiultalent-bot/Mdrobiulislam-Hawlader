@@ -1,3 +1,41 @@
+  if(!native())return true;
+  for(let i=0;i<3;i++){
+    try{if((await live(nat("adLoad",unit())))===true)return true}catch(e){}
+    await live(new Promise(r=>setTimeout(r,3000)));
+  }
+  return false;
+}
+async function watch(){
+  try{cancelVoice()}catch(e){}
+  if(!native()){await live(new Promise(r=>setTimeout(r,2500)));return true} // ব্রাউজারে প্রিভিউ: নকল অ্যাড
+  if(!(await ready()))return false;
+  let ok=false;
+  try{ok=(await live(nat("adShow")))===true}catch(e){}
+  try{AC&&AC.resume()}catch(e){}
+  try{nat("adLoad",unit()).catch(()=>0)}catch(e){} // পরের অ্যাড আগেই লোড
+  return ok;
+}
+async function gate(l){
+  if(l<=FREE||DEV||paid===l)return;
+  for(;;){
+    if(coins>=COST){coins-=COST;paid=l;save();paint();return}
+    await ask(`${name}, পরের লেভেলে যেতে ${bn(COST)}টা কয়েন লাগে। তোমার কয়েন এখন ${bn(coins)}টা। একটা ছোট অ্যাড দেখলে ${bn(PER_AD)}টা কয়েন পাবে। অ্যাড দেখতে দুবার ট্যাপ করো।`,["dbl"]);
+    await say("অ্যাড আসছে। একটু অপেক্ষা করো।");
+    if(await watch()){
+      coins+=PER_AD;save();paint();
+      await speak(`ধন্যবাদ ${name}! তুমি ${bn(PER_AD)}টা কয়েন পেয়েছো। এখন তোমার কয়েন ${bn(coins)}টা।`);
+    }else{
+      await speak("এখন অ্যাড পাওয়া যাচ্ছে না। ইন্টারনেট ঠিক আছে কিনা দেখো, তারপর আবার চেষ্টা করো।");
+    }
+  }
+}
+const _rl=runLevel;
+runLevel=function(l){return gate(l).then(()=>_rl(l))};
+if(native())setTimeout(()=>{try{nat("adLoad",unit()).catch(()=>0)}catch(e){}},4000);
+
+window.__LOM_ADS={get coins(){return coins},setCoins(n){coins=n;save();paint()},gate,watch,cfg:{TEST,FREE,COST,PER_AD}};
+})();
+
 /* =====================================================================
    মনের আলো · অ্যাড ও কয়েন মডিউল v1 (AdMob রিওয়ার্ড অ্যাড)
    নিয়ম: প্রথম ১০ লেভেল বিনা কয়েনে। এরপর প্রতি লেভেলে ১ কয়েন লাগে।
