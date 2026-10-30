@@ -1,3 +1,17 @@
+set -eo pipefail
+L="$GITHUB_WORKSPACE/build.log"
+P=$(find . -name pubspec.yaml -not -path "*/.*" -not -path "*/build/*" | head -1)
+[ -z "$P" ] && echo "ERROR: pubspec.yaml not found" | tee "$L" && ls -R | head -50 | tee -a "$L" && exit 1
+cd "$(dirname "$P")"
+echo "Project folder: $(pwd)" | tee "$L"
+M=$(find lib -iname main.dart 2>/dev/null | head -1)
+[ -z "$M" ] && echo "ERROR: lib/main.dart not found" | tee -a "$L" && exit 1
+[ -f assets/index.html ] || { echo "ERROR: assets/index.html not found" | tee -a "$L"; exit 1; }
+rm -rf android
+flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
+sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
+MF=android/app/src/main/AndroidManifest.xml
+grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
 grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
 grep -q 'permission.CAMERA' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.CAMERA"/><uses-feature android:name="android.hardware.camera" android:required="false"/>|' $MF
 APPID="ca-app-pub-5481902015314492~1735182591"
