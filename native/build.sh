@@ -1,3 +1,8 @@
+if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n}\n" >> "$GR";; esac; }; fi
+grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
+grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
+for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
+  if [ -f "$KF" ]; then
     sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\11.9.22/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\11.9.22/' "$KF"
     grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
   fi
