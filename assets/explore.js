@@ -1,3 +1,61 @@
+const S={id:0,active:false,pend:[],timer:0,darkWarned:false};
+async function startExplore(){
+  if(S.active)return;
+  if(!canStart()){
+    await sayW("প্রিয় ব্যবহারকারী, আপনার বিনামূল্যের সেশন শেষ হয়েছে। একটি ছোট অ্যাড দেখলে আপনি "+B(CFG.PER_AD)+" কয়েন পাবেন, তা দিয়ে আরও সেশন চালাতে পারবেন। অ্যাড দেখতে অ্যাড দেখে কয়েন নিন বাটনে ডাবল ট্যাপ করুন।");
+    return;
+  }
+  consume();paintInfo();
+  const id=++S.id;S.active=true;S.pend=[];S.darkWarned=false;
+  [money,text,barcode,person].forEach(function(m){m.reset()});
+  beeper.ensure();setSt("xSt","ক্যামেরা চালু হচ্ছে...");
+  try{await camOn()}catch(e){
+    S.active=false;setSt("xSt","ক্যামেরা চালু হয়নি");
+    say("ক্যামেরা চালু করা যায়নি। ক্যামেরার অনুমতি দিয়েছেন কিনা দেখুন।");return;
+  }
+  if(id!==S.id){camOff();return}
+  setSt("xSt","এক্সপ্লোর মোড চালু");
+  await sayW("এক্সপ্লোর মোড চালু। আমি সামনের টাকা, লেখা, বারকোড ও মানুষ নিজে থেকেই জানাব। বন্ধ করতে বন্ধ বাটনে ডাবল ট্যাপ করুন।");
+  S.timer=setInterval(function(){lightTick(S)},4000);lightTick(S);
+  await loop(id);
+}
+async function loop(id){
+  const mask=X.mods.reduce(function(m,x){return m|x.mask},0);
+  while(id===S.id){
+    const pm=S.pend.shift();
+    if(pm){await sayW(pm);continue}
+    const f=grab(960);
+    if(!f){await sleep(300);continue}
+    let r=null;
+    try{r=await nat("scan",f,mask)}catch(e){
+      setSt("xSt","এই সংস্করণে সুবিধাটি নেই");say("ক্যামেরা বিশ্লেষণের সুবিধা এই সংস্করণে নেই।");break;
+    }
+    if(id!==S.id)break;
+    let best=null;
+    X.mods.forEach(function(m){
+      let c=null;try{c=m.tick(r||{})}catch(e){}
+      if(c&&(!best||c.p>best.p))best=c;
+    });
+    if(best){
+      best.commit();setSt("xSt",best.t.slice(0,80));
+      if(best.go)await best.go();
+      else if(best.en){await sayW(best.pre||"");await sayEnW(best.t)}
+      else await sayW(best.t);
+    }
+    await sleep(350);
+  }
+  if(id===S.id)stopExplore(false);
+}
+function stopExplore(rate){
+  const was=S.active;
+  S.id++;S.active=false;S.pend=[];
+  if(S.timer){clearInterval(S.timer);S.timer=0}
+  beeper.set(0);camOff();stopSay();
+  if(torchOn&&torchAuto){setTorch(false);torchAuto=false}
+  setSt("xSt","বন্ধ আছে");
+  if(was&&rate)askRating();
+}
+
 /* ---------- রেটিং ও ফায়ারবেস ---------- */
 const K_RQ="lom_x_rq";
 async function flushRatings(){
