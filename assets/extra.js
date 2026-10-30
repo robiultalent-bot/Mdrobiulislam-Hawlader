@@ -1,3 +1,11 @@
+  sec.className="lzPg";sec.id="pg_mind";sec.hidden=true;sec.setAttribute("data-v","2");
+  let h='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">← ব্যাক (Back)</button><h2>'+TITLE+'</h2></div>';
+  h+=card("💛 স্বাগতম",'<p id="mindWel"></p><div class="lzRow">'+btn("mindSay","🔊 আবার শোনো")+btn("mindStop","⏹ সব থামাও",1)+'</div>');
+  h+=card("⚠ গুরুত্বপূর্ণ বার্তা",'<p id="mindDisc"></p><div class="lzRow">'+btn("mindDiscSay","🔊 বার্তাটি শোনো",1)+'</div>');
+  h+=card("🔦 টর্চ ও আলো",'<p id="tSt" class="lzSm">প্রস্তুত</p><div class="lzRow">'+btn("tTorch","🔦 টর্চ চালু/বন্ধ")+btn("tLux","💡 আলো পরীক্ষা",1)+btn("tAuto","🌗 অটো লাইট চালু/বন্ধ",1)+'</div>');
+  h+=card("💵 মানি রিডার (২ থেকে ১০০০ টাকা)",'<p class="lzSm">নোটের সংখ্যা পরিষ্কার দেখা গেলে বলবে। ভুল হতে পারে, তাই বড় লেনদেনে অন্য কাউকে দিয়ে মিলিয়ে নিও।</p><p id="mSt" class="lzSm">প্রস্তুত</p><div class="lzRow">'+btn("mGo","▶ শুরু করো")+btn("mStop","⏹ থামাও",1)+'</div>');
+  h+=card("🛒 আজকের বাজার দর",'<p id="mkSt" class="lzSm">প্রস্তুত</p><div class="lzRow">'+btn("mkSync","🔄 দর আপডেট করো")+'</div><div id="mkList"></div>');
+  h+=card("🔎 হারানো জিনিস খোঁজা",'<p class="lzSm">'+FIND_S+' সেকেন্ডের খোঁজার সময়। শব্দ শুনে ফোন ঘুরিয়ে খোঁজো।</p><p id="fSt" class="lzSm">প্রস্তুত</p><div class="lzRow">'+btn("fGo","▶ খোঁজা শুরু")+btn("fFound","✅ পেয়েছি",1)+btn("fStop","⏹ থামাও",1)+'</div><p class="lzSm">আগের রেকর্ড:</p><p id="fSt2" class="lzSm"></p>');
   h+=card("🤳 ভয়েস গাইডেড সেলফি",'<p class="lzSm">সামনের ক্যামেরা চালু হবে। ফোন কোন দিকে সরাতে হবে বলে দেবে।</p><p id="sSt" class="lzSm">প্রস্তুত</p><div class="lzRow">'+btn("sGo","▶ শুরু করো")+btn("sStop","⏹ থামাও",1)+btn("sFlip","↔ দিক উল্টাও",1)+'</div>');
   h+=card("🚧 এখনো যুক্ত হয়নি",'<div class="lzMsg"><b>👤 ব্যক্তি চেনা ও স্মৃতি</b><br>মানুষের মুখ চিনে মনে রাখার জন্য গোপনীয়তার নিয়ম ও আরও কাজ লাগে। পরের আপডেটে।</div><div class="lzMsg"><b>🌐 সব ভাষা</b><br>এখন বাংলা। অন্য ভাষা ধাপে ধাপে আসবে।</div>');
   sec.innerHTML=h;app.appendChild(sec);
