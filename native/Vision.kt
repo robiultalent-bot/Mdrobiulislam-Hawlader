@@ -1,3 +1,56 @@
+        val ok = Build.VERSION.SDK_INT < 23 ||
+            act.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        if (!ok && ask) {
+            try {
+                act.requestPermissions(arrayOf(Manifest.permission.CAMERA), 77)
+            } catch (e: Exception) {
+            }
+        }
+        reply(id, if (ok) "true" else "false")
+    }
+
+    private fun torch(on: Boolean, id: String) {
+        try {
+            val cm = act.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            var cid: String? = null
+            for (c in cm.cameraIdList) {
+                val ch = cm.getCameraCharacteristics(c)
+                val flash = ch.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
+                val facing = ch.get(CameraCharacteristics.LENS_FACING)
+                if (flash == true && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                    cid = c
+                    break
+                }
+            }
+            if (cid == null) {
+                reply(id, "false")
+                return
+            }
+            cm.setTorchMode(cid, on)
+            reply(id, "true")
+        } catch (e: Exception) {
+            reply(id, "false")
+        }
+    }
+
+    private fun lux(id: String) {
+        val sm = act.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val s = sm.getDefaultSensor(Sensor.TYPE_LIGHT)
+        if (s == null) {
+            reply(id, "-1")
+            return
+        }
+        var done = false
+        val l = object : SensorEventListener {
+            override fun onSensorChanged(e: SensorEvent) {
+                if (done) return
+                done = true
+                sm.unregisterListener(this)
+                reply(id, e.values[0].toString())
+            }
+
+            override fun onAccuracyChanged(s: Sensor?, a: Int) {}
+        }
         sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL)
         Handler(Looper.getMainLooper()).postDelayed({
             if (!done) {
