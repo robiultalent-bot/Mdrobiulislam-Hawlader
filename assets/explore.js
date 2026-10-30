@@ -1,3 +1,56 @@
+        }};
+    }};
+})();
+
+/* মানুষ চেনা (উপস্থিতি, দিক, আনুমানিক দূরত্ব) */
+function dist(d){
+  const m={0.5:"আধা মিটার",1:"এক মিটার",1.5:"দেড় মিটার",2:"দুই মিটার",2.5:"আড়াই মিটার"};
+  return m[d]||(B(Math.round(d))+" মিটার");
+}
+const person=(function(){
+  let key="",lastT=0,miss=0;
+  return {id:"person",mask:2,
+    reset:function(){key="";lastT=0;miss=0;beeper.set(0)},
+    tick:function(r){
+      const f=(r.faces||[]).slice().sort(function(a,b){return b.w-a.w});
+      if(!f.length){if(++miss>=3){key="";beeper.set(0)}return null}
+      miss=0;
+      const a=f[0],d=Math.max(0.3,Math.round(0.126/Math.max(a.w,0.03)*2)/2);
+      beeper.set(d);
+      const zone=a.x<0.35?"বাম দিকে":a.x>0.65?"ডান দিকে":"সামনে";
+      const near=d<0.8?"খুব কাছে":d<1.6?"কাছে":d<3?"একটু দূরে":"দূরে";
+      const k=f.length+"|"+zone+"|"+near;
+      if(k===key||Date.now()-lastT<3500)return null;
+      const dt=dist(d);
+      const t=f.length===1?"একজন মানুষ, "+zone+", "+near+", প্রায় "+dt:B(f.length)+" জন মানুষ, সবচেয়ে কাছের জন "+zone+", প্রায় "+dt;
+      return {p:6,t:t,commit:function(){key=k;lastT=Date.now()}};
+    }};
+})();
+[money,text,barcode,person].forEach(X.register);
+
+/* ---------- সেশন, কয়েন ও অ্যাড ---------- */
+const K_USED="lom_x_used",K_COINS="lom_x_coins";
+const used=function(){return +ls(K_USED,0)||0};
+const coins=function(){return +ls(K_COINS,0)||0};
+function paintInfo(){
+  const left=Math.max(0,CFG.FREE-used());
+  setSt("xInfo","বিনামূল্যের সেশন বাকি: "+B(left)+"। কয়েন: "+B(coins())+"।");
+}
+function canStart(){return isDev()||used()<CFG.FREE||coins()>=CFG.COST}
+function consume(){
+  if(isDev())return;
+  if(used()>=CFG.FREE)lsS(K_COINS,coins()-CFG.COST);
+  lsS(K_USED,used()+1);
+}
+async function adCoins(){
+  const A=window.__LOM_ADS;
+  if(!A||typeof A.watch!=="function"){say("এখন অ্যাড পাওয়া যাচ্ছে না। পরে আবার চেষ্টা করুন।");return}
+  await sayW("অ্যাড আসছে। একটু অপেক্ষা করুন।");
+  let ok=false;try{ok=await A.watch()}catch(e){}
+  if(ok){lsS(K_COINS,coins()+CFG.PER_AD);paintInfo();say("ধন্যবাদ! আপনি "+B(CFG.PER_AD)+" কয়েন পেয়েছেন।")}
+  else say("অ্যাড সম্পূর্ণ দেখা হয়নি, তাই কয়েন যোগ হয়নি। আবার চেষ্টা করুন।");
+}
+
 const S={id:0,active:false,pend:[],timer:0,darkWarned:false};
 async function startExplore(){
   if(S.active)return;
