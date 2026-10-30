@@ -1,3 +1,31 @@
+    const b=document.createElement("b");b.textContent=cat;row.appendChild(b);
+    row.appendChild(document.createElement("br"));row.appendChild(document.createTextNode(rows));
+    const btn=document.createElement("button");btn.className="lzBtn s";btn.textContent="🔊 "+cat+" পড়ে শোনাও";
+    btn.onclick=function(){say(cat+"। "+rows)};
+    row.appendChild(btn);box.appendChild(row);
+  });
+}
+async function mSync(speak){
+  const b=cloud();
+  if(!navigator.onLine||!b){if(speak)say(MK_OFF);setSt("mkSt","অফলাইন: জমা থাকা দর দেখাচ্ছি");mRender();return false}
+  try{
+    const r=await fetch(b+"/market.json",{cache:"no-store"}),d=await r.json();
+    if(!d||!d.items){if(speak)say("প্রিয় ব্যবহারকারী, আজকের বাজার দর এখনো প্রকাশ করা হয়নি।");setSt("mkSt","আজকের দর এখনো প্রকাশ হয়নি");mRender();return false}
+    store(MK,JSON.stringify(d));store("lom_market_day",new Date().toDateString());
+    setSt("mkSt","আপডেট হয়েছে");mRender();if(speak)say(MK_OK);return true;
+  }catch(e){if(speak)say(MK_OFF);setSt("mkSt","ডাউনলোড হয়নি");mRender();return false}
+}
+
+/* ---------- হারানো জিনিস খোঁজা ---------- */
+let findRun=0,findSecs=0,AC2=null;
+function ping(hi){
+  try{
+    if(!AC2)AC2=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC2.state==="suspended")AC2.resume();
+    const o=AC2.createOscillator(),g=AC2.createGain();
+    o.type="sine";o.frequency.value=hi?880:620;
+    g.gain.setValueAtTime(0.0001,AC2.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.18,AC2.currentTime+0.03);
     g.gain.exponentialRampToValueAtTime(0.0001,AC2.currentTime+0.35);
     o.connect(g);g.connect(AC2.destination);o.start();o.stop(AC2.currentTime+0.4);
   }catch(e){}
