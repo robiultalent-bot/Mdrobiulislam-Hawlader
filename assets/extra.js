@@ -1,3 +1,35 @@
+    g.gain.exponentialRampToValueAtTime(0.0001,AC2.currentTime+0.35);
+    o.connect(g);g.connect(AC2.destination);o.start();o.stop(AC2.currentTime+0.4);
+  }catch(e){}
+}
+function logPaint(){
+  let a=[];try{a=JSON.parse(store("lom_find_log")||"[]")}catch(e){}
+  const box=$("fSt2");if(!box)return;
+  box.textContent=a.length?a.slice(-5).reverse().map(function(x){return x.d+": "+B(x.s)+" সেকেন্ডে পেয়েছো"}).join("। "):"এখনো কোনো রেকর্ড নেই।";
+}
+async function findStart(){
+  const run=++findRun;findSecs=0;setSt("fSt","শুরু হচ্ছে...");
+  await sayW("খোঁজা শুরু। ফোনটা ধীরে ধীরে চারপাশে ঘোরাও। আমি "+B(FIND_S)+" সেকেন্ড সময় গুনছি। শব্দ দ্রুত হলে বুঝবে সময় কমে আসছে।");
+  const t0=Date.now();
+  for(let i=0;run===findRun;i++){
+    const el=(Date.now()-t0)/1000;findSecs=Math.floor(el);
+    if(el>=FIND_S)break;
+    const late=el>FIND_S*0.66;
+    if(late||i%2===0)ping(late);
+    setSt("fSt","সময়: "+findSecs+" সেকেন্ড");
+    const m=Math.floor(el);
+    if(m===Math.floor(FIND_S/3)&&i%2===0)say("ধীরে ধীরে খোঁজো। ঘাবড়াবার কিছু নেই।");
+    if(m===Math.floor(FIND_S*2/3)&&i%2===0)say("আর একটু। মন শান্ত রাখো, তুমি পারবে।");
+    await sleep(500);
+  }
+  if(run!==findRun)return;
+  findRun++;setSt("fSt","সময় শেষ");
+  say("সময় শেষ। পেয়েছো কি? পেয়ে থাকলে পেয়েছি বাটন চাপো। না পেলে আবার খুঁজি বাটন চাপো।");
+}
+function findFound(){
+  const s=findRun?Math.max(1,findSecs):Math.max(1,findSecs||FIND_S);
+  findRun++;
+  let a=[];try{a=JSON.parse(store("lom_find_log")||"[]")}catch(e){}
   a.push({d:new Date().toLocaleDateString("bn-BD"),s:s});store("lom_find_log",JSON.stringify(a.slice(-30)));
   setSt("fSt","পেয়েছো: "+s+" সেকেন্ড");logPaint();
   say("চমৎকার! তুমি "+B(s)+" সেকেন্ডে পেয়েছো।");
