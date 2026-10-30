@@ -1,3 +1,47 @@
+/* ---------- রেটিং ও ফায়ারবেস ---------- */
+const K_RQ="lom_x_rq";
+async function flushRatings(){
+  const q=ls(K_RQ,[]);if(!q.length||!navigator.onLine)return;
+  const rest=[];
+  for(const it of q){
+    try{
+      const r=await fetch(CFG.FB+"/ratings.json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({ts:{".sv":"timestamp"}},it))});
+      if(!r.ok)rest.push(it);
+    }catch(e){rest.push(it)}
+  }
+  lsS(K_RQ,rest);
+}
+function saveRating(stars,excellent){
+  const q=ls(K_RQ,[]);
+  q.push({stars:stars,excellent:!!excellent,name:nm(),when:new Date().toISOString()});
+  lsS(K_RQ,q.slice(-50));
+  flushRatings();
+}
+function askRating(){
+  if($("xRate"))return;
+  const d=document.createElement("div");
+  d.id="xRate";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");d.setAttribute("aria-labelledby","xRateT");
+  d.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(5,8,18,.94);overflow-y:auto;padding:24px 16px;color:#f4efe0";
+  let h='<h2 id="xRateT" tabindex="-1" style="color:#f2b84b;font-size:20px">আমি আপনাকে কিরকম সেবা দিতে পেরেছি?</h2><div class="lzRow" style="margin-top:14px">';
+  for(let i=1;i<=5;i++)h+='<button class="lzBtn s" data-s="'+i+'">'+"⭐".repeat(i)+" "+B(i)+" স্টার</button>";
+  h+='<button class="lzBtn" data-s="5" data-x="1">🌟 Excellent (অসাধারণ)</button><button class="lzBtn r" data-s="0">পরে বলব</button></div>';
+  d.innerHTML=h;document.body.appendChild(d);
+  d.addEventListener("click",function(e){
+    const b=e.target.closest("button");if(!b)return;
+    const s=+b.getAttribute("data-s");
+    if(s>0){saveRating(s,b.getAttribute("data-x")==="1");say("ধন্যবাদ! আপনার মতামত আমাদের কাছে পৌঁছে গেছে।")}
+    d.remove();
+  });
+  say("আমি আপনাকে কিরকম সেবা দিতে পেরেছি? এক থেকে পাঁচ স্টার বেছে নিন, অথবা Excellent বাটন চাপুন।");
+  try{$("xRateT").focus()}catch(e){}
+}
+
+/* ---------- ব্যবহারকারীর ডেটা মোছা ---------- */
+let delArmed=0;
+function delData(){
+  if(Date.now()-delArmed>8000){
+    delArmed=Date.now();
+    setSt("dSt","সত্যিই মুছবেন? আবার চাপুন। কয়েন, অগ্রগতি ও প্রিমিয়াম কোডও মুছে যাবে।");
     say("সত্যিই সব ডেটা মুছবেন? কয়েন, অগ্রগতি ও প্রিমিয়াম কোডও মুছে যাবে। নিশ্চিত হলে আট সেকেন্ডের মধ্যে আবার ডাবল ট্যাপ করুন।");
     return;
   }
