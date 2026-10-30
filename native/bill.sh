@@ -1,3 +1,17 @@
+PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
+echo "Native package: $PK  file: $MA" | tee -a "$L"
+ASSETS=android/app/src/main/assets
+mkdir -p "$ASSETS"
+cp assets/index.html "$ASSETS/index.html"
+[ -f native/shim.js ] && [ -f native/MainActivity.kt ] && [ -f native/AdHelper.kt ] || { echo "ERROR: native/ folder files missing (shim.js, MainActivity.kt, AdHelper.kt)" | tee -a "$L"; exit 1; }
+cp native/shim.js "$ASSETS/shim.js"
+sed -i '0,/<head>/s//<head><script src="shim.js"><\/script>/' "$ASSETS/index.html"
+grep -c 'shim.js' "$ASSETS/index.html" | tee -a "$L"
+for MODJS in soundscape.js ads.js extra.js; do
+  if [ -f "assets/$MODJS" ]; then
+    cp "assets/$MODJS" "$ASSETS/$MODJS"
+    python3 - "$ASSETS/index.html" "$MODJS" <<'SND_PY'
+import sys
 p,m=sys.argv[1],sys.argv[2]
 h=open(p,encoding="utf-8").read()
 tag='<script src="'+m+'"></script>'
