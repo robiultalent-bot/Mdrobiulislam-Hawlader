@@ -1,3 +1,34 @@
+  a.push({d:new Date().toLocaleDateString("bn-BD"),s:s});store("lom_find_log",JSON.stringify(a.slice(-30)));
+  setSt("fSt","পেয়েছো: "+s+" সেকেন্ড");logPaint();
+  say("চমৎকার! তুমি "+B(s)+" সেকেন্ডে পেয়েছো।");
+}
+function findStop(){findRun++;stopSay();setSt("fSt","থামানো হয়েছে")}
+
+/* ---------- ভয়েস গাইডেড সেলফি ---------- */
+let selRun=0,flip=false;
+async function selfieStart(){
+  const run=++selRun;setSt("sSt","ক্যামেরা চালু হচ্ছে...");
+  try{await camOn(true)}catch(e){setSt("sSt","ক্যামেরা চালু হয়নি");say("ক্যামেরা চালু করা যায়নি। অনুমতি দিয়েছো কিনা দেখো।");return}
+  if(run!==selRun){camOff();return}
+  await sayW("সেলফি গাইড চালু। ফোনটা মুখের সামনে ধরো। আমি বলে দেব কোন দিকে সরাতে হবে।");
+  let last="",lastT=0,okN=0;
+  while(run===selRun){
+    await sleep(800);
+    const f=grab();if(!f)continue;
+    let r=null;
+    try{r=await nat("faces",f)}catch(e){setSt("sSt","এই সংস্করণে সুবিধাটি নেই");say("মুখ খোঁজার সুবিধা এই সংস্করণে নেই।");break}
+    const fs=((r&&r.faces)||[]).slice().sort(function(p,q){return q.w-p.w});
+    let msg;
+    if(!fs.length)msg="মুখ দেখা যাচ্ছে না। ফোনটা মুখের সামনে ধরো।";
+    else{
+      const a=fs[0],X=flip?1-a.x:a.x;
+      if(a.w<0.22)msg="ফোন একটু কাছে আনো।";
+      else if(a.w>0.65)msg="ফোন একটু দূরে নাও।";
+      else if(X<0.38)msg="ফোন একটু ডানে সরাও।";
+      else if(X>0.62)msg="ফোন একটু বামে সরাও।";
+      else if(a.y<0.33)msg="ফোন একটু ওপরে তোলো।";
+      else if(a.y>0.62)msg="ফোন একটু নিচে নামাও।";
+      else msg="ঠিক আছে। এভাবেই ধরে রাখো।";
     }
     okN=msg.indexOf("ঠিক আছে")===0?okN+1:0;
     setSt("sSt",msg);
