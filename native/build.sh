@@ -1,3 +1,8 @@
+s=re.sub(r'(<application\b[^>]*>)',lambda m:m.group(1)+'<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="'+a+'"/>',s,count=1)
+open(p,"w",encoding="utf-8").write(s)
+MF_PY
+if [ -f android/app/build.gradle ]; then GR=android/app/build.gradle; else GR=android/app/build.gradle.kts; fi
+grep -q 'play-services-ads' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.android.gms:play-services-ads:23.2.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.android.gms:play-services-ads:23.2.0'\n}\n" >> "$GR";; esac; }
 if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n}\n" >> "$GR";; esac; }; fi
 grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
 grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
