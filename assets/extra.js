@@ -1,3 +1,34 @@
+  say("টাকার নোট ক্যামেরার সামনে ধরো। সংখ্যাটা যেন পরিষ্কার দেখা যায়।");
+  const votes=[];let last=0,lastT=0;
+  while(run===moneyRun){
+    await sleep(1100);
+    const f=grab();if(!f)continue;
+    let r=null;
+    try{r=await nat("ocr",f)}catch(e){setSt("mSt","এই সংস্করণে সুবিধাটি নেই");say("টাকা চেনার সুবিধা এই সংস্করণে নেই।");break}
+    const best=pickDen((r&&r.items)||[]);
+    votes.push(best);if(votes.length>5)votes.shift();
+    if(best){
+      const n=votes.filter(function(v){return v===best}).length;
+      if(n>=2&&(best!==last||Date.now()-lastT>8000)){last=best;lastT=Date.now();setSt("mSt",best+" টাকা");say(DEN[best]+" টাকা")}
+    }
+  }
+  if(run===moneyRun)moneyRun++;
+  camOff();
+}
+function moneyStop(){moneyRun++;camOff();stopSay();setSt("mSt","থামানো হয়েছে")}
+
+/* ---------- বাজার দর ---------- */
+const MK="lom_market_v1";
+function cloud(){return String(store("lom_cloud_v1")||"").trim().replace(/\/+$/,"")}
+function mData(){try{return JSON.parse(store(MK)||"null")}catch(e){return null}}
+function mRender(){
+  const d=mData(),box=$("mkList");if(!box)return;
+  box.innerHTML="";
+  if(!d||!d.items){box.textContent="এখনো কোনো দর জমা নেই।";return}
+  const h=document.createElement("p");h.textContent="তারিখ: "+(d.date||"");box.appendChild(h);
+  Object.keys(d.items).forEach(function(cat){
+    const row=document.createElement("div");row.className="lzMsg";
+    const rows=Object.keys(d.items[cat]).map(function(k){return k+": "+d.items[cat][k]}).join("। ");
     const b=document.createElement("b");b.textContent=cat;row.appendChild(b);
     row.appendChild(document.createElement("br"));row.appendChild(document.createTextNode(rows));
     const btn=document.createElement("button");btn.className="lzBtn s";btn.textContent="🔊 "+cat+" পড়ে শোনাও";
