@@ -1,3 +1,60 @@
+    }
+    return bv;
+  }
+  return {id:"money",mask:1,
+    get present(){return present},
+    reset:function(){votes=[];present=false;cur=0;miss=0},
+    tick:function(r){
+      const b=pick(r.items||[]);
+      votes.push(b);if(votes.length>5)votes.shift();
+      const cnt={};votes.forEach(function(v){if(v)cnt[v]=(cnt[v]||0)+1});
+      let best=0;Object.keys(cnt).forEach(function(k){if(cnt[k]>=2&&(!best||cnt[k]>cnt[best]))best=+k});
+      if(!best){if(++miss>=3){present=false;cur=0}return null}
+      miss=0;
+      if(present&&cur===best)return null;
+      return {p:10,t:DEN[best]+" টাকা",commit:function(){present=true;cur=best}};
+    }};
+})();
+
+/* লেখা পড়া (ইংরেজি) */
+const text=(function(){
+  let last="",lastT=0,gap=0;
+  return {id:"text",mask:1,
+    reset:function(){last="";lastT=0;gap=0},
+    tick:function(r){
+      if(money.present)return null;
+      const s=(r.lines||[]).join(" ").replace(/\s+/g," ").trim();
+      const letters=(s.match(/[A-Za-z]/g)||[]).length;
+      if(letters<8){if(++gap>3)last="";return null}
+      gap=0;
+      if(last&&jac(s,last)>0.6)return null;
+      if(Date.now()-lastT<6000)return null;
+      return {p:5,pre:"লেখা আছে",t:s.slice(0,220),en:true,commit:function(){last=s;lastT=Date.now()}};
+    }};
+})();
+
+/* বারকোড */
+const barcode=(function(){
+  let last="",lastT=0;
+  async function lookup(code){
+    try{
+      const r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields=product_name,brands");
+      const d=await r.json();
+      if(d&&d.status===1&&d.product&&d.product.product_name)return (d.product.brands?d.product.brands+" ":"")+d.product.product_name;
+    }catch(e){}
+    return "";
+  }
+  return {id:"barcode",mask:8,
+    reset:function(){last="";lastT=0},
+    tick:function(r){
+      const c=(r.codes||[])[0];
+      if(!c||(c===last&&Date.now()-lastT<20000))return null;
+      return {p:8,t:"বারকোড",commit:function(){last=c;lastT=Date.now()},
+        go:async function(){
+          await sayW("বারকোড পেয়েছি");
+          const n=navigator.onLine?await lookup(c):"";
+          if(n){await sayW("পণ্য");await sayEnW(n)}
+          else await sayW("বারকোড নম্বর "+c.split("").map(B).join(" "));
         }};
     }};
 })();
