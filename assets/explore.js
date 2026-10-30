@@ -1,3 +1,31 @@
+    say("সত্যিই সব ডেটা মুছবেন? কয়েন, অগ্রগতি ও প্রিমিয়াম কোডও মুছে যাবে। নিশ্চিত হলে আট সেকেন্ডের মধ্যে আবার ডাবল ট্যাপ করুন।");
+    return;
+  }
+  try{
+    const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));
+    ks.forEach(function(k){if(/^lom|^all_levels/.test(k))localStorage.removeItem(k)});
+  }catch(e){}
+  say("আপনার সব ডেটা মুছে ফেলা হয়েছে।");
+  setTimeout(function(){try{location.reload()}catch(e){}},2500);
+}
+
+/* ---------- ওয়েলকাম ব্যানার ---------- */
+function welcomeBanner(){
+  if(ls("lom_x_seen","")===CFG.VER||$("xWel"))return;
+  const d=document.createElement("div");
+  d.id="xWel";d.setAttribute("role","dialog");d.setAttribute("aria-modal","true");d.setAttribute("aria-labelledby","xWelT");
+  d.style.cssText="position:fixed;inset:0;z-index:110;background:linear-gradient(160deg,#0b1020,#1b2750);overflow-y:auto;padding:28px 18px;color:#f4efe0;text-align:center";
+  d.innerHTML='<svg aria-hidden="true" width="96" height="96" viewBox="0 0 96 96" style="display:block;margin:0 auto 12px"><defs><radialGradient id="xg"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#e9a82f"/></radialGradient></defs><circle cx="48" cy="48" r="44" fill="url(#xg)" opacity=".25"/><circle cx="48" cy="40" r="20" fill="url(#xg)"/><rect x="30" y="62" width="36" height="22" rx="10" fill="#f2b84b"/><circle cx="41" cy="38" r="3" fill="#241a04"/><circle cx="55" cy="38" r="3" fill="#241a04"/><path d="M40 47 Q48 54 56 47" stroke="#241a04" stroke-width="3" fill="none" stroke-linecap="round"/></svg>'
+   +'<h2 id="xWelT" tabindex="-1" style="color:#f2b84b;font-size:21px;line-height:1.5">'+QUOTE+'</h2>'
+   +'<p style="font-size:15px;line-height:1.8;color:#dfe6ff;margin:14px 0">'+UPD+'</p>'
+   +'<div class="lzRow" style="justify-content:center"><button class="lzBtn" id="xWelGo">এক্সপ্লোর মোডে প্রবেশ করুন</button><button class="lzBtn s" id="xWelNo">পরে</button></div>';
+  document.body.appendChild(d);
+  const close=function(){lsS("lom_x_seen",CFG.VER);d.remove();stopSay()};
+  $("xWelGo").onclick=function(){close();const b=$("lzMindBtn");if(b)b.click()};
+  $("xWelNo").onclick=close;
+  try{$("xWelT").focus()}catch(e){}
+}
+function addNotice(){
   const T="সামনে আসছে";let a=ls("lom2_notices",null);
   if(!a)a=[{t:"মনের আলো-তে স্বাগতম",b:"নতুন হোম, শপ ও এক্সপ্লোর যুক্ত হয়েছে।",d:"২০২৬"}];
   if(a.some(function(x){return x.t===T}))return;
