@@ -1,3 +1,31 @@
+(function(){
+"use strict";
+if(window.__LOM_X)return;window.__LOM_X=1;
+
+const CFG={FB:"https://sonicmind-72928-default-rtdb.firebaseio.com",FREE:5,PER_AD:10,COST:1,CLOUD_SAVE:false,VER:"x1"};
+const TITLE="🧭 এক্সপ্লোর মোড (স্মার্ট গাইড)";
+const QUOTE="অন্ধকার থেকে আলোতে, আমরা আছি আপনার সাথে, পথ দেখাবো আপনার হয়ে।";
+const UPD="প্রিয় ব্যবহারকারী, আপনাদের জন্য নিয়ে এসেছি একদম নতুন এবং আরও স্মার্ট 'এক্সপ্লোর মোড'! শীঘ্রই আসছে: অটো গাইডেন্স, ব্লুটুথ স্কেল ও বাজার দর আপডেট!";
+const DISC="প্রিয় ব্যবহারকারী, এই ডিজিটাল গাইড অ্যাপ্লিকেশনটি আপনার দৈনন্দিন চলাফেরা ও পরিবেশ অনুধাবনে সহায়তার উদ্দেশ্যে অত্যন্ত যত্নের সাথে তৈরি করা হয়েছে। তবে অনুগ্রহ করে মনে রাখবেন, এটি কোনোভাবেই মানবীয় সচেতনতা, দৃষ্টিশক্তি কিংবা অভিজ্ঞ গাইডের বিকল্প নয়। এটি কেবল আপনার যাত্রাকে কিছুটা সহজ করার একটি আধুনিক প্রযুক্তিগত মাধ্যম মাত্র। আপনার ব্যক্তিগত নিরাপত্তা ও সার্বিক সুরক্ষার স্বার্থে যাতায়াতের সময় সর্বদা সাদা ছড়ি ব্যবহারের জন্য বিশেষভাবে অনুরোধ করা হচ্ছে।";
+const DEN={2:"দুই",5:"পাঁচ",10:"দশ",20:"বিশ",50:"পঞ্চাশ",100:"একশো",200:"দুইশো",500:"পাঁচশো",1000:"এক হাজার"};
+
+const $=function(i){return document.getElementById(i)};
+const sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+const B=function(n){try{return typeof bn==="function"?bn(n):String(n)}catch(e){return String(n)}};
+const native=function(){return !!(window.flutter_inappwebview&&window.AndroidTTS)};
+const nat=function(n){
+  const a=Array.prototype.slice.call(arguments,1);
+  try{return Promise.resolve(window.flutter_inappwebview.callHandler.apply(null,[n].concat(a)))}catch(e){return Promise.reject(e)}
+};
+const ls=function(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsS=function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const isDev=function(){try{return typeof DEV!=="undefined"&&DEV===true}catch(e){return false}};
+const nm=function(){const e=$("lzName");return(e&&e.textContent.trim())||"বন্ধু"};
+
+/* ---------- কণ্ঠ ---------- */
+function stopSay(){try{cancelVoice()}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
+function say(t){
+  stopSay();
   try{if(typeof ntSpeak==="function")return ntSpeak(t,0)}catch(e){}
   try{const u=new SpeechSynthesisUtterance(t);u.lang="bn-BD";speechSynthesis.speak(u)}catch(e){}
   return Promise.resolve();
