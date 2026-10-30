@@ -1,3 +1,28 @@
+p,m=sys.argv[1],sys.argv[2]
+h=open(p,encoding="utf-8").read()
+tag='<script src="'+m+'"></script>'
+i=h.rfind('</body>')
+h=h[:i]+tag+'\n'+h[i:] if i>=0 else h+'\n'+tag
+open(p,"w",encoding="utf-8").write(h)
+SND_PY
+    echo "$MODJS injected" | tee -a "$L"
+  else
+    echo "no assets/$MODJS (skipped)" | tee -a "$L"
+  fi
+done
+rm -f "$MA"
+MD="$(dirname "$MA")"
+cp native/MainActivity.kt "$MD/MainActivity.kt"
+cp native/AdHelper.kt "$MD/AdHelper.kt"
+sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/MainActivity.kt" "$MD/AdHelper.kt"
+VIS=0
+if [ -f native/Vision.kt ]; then
+  cp native/Vision.kt "$MD/Vision.kt"
+  sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/Vision.kt"
+  if python3 - "$MD/MainActivity.kt" <<'VIS_PY'
+import sys
+p=sys.argv[1]
+s=open(p,encoding="utf-8").read()
 s=s.replace("    private lateinit var ads: AdHelper\n","    private lateinit var ads: AdHelper\n    private lateinit var vision: Vision\n",1)
 s=s.replace("        ads.init()\n","        ads.init()\n        vision = Vision(this) { cid, json -> resolve(cid, json) }\n",1)
 s=s.replace("        web.webChromeClient = WebChromeClient()\n","        web.webChromeClient = object : WebChromeClient() {\n            override fun onPermissionRequest(request: android.webkit.PermissionRequest) {\n                runOnUiThread {\n                    try {\n                        request.grant(request.resources)\n                    } catch (e: Exception) {\n                    }\n                }\n            }\n        }\n",1)
