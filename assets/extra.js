@@ -1,3 +1,34 @@
+  if(v<0){setSt("tSt","আলোর সেন্সর পাওয়া যায়নি");say("এই ফোনে আলোর সেন্সর পাওয়া যায়নি।");return}
+  setSt("tSt","আলো: "+Math.round(v)+" লাক্স");
+  say(v<15?"চারপাশে আলো অনেক কম।":v<80?"আলো কিছুটা কম।":"চারপাশে যথেষ্ট আলো আছে।");
+}
+async function autoBtn(){
+  if(autoLight){clearInterval(autoLight);autoLight=0;setSt("tSt","অটো লাইট বন্ধ");say("অটো লাইট বন্ধ।");return}
+  if(!native()){say("অটো লাইট শুধু অ্যাপে কাজ করে।");return}
+  say("অটো লাইট চালু। আলো কমলে আমি জানাব এবং টর্চ চালু করব।");setSt("tSt","অটো লাইট চালু");
+  autoLight=setInterval(async function(){
+    const v=await getLux();if(v<0)return;
+    const dark=v<12;
+    if(dark&&!wasDark){wasDark=true;if(!torchOn&&await setTorch(true)){autoTorch=true;say("আলো অনেক কম। টর্চ চালু করেছি।")}else say("আলো অনেক কম।")}
+    else if(!dark&&wasDark&&v>40){wasDark=false;if(autoTorch){await setTorch(false);autoTorch=false}say("আলো এখন ঠিক আছে।")}
+  },5000);
+}
+
+/* ---------- মানি রিডার ---------- */
+let moneyRun=0;
+function pickDen(items){
+  let bv=0,bh=0;
+  for(const it of items){
+    const t=String(it.t).replace(/[^0-9]/g,""),v=+t;
+    if(DEN[v]&&String(v)===t&&it.h>bh){bv=v;bh=it.h}
+  }
+  return bv;
+}
+async function moneyStart(){
+  const run=++moneyRun;setSt("mSt","ক্যামেরা চালু হচ্ছে...");
+  try{await camOn(false)}catch(e){setSt("mSt","ক্যামেরা চালু হয়নি");say("ক্যামেরা চালু করা যায়নি। অনুমতি দিয়েছো কিনা দেখো।");return}
+  if(run!==moneyRun){camOff();return}
+  setSt("mSt","নোট ধরো...");
   say("টাকার নোট ক্যামেরার সামনে ধরো। সংখ্যাটা যেন পরিষ্কার দেখা যায়।");
   const votes=[];let last=0,lastT=0;
   while(run===moneyRun){
