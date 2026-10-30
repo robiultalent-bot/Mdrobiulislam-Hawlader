@@ -1,3 +1,19 @@
+(function(){
+"use strict";
+if(window.__LOM_EXTRA2)return;window.__LOM_EXTRA2=1;
+
+const TITLE="🧠 মাইন্ড এআই (স্মার্ট গাইড)";
+const DISC="প্রিয় ব্যবহারকারী, এই ডিজিটাল গাইড অ্যাপ্লিকেশনটি আপনার দৈনন্দিন চলাফেরা ও পরিবেশ অনুধাবনে সহায়তার উদ্দেশ্যে অত্যন্ত যত্নের সাথে তৈরি করা হয়েছে। তবে অনুগ্রহ করে মনে রাখবেন, এটি কোনোভাবেই মানবীয় সচেতনতা, দৃষ্টিশক্তি কিংবা অভিজ্ঞ গাইডের বিকল্প নয়। এটি কেবল আপনার যাত্রাকে কিছুটা সহজ করার একটি আধুনিক প্রযুক্তিগত মাধ্যম মাত্র। আপনার ব্যক্তিগত নিরাপত্তা ও সার্বিক সুরক্ষার স্বার্থে যাতায়াতের সময় সর্বদা সাদা ছড়ি ব্যবহারের জন্য বিশেষভাবে অনুরোধ করা হচ্ছে।";
+const MK_OK="প্রিয় ব্যবহারকারী, আজকের বাজার দর সফলভাবে আপডেট করা হয়েছে।";
+const MK_OFF="প্রিয় ব্যবহারকারী, ইন্টারনেট কানেকশন না থাকায় আজকের বাজার দর ডেটা ডাউনলোড করা যায়নি।";
+const DEN={2:"দুই",5:"পাঁচ",10:"দশ",20:"বিশ",50:"পঞ্চাশ",100:"একশো",200:"দুইশো",500:"পাঁচশো",1000:"এক হাজার"};
+const FIND_S=(window.__LOM_FIND_S|0)||30;
+
+const $=function(i){return document.getElementById(i)};
+const sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+const B=function(n){try{return typeof bn==="function"?bn(n):String(n)}catch(e){return String(n)}};
+const native=function(){return !!(window.flutter_inappwebview&&window.AndroidTTS)};
+const nat=function(n,a){try{return Promise.resolve(window.flutter_inappwebview.callHandler(n,a))}catch(e){return Promise.reject(e)}};
 const store=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){}return null};
 function nm(){const e=$("lzName");return(e&&e.textContent.trim())||"বন্ধু"}
 function stopSay(){try{cancelVoice()}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
