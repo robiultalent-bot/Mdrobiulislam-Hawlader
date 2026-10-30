@@ -1,3 +1,14 @@
+grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
+grep -q 'permission.CAMERA' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.CAMERA"/><uses-feature android:name="android.hardware.camera" android:required="false"/>|' $MF
+APPID="ca-app-pub-5481902015314492~1735182591"
+grep -q 'ads.APPLICATION_ID' $MF || python3 - "$MF" "$APPID" <<'MF_PY'
+import re,sys
+p,a=sys.argv[1],sys.argv[2]
+s=open(p,encoding="utf-8").read()
+s=re.sub(r'(<application\b[^>]*>)',lambda m:m.group(1)+'<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="'+a+'"/>',s,count=1)
+open(p,"w",encoding="utf-8").write(s)
+MF_PY
+if [ -f android/app/build.gradle ]; then GR=android/app/build.gradle; else GR=android/app/build.gradle.kts; fi
 grep -q 'play-services-ads' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.android.gms:play-services-ads:23.2.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.android.gms:play-services-ads:23.2.0'\n}\n" >> "$GR";; esac; }
 if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n    implementation("com.google.mlkit:barcode-scanning:17.3.0")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n}\n" >> "$GR";; esac; }; fi
 grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
