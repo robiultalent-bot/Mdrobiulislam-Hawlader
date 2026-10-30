@@ -1,3 +1,53 @@
+package PKG_PLACEHOLDER
+
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Base64
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import org.json.JSONArray
+import org.json.JSONObject
+
+class Vision(private val act: Activity, private val reply: (String, String) -> Unit) {
+    private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    private val barcodes by lazy { BarcodeScanning.getClient() }
+    private val faceDet by lazy {
+        FaceDetection.getClient(
+            FaceDetectorOptions.Builder()
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                .build()
+        )
+    }
+
+    fun handle(name: String, args: JSONArray, id: String): Boolean {
+        when (name) {
+            "camPerm" -> camPerm(args.optBoolean(0, true), id)
+            "torch" -> torch(args.optBoolean(0, false), id)
+            "lux" -> lux(id)
+            "scan" -> scan(args.optString(0, ""), args.optInt(1, 0), id)
+            else -> return false
+        }
+        return true
+    }
+
+    private fun camPerm(ask: Boolean, id: String) {
         val ok = Build.VERSION.SDK_INT < 23 ||
             act.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         if (!ok && ask) {
