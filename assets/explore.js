@@ -1,3 +1,65 @@
+  if(ok){torchOn=on;torchT=Date.now()}
+  return ok;
+}
+async function getLux(){
+  if(!native())return -1;
+  try{return Number(await nat("lux"))}catch(e){return -1}
+}
+async function lightTick(S){
+  const v=await getLux();if(v<0||!S.active)return;
+  if(v<12&&!torchOn){
+    if(await setTorch(true)){torchAuto=true;S.pend.push("আলো অনেক কম। টর্চ চালু করেছি।")}
+    else if(!S.darkWarned){S.darkWarned=true;S.pend.push("আলো অনেক কম।")}
+  }else if(v>120&&torchOn&&torchAuto&&Date.now()-torchT>20000){
+    await setTorch(false);torchAuto=false;S.pend.push("আলো এখন ঠিক আছে। টর্চ বন্ধ করেছি।");
+  }
+}
+
+/* ---------- বাঁশির সুর: মানুষ যত কাছে, সুর তত উঁচু ও দ্রুত ---------- */
+const beeper=(function(){
+  let ac=null,near=0,on=false;
+  function ensure(){
+    try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}
+  }
+  function ping(f){
+    try{
+      const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;
+      o.type="sine";o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.09,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+0.25);
+    }catch(e){}
+  }
+  async function run(){
+    if(on)return;on=true;
+    while(near>0){
+      const k=Math.max(0,Math.min(1,(3-near)/3));
+      ping(500+k*900);
+      await sleep(900-k*740);
+    }
+    on=false;
+  }
+  return {ensure:ensure,set:function(d){near=d;if(d>0)run()}};
+})();
+
+/* ---------- মডিউল রেজিস্ট্রি: নতুন ফিচার এখানে register করলেই যুক্ত হয় ---------- */
+const X={mods:[],register:function(m){X.mods.push(m)}};
+window.LOM_X=X;
+
+function jac(a,b){
+  const A=new Set(a.toLowerCase().split(/\W+/).filter(Boolean)),Bw=new Set(b.toLowerCase().split(/\W+/).filter(Boolean));
+  if(!A.size||!Bw.size)return 0;
+  let i=0;A.forEach(function(w){if(Bw.has(w))i++});
+  return i/(A.size+Bw.size-i);
+}
+
+/* টাকা চেনা */
+const money=(function(){
+  let votes=[],present=false,cur=0,miss=0;
+  function pick(items){
+    let bv=0,bh=0;
+    for(const it of items){
+      const t=String(it.t).replace(/[^0-9]/g,""),v=+t;
+      if(DEN[v]&&String(v)===t&&it.h>bh){bv=v;bh=it.h}
     }
     return bv;
   }
