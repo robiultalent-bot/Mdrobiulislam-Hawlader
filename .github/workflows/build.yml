@@ -18,7 +18,12 @@ jobs:
           flutter-version: 3.24.5
       - name: Build
         shell: bash
-        run: bash native/build.sh
+        run: |
+          ls -la
+          ls -la native
+          S=$(find . -name build.sh -not -path "./.git/*" | head -1)
+          echo "found: $S"
+          bash "$S"
       - name: Show real error
         if: always()
         shell: bash
