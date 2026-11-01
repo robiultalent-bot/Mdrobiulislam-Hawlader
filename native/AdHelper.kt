@@ -13,6 +13,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 class AdHelper(private val act: Activity, private val reply: (String, String) -> Unit) {
     private var rewarded: RewardedAd? = null
     private var loading = false
+    private val waiters = ArrayList<String>()
 
     fun init() {
         try {
@@ -21,33 +22,43 @@ class AdHelper(private val act: Activity, private val reply: (String, String) ->
         }
     }
 
+    private fun flush(result: String) {
+        val list = ArrayList(waiters)
+        waiters.clear()
+        for (w in list) {
+            reply(w, result)
+        }
+    }
+
     fun load(unit: String, id: String) {
         if (rewarded != null) {
             reply(id, "true")
             return
         }
-        if (loading || unit.isEmpty()) {
-            reply(id, "false")
+        if (unit.isEmpty()) {
+            reply(id, "\"E1\"")
             return
         }
+        waiters.add(id)
+        if (loading) return
         loading = true
         try {
             RewardedAd.load(act, unit, AdRequest.Builder().build(), object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
                     rewarded = ad
                     loading = false
-                    reply(id, "true")
+                    flush("true")
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     rewarded = null
                     loading = false
-                    reply(id, "false")
+                    flush("\"E" + error.code + "\"")
                 }
             })
         } catch (e: Exception) {
             loading = false
-            reply(id, "false")
+            flush("\"E0\"")
         }
     }
 
