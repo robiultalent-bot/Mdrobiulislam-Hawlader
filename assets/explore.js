@@ -1,3 +1,36 @@
+      if(!f.length){if(++miss>=3){key="";beeper.set(0)}return null}
+      miss=0;
+      const a=f[0],d=Math.max(0.3,Math.round(0.126/Math.max(a.w,0.03)*2)/2);
+      beeper.set(d);
+      const zone=a.x<0.35?"বাম দিকে":a.x>0.65?"ডান দিকে":"সামনে";
+      const near=d<0.8?"খুব কাছে":d<1.6?"কাছে":d<3?"একটু দূরে":"দূরে";
+      const k=f.length+"|"+zone+"|"+near;
+      if(k===key||Date.now()-lastT<3500)return null;
+      const dt=dist(d);
+      const t=f.length===1?"একজন মানুষ, "+zone+", "+near+", প্রায় "+dt:B(f.length)+" জন মানুষ, সবচেয়ে কাছের জন "+zone+", প্রায় "+dt;
+      return {p:6,t:t,commit:function(){key=k;lastT=Date.now()}};
+    }};
+})();
+
+/* আশেপাশের জিনিস (বাম, সামনে, ডান): ছবির তিন ভাগে চেনা জিনিসের নাম বলে */
+const SC={"fence":"বেড়া","wall":"দেয়াল","building":"ভবন","house":"বাড়ি","door":"দরজা","window":"জানালা","tree":"গাছ","plant":"গাছপালা","car":"গাড়ি","vehicle":"যানবাহন","bicycle":"সাইকেল","motorcycle":"মোটরসাইকেল","bus":"বাস","truck":"ট্রাক","road surface":"রাস্তা","asphalt":"পিচঢালা রাস্তা","sidewalk":"ফুটপাথ","stairs":"সিঁড়ি","chair":"চেয়ার","table":"টেবিল","couch":"সোফা","bed":"বিছানা","dog":"কুকুর","cat":"বিড়াল","water":"পানি","bridge":"সেতু","roof":"ছাদ","brick":"ইটের দেয়াল","gate":"গেট","pole":"খুঁটি","furniture":"আসবাব","tower":"টাওয়ার","shop":"দোকান","market":"বাজার"};
+const ROAD={"road surface":1,"asphalt":1,"sidewalk":1};
+const scene=(function(){
+  let hist={L:[],C:[],R:[]},sig="",lastT=0,roadT=0;
+  function names(z,r){
+    const out=[],seen={};
+    ((r.scene||{})[z]||[]).forEach(function(it){
+      const k=String(it.t).toLowerCase();
+      if(SC[k]&&!seen[k]){seen[k]=1;out.push(k)}
+    });
+    return out;
+  }
+  return {id:"scene",mask:16,
+    reset:function(){hist={L:[],C:[],R:[]};sig="";lastT=0;roadT=0},
+    tick:function(r){
+      if(!r.scene)return null;
+      const cur={};
+      ["L","C","R"].forEach(function(z){
         hist[z].push(names(z,r));if(hist[z].length>3)hist[z].shift();
         const cnt={};
         hist[z].forEach(function(a){a.forEach(function(k){cnt[k]=(cnt[k]||0)+1})});
