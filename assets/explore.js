@@ -1,3 +1,44 @@
+        hist[z].push(names(z,r));if(hist[z].length>3)hist[z].shift();
+        const cnt={};
+        hist[z].forEach(function(a){a.forEach(function(k){cnt[k]=(cnt[k]||0)+1})});
+        cur[z]=Object.keys(cnt).filter(function(k){return cnt[k]>=2}).slice(0,2);
+      });
+      const nm=function(a){return a.map(function(k){return SC[k]}).join(" ও ")};
+      const parts=[];
+      if(cur.C.length)parts.push("সামনে "+nm(cur.C));
+      if(cur.R.length)parts.push("ডান দিকে "+nm(cur.R));
+      if(cur.L.length)parts.push("বাম দিকে "+nm(cur.L));
+      const k=parts.join("|");
+      if(!k||k===sig||Date.now()-lastT<3500||money.present)return null;
+      const road=[].concat(cur.L,cur.C,cur.R).some(function(x){return ROAD[x]});
+      let t=parts.join("। ");
+      if(road&&Date.now()-roadT>25000)t+="। রাস্তায় সাবধানে পা ফেলুন, ছড়ি দিয়ে দেখে চলুন";
+      return {p:4,t:t,commit:function(){sig=k;lastT=Date.now();if(road&&t.indexOf("ছড়ি")>=0)roadT=Date.now()}};
+    }};
+})();
+[money,text,barcode,person,scene].forEach(X.register);
+
+/* ---------- সেশন, কয়েন ও অ্যাড ---------- */
+const K_USED="lom_x_used",K_COINS="lom_x_coins";
+const used=function(){return +ls(K_USED,0)||0};
+const coins=function(){return +ls(K_COINS,0)||0};
+function paintInfo(){
+  const left=Math.max(0,CFG.FREE-used());
+  setSt("xInfo","বিনামূল্যের সেশন বাকি: "+B(left)+"। কয়েন: "+B(coins())+"।");
+}
+function canStart(){return isDev()||used()<CFG.FREE||coins()>=CFG.COST}
+function consume(){
+  if(isDev())return;
+  if(used()>=CFG.FREE)lsS(K_COINS,coins()-CFG.COST);
+  lsS(K_USED,used()+1);
+}
+async function watchAd(){
+  const A=window.__LOM_ADS;
+  const test=(A&&A.cfg&&typeof A.cfg.TEST==="boolean")?A.cfg.TEST:CFG.AD_TEST;
+  const unit=test?CFG.AD_TEST_UNIT:CFG.AD_UNIT;
+  if(!native()){await sleep(2500);return {ok:true,err:""}}
+  let loaded=false,err="";
+  for(let i=0;i<4&&!loaded;i++){
     let r=null;try{r=await nat("adLoad",unit)}catch(e){}
     if(r===true){loaded=true;break}
     err=typeof r==="string"?r:"E?";
