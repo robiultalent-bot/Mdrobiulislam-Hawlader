@@ -1,3 +1,43 @@
+const isDev=function(){try{return typeof DEV!=="undefined"&&DEV===true}catch(e){return false}};
+const nm=function(){const e=$("lzName");return(e&&e.textContent.trim())||"বন্ধু"};
+
+/* ---------- কণ্ঠ ---------- */
+function stopSay(){try{cancelVoice()}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}}
+function say(t){
+  stopSay();
+  try{if(typeof ntSpeak==="function")return ntSpeak(t,0)}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="bn-BD";speechSynthesis.speak(u)}catch(e){}
+  return Promise.resolve();
+}
+function sayEn(t){
+  stopSay();
+  try{if(typeof ntSpeak==="function")return ntSpeak(t,true)}catch(e){}
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="en-US";speechSynthesis.speak(u)}catch(e){}
+  return Promise.resolve();
+}
+const sayW=function(t){return Promise.race([say(t),sleep(12000)])};
+const sayEnW=function(t){return Promise.race([sayEn(t),sleep(15000)])};
+const setSt=function(id,t){const e=$(id);if(e)e.textContent=t};
+
+/* ---------- ক্যামেরা ---------- */
+let stream=null,vid=null;
+async function camOn(){
+  camOff();
+  if(native()){
+    let ok=false;
+    try{ok=(await nat("camPerm",true))===true}catch(e){}
+    for(let i=0;i<24&&!ok;i++){await sleep(500);try{ok=(await nat("camPerm",false))===true}catch(e){}}
+    if(!ok)throw new Error("perm");
+  }
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});
+  vid=document.createElement("video");
+  vid.setAttribute("playsinline","");vid.muted=true;vid.srcObject=stream;
+  vid.style.cssText="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
+  document.body.appendChild(vid);
+  await vid.play();await sleep(800);
+}
+function camOff(){
+  try{if(stream)stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
   stream=null;if(vid){try{vid.remove()}catch(e){}vid=null}
 }
 function grab(w0){
