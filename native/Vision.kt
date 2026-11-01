@@ -20,6 +20,8 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import org.json.JSONArray
@@ -28,6 +30,9 @@ import org.json.JSONObject
 class Vision(private val act: Activity, private val reply: (String, String) -> Unit) {
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val barcodes by lazy { BarcodeScanning.getClient() }
+    private val labeler by lazy {
+        ImageLabeling.getClient(ImageLabelerOptions.Builder().setConfidenceThreshold(0.6f).build())
+    }
     private val faceDet by lazy {
         FaceDetection.getClient(
             FaceDetectorOptions.Builder()
@@ -132,6 +137,7 @@ class Vision(private val act: Activity, private val reply: (String, String) -> U
         if (mask and 1 != 0) left++
         if (mask and 2 != 0) left++
         if (mask and 8 != 0) left++
+        if (mask and 16 != 0) left++
         val finish = {
             left--
             if (left == 0) reply(id, out.toString())
@@ -188,6 +194,47 @@ class Vision(private val act: Activity, private val reply: (String, String) -> U
                     finish()
                 }
                 .addOnFailureListener { finish() }
+        }
+        if (mask and 16 != 0) {
+            val zones = JSONObject()
+            val keys = arrayOf("L", "C", "R")
+            val cw = bmp.width / 3
+            var zl = 3
+            for (i in 0..2) {
+                var crop: Bitmap? = null
+                try {
+                    crop = Bitmap.createBitmap(bmp, i * cw, 0, cw, bmp.height)
+                } catch (e: Exception) {
+                }
+                if (crop == null) {
+                    zl--
+                    if (zl == 0) {
+                        out.put("scene", zones)
+                        finish()
+                    }
+                    continue
+                }
+                labeler.process(InputImage.fromBitmap(crop, 0))
+                    .addOnSuccessListener { list ->
+                        val arr = JSONArray()
+                        for (l in list) {
+                            arr.put(JSONObject().put("t", l.text).put("c", l.confidence.toDouble()))
+                        }
+                        zones.put(keys[i], arr)
+                        zl--
+                        if (zl == 0) {
+                            out.put("scene", zones)
+                            finish()
+                        }
+                    }
+                    .addOnFailureListener {
+                        zl--
+                        if (zl == 0) {
+                            out.put("scene", zones)
+                            finish()
+                        }
+                    }
+            }
         }
     }
 }
