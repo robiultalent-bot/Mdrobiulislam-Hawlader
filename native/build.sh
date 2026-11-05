@@ -1,3 +1,42 @@
+if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n    implementation("com.google.mlkit:barcode-scanning:17.3.0")\n    implementation("com.google.mlkit:image-labeling:17.0.9")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'com.google.mlkit:image-labeling:17.0.9'\n}\n" >> "$GR";; esac; }; fi
+grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
+grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
+for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
+  if [ -f "$KF" ]; then
+    sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\12.0.21/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\12.0.21/' "$KF"
+    grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+  fi
+done
+for SF in android/settings.gradle android/settings.gradle.kts; do
+  if [ -f "$SF" ] && ! grep -Eq "include[ (]+['\"]:app['\"]" "$SF"; then
+    case "$SF" in *.kts) printf '\ninclude(":app")\n' >> "$SF";; *) printf "\ninclude ':app'\n" >> "$SF";; esac
+    echo "added include :app to $SF" | tee -a "$L"
+  fi
+done
+cat android/settings.gradle* 2>/dev/null | head -30 | tee -a "$L" || true
+MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
+[ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
+PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
+echo "Native package: $PK  file: $MA" | tee -a "$L"
+ASSETS=android/app/src/main/assets
+mkdir -p "$ASSETS"
+cp assets/index.html "$ASSETS/index.html"
+[ -f native/shim.js ] && [ -f native/MainActivity.kt ] && [ -f native/AdHelper.kt ] || { echo "ERROR: native/ folder files missing (shim.js, MainActivity.kt, AdHelper.kt)" | tee -a "$L"; exit 1; }
+cp native/shim.js "$ASSETS/shim.js"
+sed -i '0,/<head>/s//<head><script src="shim.js"><\/script>/' "$ASSETS/index.html"
+grep -c 'shim.js' "$ASSETS/index.html" | tee -a "$L"
+for MODJS in soundscape.js ads.js explore.js; do
+  if [ -f "assets/$MODJS" ]; then
+    cp "assets/$MODJS" "$ASSETS/$MODJS"
+    python3 - "$ASSETS/index.html" "$MODJS" <<'SND_PY'
+import sys
+p,m=sys.argv[1],sys.argv[2]
+h=open(p,encoding="utf-8").read()
+tag='<script src="'+m+'"></script>'
+i=h.rfind('</body>')
+h=h[:i]+tag+'\n'+h[i:] if i>=0 else h+'\n'+tag
+open(p,"w",encoding="utf-8").write(h)
+SND_PY
     echo "$MODJS injected" | tee -a "$L"
   else
     echo "no assets/$MODJS (skipped)" | tee -a "$L"
