@@ -1,3 +1,33 @@
+        const key=k+"|"+zone(o.x),m=Math.max(o.h||0,o.w||0);
+        if(!fr[key]||fr[key]<m)fr[key]=m;
+      });
+      hist.push(fr);if(hist.length>3)hist.shift();
+      const cnt={},big={};
+      hist.forEach(function(h){Object.keys(h).forEach(function(k){cnt[k]=(cnt[k]||0)+1;big[k]=Math.max(big[k]||0,h[k])})});
+      const st=Object.keys(cnt).filter(function(k){return cnt[k]>=2}).sort(function(a,b){return big[b]-big[a]}).slice(0,3);
+      if(!st.length||money.present)return null;
+      let danger=false;
+      const parts=st.map(function(k){
+        const a=k.split("|"),nr=near(big[k]);
+        if(VEH[a[0]]&&nr!=="দূরে")danger=true;
+        return a[1]+" "+OB[a[0]]+", "+nr;
+      });
+      const sg=parts.join("|");
+      if(sg===sig||Date.now()-lastT<3000)return null;
+      const t=(danger?"সাবধান! ":"")+parts.join("। ");
+      return {p:danger?8:5,t:t,commit:function(){sig=sg;lastT=Date.now()}};
+    }};
+})();
+
+/* আশেপাশের জিনিস (বাম, সামনে, ডান): ছবির তিন ভাগে চেনা জিনিসের নাম বলে */
+const SC={"fence":"বেড়া","wall":"দেয়াল","building":"ভবন","house":"বাড়ি","door":"দরজা","window":"জানালা","tree":"গাছ","plant":"গাছপালা","car":"গাড়ি","vehicle":"যানবাহন","bicycle":"সাইকেল","motorcycle":"মোটরসাইকেল","bus":"বাস","truck":"ট্রাক","road surface":"রাস্তা","asphalt":"পিচঢালা রাস্তা","sidewalk":"ফুটপাথ","stairs":"সিঁড়ি","chair":"চেয়ার","table":"টেবিল","couch":"সোফা","bed":"বিছানা","dog":"কুকুর","cat":"বিড়াল","water":"পানি","bridge":"সেতু","roof":"ছাদ","brick":"ইটের দেয়াল","gate":"গেট","pole":"খুঁটি","furniture":"আসবাব","tower":"টাওয়ার","shop":"দোকান","market":"বাজার"};
+const ROAD={"road surface":1,"asphalt":1,"sidewalk":1};
+const scene=(function(){
+  let hist={L:[],C:[],R:[]},sig="",lastT=0,roadT=0;
+  function names(z,r){
+    const out=[],seen={};
+    ((r.scene||{})[z]||[]).forEach(function(it){
+      const k=String(it.t).toLowerCase();
       if(OBJ_DUP[k]&&Date.now()-OBJ_ON<5000)return;
       if(SC[k]&&!seen[k]){seen[k]=1;out.push(k)}
     });
