@@ -1,3 +1,51 @@
+      if(money.present)return null;
+      const s=(r.lines||[]).join(" ").replace(/\s+/g," ").trim();
+      const letters=(s.match(/[A-Za-z]/g)||[]).length;
+      if(letters<8){if(++gap>3)last="";return null}
+      gap=0;
+      if(last&&jac(s,last)>0.6)return null;
+      if(Date.now()-lastT<6000)return null;
+      return {p:5,pre:"লেখা আছে",t:s.slice(0,220),en:true,commit:function(){last=s;lastT=Date.now()}};
+    }};
+})();
+
+/* বারকোড */
+const barcode=(function(){
+  let last="",lastT=0;
+  async function lookup(code){
+    try{
+      const r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields=product_name,brands");
+      const d=await r.json();
+      if(d&&d.status===1&&d.product&&d.product.product_name)return (d.product.brands?d.product.brands+" ":"")+d.product.product_name;
+    }catch(e){}
+    return "";
+  }
+  return {id:"barcode",mask:8,
+    reset:function(){last="";lastT=0},
+    tick:function(r){
+      const c=(r.codes||[])[0];
+      if(!c||(c===last&&Date.now()-lastT<20000))return null;
+      return {p:8,t:"বারকোড",commit:function(){last=c;lastT=Date.now()},
+        go:async function(){
+          await sayW("বারকোড পেয়েছি");
+          const n=navigator.onLine?await lookup(c):"";
+          if(n){await sayW("পণ্য");await sayEnW(n)}
+          else await sayW("বারকোড নম্বর "+c.split("").map(B).join(" "));
+        }};
+    }};
+})();
+
+/* মানুষ চেনা (উপস্থিতি, দিক, আনুমানিক দূরত্ব) */
+function dist(d){
+  const m={0.5:"আধা মিটার",1:"এক মিটার",1.5:"দেড় মিটার",2:"দুই মিটার",2.5:"আড়াই মিটার"};
+  return m[d]||(B(Math.round(d))+" মিটার");
+}
+const person=(function(){
+  let key="",lastT=0,miss=0;
+  return {id:"person",mask:2,
+    reset:function(){key="";lastT=0;miss=0;beeper.set(0)},
+    tick:function(r){
+      const f=(r.faces||[]).slice().sort(function(a,b){return b.w-a.w});
       if(!f.length){if(++miss>=3){key="";beeper.set(0)}return null}
       miss=0;
       const a=f[0],d=Math.max(0.3,Math.round(0.126/Math.max(a.w,0.03)*2)/2);
