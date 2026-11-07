@@ -3,7 +3,7 @@ L="$GITHUB_WORKSPACE/build.log"
 diag(){
   {
     echo "=== DIAG START ==="
-    grep -E "incompatible version of Kotlin|binary version of its metadata|What went wrong|Execution failed|RETRY|FALLBACK|Vision enabled|Video enabled|Model" "$L" 2>/dev/null | head -12 || true
+    grep -E "incompatible version of Kotlin|binary version of its metadata|What went wrong|Execution failed|RETRY|FALLBACK|Vision enabled|Video enabled|injected|skipped|Model" "$L" 2>/dev/null | head -20 || true
     echo "=== DIAG END ==="
   } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}" || true
   return 0
@@ -89,7 +89,7 @@ cp assets/index.html "$ASSETS/index.html"
 cp native/shim.js "$ASSETS/shim.js"
 sed -i '0,/<head>/s//<head><script src="shim.js"><\/script>/' "$ASSETS/index.html"
 grep -c 'shim.js' "$ASSETS/index.html" | tee -a "$L"
-for MODJS in soundscape.js ads.js explore.js; do
+for MODJS in soundscape.js ads.js explore.js video.js; do
   if [ -f "assets/$MODJS" ]; then
     cp "assets/$MODJS" "$ASSETS/$MODJS"
     python3 - "$ASSETS/index.html" "$MODJS" <<'SND_PY'
