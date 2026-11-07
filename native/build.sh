@@ -1,3 +1,85 @@
+package PKG_PLACEHOLDER
+
+import android.app.Activity
+import android.content.ContentValues
+import android.content.Intent
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
+import androidx.media3.common.Effect
+import androidx.media3.common.MediaItem
+import androidx.media3.common.audio.AudioProcessor
+import androidx.media3.common.audio.ChannelMixingAudioProcessor
+import androidx.media3.common.audio.ChannelMixingMatrix
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.Brightness
+import androidx.media3.effect.Contrast
+import androidx.media3.effect.HslAdjustment
+import androidx.media3.effect.OverlayEffect
+import androidx.media3.effect.OverlaySettings
+import androidx.media3.effect.Presentation
+import androidx.media3.effect.RgbFilter
+import androidx.media3.effect.TextOverlay
+import androidx.media3.effect.TextureOverlay
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.EditedMediaItemSequence
+import androidx.media3.transformer.Effects
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.ProgressHolder
+import androidx.media3.transformer.Transformer
+import com.google.common.collect.ImmutableList
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
+class VideoEngine(
+    private val act: Activity,
+    private val reply: (String, String) -> Unit,
+    private val js: (String) -> Unit
+) {
+    private val main = Handler(Looper.getMainLooper())
+    private val rcVideo = 7101
+    private val rcAudio = 7102
+    private var pickId: String? = null
+    private var transformer: Transformer? = null
+    private var busy = false
+    private var cancelled = false
+
+    fun handle(name: String, args: JSONArray, id: String): Boolean {
+        when (name) {
+            "vedPick" -> pick(true, id)
+            "vedPickAudio" -> pick(false, id)
+            "vedExport" -> startExport(args.optString(0, "{}"), id)
+            "vedCancel" -> cancelExport(id)
+            else -> return false
+        }
+        return true
+    }
+
+    private fun done(id: String, json: String) {
+        act.runOnUiThread { reply(id, json) }
+    }
+
+    private fun pick(video: Boolean, id: String) {
+        if (pickId != null) {
+            reply(id, "{}")
+            return
+        }
+        pickId = id
+        try {
             val i = Intent(Intent.ACTION_GET_CONTENT)
             i.type = if (video) "video/*" else "audio/*"
             i.addCategory(Intent.CATEGORY_OPENABLE)
