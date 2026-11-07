@@ -1,3 +1,78 @@
+        if (mask and 16 != 0) left++
+        if (mask and 32 != 0) left++ //OBJ1
+        val finish = {
+            left--
+            if (left == 0) reply(id, out.toString())
+        }
+        if (mask and 1 != 0) {
+            recognizer.process(img)
+                .addOnSuccessListener { t ->
+                    val arr = JSONArray()
+                    val lines = JSONArray()
+                    for (b in t.textBlocks) {
+                        for (l in b.lines) {
+                            lines.put(l.text)
+                            for (el in l.elements) {
+                                val r = el.boundingBox
+                                arr.put(JSONObject().put("t", el.text).put("h", if (r != null) r.height() else 0))
+                            }
+                        }
+                    }
+                    out.put("items", arr)
+                    out.put("lines", lines)
+                    finish()
+                }
+                .addOnFailureListener { finish() }
+        }
+        if (mask and 2 != 0) {
+            val w = bmp.width.toDouble()
+            val h = bmp.height.toDouble()
+            faceDet.process(img)
+                .addOnSuccessListener { list ->
+                    val arr = JSONArray()
+                    for (f in list) {
+                        val r = f.boundingBox
+                        arr.put(
+                            JSONObject()
+                                .put("x", r.centerX() / w)
+                                .put("y", r.centerY() / h)
+                                .put("w", r.width() / w)
+                        )
+                    }
+                    out.put("faces", arr)
+                    finish()
+                }
+                .addOnFailureListener { finish() }
+        }
+        if (mask and 8 != 0) {
+            barcodes.process(img)
+                .addOnSuccessListener { list ->
+                    val arr = JSONArray()
+                    for (b in list) {
+                        val v = b.rawValue
+                        if (v != null) arr.put(v)
+                    }
+                    out.put("codes", arr)
+                    finish()
+                }
+                .addOnFailureListener { finish() }
+        }
+        //OBJ-BEGIN
+        if (mask and 32 != 0) {
+            Thread {
+                val arr = JSONArray()
+                try {
+                    val dd = getObjDet()
+                    if (dd != null) {
+                        val res = dd.detect(BitmapImageBuilder(bmp).build())
+                        val bw = bmp.width.toDouble()
+                        val bh = bmp.height.toDouble()
+                        for (d in res.detections()) {
+                            val cats = d.categories()
+                            if (cats.isEmpty()) continue
+                            val r = d.boundingBox()
+                            arr.put(
+                                JSONObject()
                                     .put("n", cats[0].categoryName())
                                     .put("c", cats[0].score().toDouble())
                                     .put("x", r.centerX().toDouble() / bw)
