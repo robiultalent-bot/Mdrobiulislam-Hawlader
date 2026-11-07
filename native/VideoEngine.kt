@@ -1,3 +1,90 @@
+                done(id, o.toString())
+            } catch (e: Throwable) {
+                done(id, "{}")
+            }
+        }.start()
+    }
+
+    private fun cancelExport(id: String) {
+        cancelled = true
+        try {
+            transformer?.cancel()
+        } catch (e: Exception) {
+        }
+        reply(id, "true")
+    }
+
+    private class Job(val p: JSONObject) {
+        var level = 0
+        val skipped = JSONArray()
+    }
+
+    private fun startExport(json: String, id: String) {
+        if (busy) {
+            reply(id, "{\"ok\":false,\"error\":\"busy\"}")
+            return
+        }
+        val p: JSONObject
+        try {
+            p = JSONObject(json)
+        } catch (e: Exception) {
+            reply(id, "{\"ok\":false,\"error\":\"bad params\"}")
+            return
+        }
+        busy = true
+        cancelled = false
+        runLevel(Job(p), id)
+    }
+
+    private fun fail(id: String, msg: String) {
+        busy = false
+        transformer = null
+        val o = JSONObject()
+        o.put("ok", false)
+        o.put("error", msg)
+        o.put("cancelled", cancelled)
+        reply(id, o.toString())
+    }
+
+    private fun wmText(p: JSONObject, outH: Int): SpannableString? {
+        val t = p.optString("wm", "")
+        if (t.isEmpty()) return null
+        val s = SpannableString(t)
+        var px = (outH * 0.03).toInt()
+        if (px < 14) px = 14
+        s.setSpan(AbsoluteSizeSpan(px), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        s.setSpan(ForegroundColorSpan(0xFFFFFFFF.toInt()), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        s.setSpan(BackgroundColorSpan(0x66000000), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return s
+    }
+
+    private fun volProc(v: Float): AudioProcessor {
+        val cm = ChannelMixingAudioProcessor()
+        cm.putChannelMixingMatrix(ChannelMixingMatrix.create(1, 1).scaleBy(v))
+        cm.putChannelMixingMatrix(ChannelMixingMatrix.create(2, 2).scaleBy(v))
+        return cm
+    }
+
+    private fun runLevel(job: Job, id: String) {
+        try {
+            val p = job.p
+            val src = p.optString("src", "")
+            if (src.isEmpty() || !File(src).exists()) {
+                fail(id, "no source")
+                return
+            }
+            val srcW = p.optInt("width", 0)
+            val srcH = p.optInt("height", 0)
+            val startMs = p.optLong("startMs", 0L)
+            var endMs = p.optLong("endMs", 0L)
+            val full = endMs <= startMs
+            val clip = MediaItem.ClippingConfiguration.Builder().setStartPositionMs(startMs)
+            if (!full) clip.setEndPositionMs(endMs)
+            val item = MediaItem.Builder().setUri(Uri.fromFile(File(src)))
+                .setClippingConfiguration(clip.build()).build()
+            val vfx = ArrayList<Effect>()
+            var outH = if (srcH > 0) srcH else 720
+            if (job.level < 2) {
                 val ratio = p.optString("ratio", "orig")
                 var a = 0f
                 when (ratio) {
