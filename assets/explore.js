@@ -1,3 +1,42 @@
+  lsS(K_USED,used()+1);
+}
+async function watchAd(){
+  const A=window.__LOM_ADS;
+  const test=(A&&A.cfg&&typeof A.cfg.TEST==="boolean")?A.cfg.TEST:CFG.AD_TEST;
+  const unit=test?CFG.AD_TEST_UNIT:CFG.AD_UNIT;
+  if(!native()){await sleep(2500);return {ok:true,err:""}}
+  let loaded=false,err="";
+  for(let i=0;i<4&&!loaded;i++){
+    let r=null;try{r=await nat("adLoad",unit)}catch(e){}
+    if(r===true){loaded=true;break}
+    err=typeof r==="string"?r:"E?";
+    await sleep(2500);
+  }
+  if(!loaded)return {ok:false,err:err};
+  let ok=false;try{ok=(await nat("adShow"))===true}catch(e){}
+  try{nat("adLoad",unit).catch(function(){})}catch(e){}
+  return {ok:ok,err:ok?"":"show"};
+}
+function adMsg(c){
+  if(c==="E3")return "এখন কোনো বিজ্ঞাপন পাওয়া যাচ্ছে না। নতুন অ্যাড আইডিতে প্রথম কিছু ঘণ্টা বা দিন এমন হয়। পরে আবার চেষ্টা করুন।";
+  if(c==="E2")return "ইন্টারনেট নেই বা খুব দুর্বল। ইন্টারনেট দেখে আবার চেষ্টা করুন।";
+  if(c==="E1")return "অ্যাড আইডিতে সমস্যা আছে। ডেভেলপারকে জানান।";
+  if(c==="E0")return "অ্যাড সার্ভারে সাময়িক সমস্যা হয়েছে। একটু পরে আবার চেষ্টা করুন।";
+  return "অ্যাড লোড হয়নি। ত্রুটির কোড "+c.replace(/[^0-9A-Za-z?]/g,"")+"। আবার চেষ্টা করুন।";
+}
+async function adCoins(){
+  await sayW("অ্যাড আসছে। একটু অপেক্ষা করুন।");
+  const r=await watchAd();
+  if(r.ok){lsS(K_COINS,coins()+CFG.PER_AD);paintInfo();say("ধন্যবাদ! আপনি "+B(CFG.PER_AD)+" কয়েন পেয়েছেন।")}
+  else if(r.err==="show")say("অ্যাড সম্পূর্ণ দেখা হয়নি, তাই কয়েন যোগ হয়নি। আবার চেষ্টা করুন।");
+  else{setSt("xSt","অ্যাড ত্রুটি: "+r.err);say(adMsg(r.err))}
+}
+
+const S={id:0,active:false,pend:[],timer:0,darkWarned:false};
+async function startExplore(){
+  if(S.active)return;
+  if(!canStart()){
+    await sayW("প্রিয় ব্যবহারকারী, আপনার বিনামূল্যের সেশন শেষ হয়েছে। একটি ছোট অ্যাড দেখলে আপনি "+B(CFG.PER_AD)+" কয়েন পাবেন, তা দিয়ে আরও সেশন চালাতে পারবেন। অ্যাড দেখতে অ্যাড দেখে কয়েন নিন বাটনে ডাবল ট্যাপ করুন।");
     return;
   }
   consume();paintInfo();
