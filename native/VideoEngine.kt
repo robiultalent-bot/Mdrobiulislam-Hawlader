@@ -1,3 +1,58 @@
+                val ratio = p.optString("ratio", "orig")
+                var a = 0f
+                when (ratio) {
+                    "9:16" -> a = 9f / 16f
+                    "16:9" -> a = 16f / 9f
+                    "1:1" -> a = 1f
+                    "4:3" -> a = 4f / 3f
+                }
+                if (a > 0f) {
+                    vfx.add(Presentation.createForAspectRatio(a, Presentation.LAYOUT_SCALE_TO_FIT_WITH_CROP))
+                    if (srcW > 0 && srcH > 0) {
+                        val sa = srcW.toFloat() / srcH.toFloat()
+                        outH = if (a < sa) srcH else (srcW / a).toInt()
+                    }
+                }
+                val br = p.optDouble("brightness", 0.0).toFloat()
+                val ct = p.optDouble("contrast", 0.0).toFloat()
+                val sat = p.optDouble("saturation", 0.0).toFloat()
+                if (p.optBoolean("gray", false)) vfx.add(RgbFilter.createGrayscaleFilter())
+                if (Math.abs(br) > 0.001f) vfx.add(Brightness(br.coerceIn(-1f, 1f)))
+                if (Math.abs(ct) > 0.001f) vfx.add(Contrast(ct.coerceIn(-1f, 1f)))
+                if (Math.abs(sat) > 0.001f) {
+                    vfx.add(HslAdjustment.Builder().adjustSaturation(sat.coerceIn(-100f, 100f)).build())
+                }
+            } else if (job.level == 2) {
+                job.skipped.put("effects")
+            }
+            val ws = wmText(p, outH)
+            if (ws != null) {
+                val st = OverlaySettings.Builder()
+                    .setBackgroundFrameAnchor(0f, -0.92f)
+                    .setOverlayFrameAnchor(0f, -1f)
+                    .setAlphaScale(0.92f)
+                    .build()
+                val ov: TextureOverlay = TextOverlay.createStaticTextOverlay(ws, st)
+                vfx.add(OverlayEffect(ImmutableList.of(ov)))
+            }
+            val vol = p.optDouble("volume", 1.0).toFloat()
+            val ap = ArrayList<AudioProcessor>()
+            if (job.level == 0 && Math.abs(vol - 1f) > 0.01f) ap.add(volProc(vol.coerceIn(0f, 2f)))
+            val mainItem = EditedMediaItem.Builder(item).setEffects(Effects(ap, vfx)).build()
+            val music = p.optJSONObject("music")
+            val useMusic = job.level == 0 && music != null && File(music.optString("path", "")).exists()
+            if (job.level > 0 && music != null) job.skipped.put("music")
+            val outFile = File(act.cacheDir, "ved_out_" + System.currentTimeMillis() + ".mp4")
+            val listener = object : Transformer.Listener {
+                override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                    finishOk(job, outFile, id)
+                }
+
+                override fun onError(
+                    composition: Composition,
+                    exportResult: ExportResult,
+                    exportException: ExportException
+                ) {
                     try {
                         outFile.delete()
                     } catch (e: Exception) {
