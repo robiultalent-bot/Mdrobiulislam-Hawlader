@@ -1,3 +1,66 @@
+            val i = Intent(Intent.ACTION_GET_CONTENT)
+            i.type = if (video) "video/*" else "audio/*"
+            i.addCategory(Intent.CATEGORY_OPENABLE)
+            act.startActivityForResult(Intent.createChooser(i, ""), if (video) rcVideo else rcAudio)
+        } catch (e: Exception) {
+            pickId = null
+            reply(id, "{}")
+        }
+    }
+
+    fun onResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode != rcVideo && requestCode != rcAudio) return
+        val id = pickId ?: return
+        pickId = null
+        val uri: Uri? = if (resultCode == Activity.RESULT_OK) data?.data else null
+        if (uri == null) {
+            reply(id, "{}")
+            return
+        }
+        val isVideo = requestCode == rcVideo
+        Thread {
+            try {
+                val prefix = if (isVideo) "ved_v_" else "ved_a_"
+                act.cacheDir.listFiles()?.forEach {
+                    if (it.name.startsWith(prefix)) it.delete()
+                }
+                val dest = File(act.cacheDir, prefix + System.currentTimeMillis())
+                val ins = act.contentResolver.openInputStream(uri)
+                if (ins == null) {
+                    done(id, "{}")
+                    return@Thread
+                }
+                ins.use { src ->
+                    FileOutputStream(dest).use { out -> src.copyTo(out) }
+                }
+                val o = JSONObject()
+                o.put("ok", true)
+                o.put("path", dest.absolutePath)
+                o.put("url", "file://" + dest.absolutePath)
+                val mmr = MediaMetadataRetriever()
+                try {
+                    mmr.setDataSource(dest.absolutePath)
+                    val dur = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                    o.put("durationMs", dur)
+                    if (isVideo) {
+                        var w = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+                        var h = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+                        val rot = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+                        if (rot == 90 || rot == 270) {
+                            val t = w
+                            w = h
+                            h = t
+                        }
+                        o.put("width", w)
+                        o.put("height", h)
+                        o.put("hasAudio", "yes" == mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO))
+                    }
+                } finally {
+                    try {
+                        mmr.release()
+                    } catch (e: Exception) {
+                    }
+                }
     *) printf "\ndependencies {\n    implementation 'com.google.mediapipe:tasks-vision:0.10.14'\n}\n" >> "$GR";;
   esac
   python3 - "$GR" <<'NC_PY'
