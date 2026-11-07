@@ -1,3 +1,43 @@
+if [ -f native/Vision.kt ]; then grep -q 'mlkit' "$GR" || { case "$GR" in *.kts) printf '\ndependencies {\n    implementation("com.google.mlkit:text-recognition:16.0.1")\n    implementation("com.google.mlkit:face-detection:16.1.6")\n    implementation("com.google.mlkit:barcode-scanning:17.3.0")\n    implementation("com.google.mlkit:image-labeling:17.0.9")\n}\n' >> "$GR";; *) printf "\ndependencies {\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'com.google.mlkit:face-detection:16.1.6'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'com.google.mlkit:image-labeling:17.0.9'\n}\n" >> "$GR";; esac; }; fi
+grep -c 'play-services-ads' "$GR" | tee -a "$L" || true
+grep -c 'ads.APPLICATION_ID' $MF | tee -a "$L" || true
+for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
+  if [ -f "$KF" ]; then
+    sed -i -e 's/\(org.jetbrains.kotlin.android"[^0-9]*\)[0-9][0-9.]*/\12.0.21/' -e 's/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\12.0.21/' "$KF"
+    grep -n 'kotlin' "$KF" | head -3 | tee -a "$L" || true
+  fi
+done
+for SF in android/settings.gradle android/settings.gradle.kts; do
+  if [ -f "$SF" ] && ! grep -Eq "include[ (]+['\"]:app['\"]" "$SF"; then
+    case "$SF" in *.kts) printf '\ninclude(":app")\n' >> "$SF";; *) printf "\ninclude ':app'\n" >> "$SF";; esac
+    echo "added include :app to $SF" | tee -a "$L"
+  fi
+done
+cat android/settings.gradle* 2>/dev/null | head -30 | tee -a "$L" || true
+MA=$(find android/app/src/main -name 'MainActivity.*' | head -1)
+[ -z "$MA" ] && echo "ERROR: MainActivity not found" | tee -a "$L" && exit 1
+PK=$(grep -m1 '^package ' "$MA" | sed 's/package //; s/;//; s/ //g')
+echo "Native package: $PK  file: $MA" | tee -a "$L"
+ASSETS=android/app/src/main/assets
+mkdir -p "$ASSETS"
+strip_obj(){ sed -i -e '/\/\/OBJ-BEGIN/,/\/\/OBJ-END/d' -e '/\/\/OBJ1/d' -e '/mediapipe/d' "$1"; }
+strip_video(){ sed -i '/\/\/VID/d' "$MD/MainActivity.kt"; rm -f "$MD/VideoEngine.kt"; sed -i '/androidx.media3/d' "$GR"; }
+OBJ=0
+if [ -f native/Vision.kt ] && grep -q 'OBJ-BEGIN' native/Vision.kt; then
+  MODEL="$ASSETS/efficientdet_lite0.tflite"
+  for Q in float32 int8 float16; do
+    if curl -fsSL --retry 2 -m 120 -o "$MODEL" "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/$Q/latest/efficientdet_lite0.tflite" 2>>"$L" && [ "$(wc -c < "$MODEL")" -gt 1000000 ]; then
+      OBJ=1
+      echo "Model $Q downloaded" | tee -a "$L"
+      break
+    fi
+    rm -f "$MODEL"
+  done
+  [ "$OBJ" = "1" ] || echo "Model download failed, object detection off" | tee -a "$L"
+fi
+if [ "$OBJ" = "1" ]; then
+  case "$GR" in
+    *.kts) printf '\ndependencies {\n    implementation("com.google.mediapipe:tasks-vision:0.10.14")\n}\n' >> "$GR";;
     *) printf "\ndependencies {\n    implementation 'com.google.mediapipe:tasks-vision:0.10.14'\n}\n" >> "$GR";;
   esac
   python3 - "$GR" <<'NC_PY'
