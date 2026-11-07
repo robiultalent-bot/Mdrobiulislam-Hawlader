@@ -1,3 +1,47 @@
+  stream=null;if(vid){try{vid.remove()}catch(e){}vid=null}
+}
+function grab(w0){
+  if(!vid||!vid.videoWidth)return null;
+  const w=Math.min(w0,vid.videoWidth),h=Math.round(vid.videoHeight*w/vid.videoWidth);
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  c.getContext("2d").drawImage(vid,0,0,w,h);
+  return c.toDataURL("image/jpeg",0.7).split(",")[1];
+}
+
+/* ---------- টর্চ ও আলো ---------- */
+let torchOn=false,torchAuto=false,torchT=0;
+async function setTorch(on){
+  let ok=false;
+  if(native()){try{ok=(await nat("torch",on))===true}catch(e){}}
+  if(!ok&&stream){try{await stream.getVideoTracks()[0].applyConstraints({advanced:[{torch:on}]});ok=true}catch(e){}}
+  if(ok){torchOn=on;torchT=Date.now()}
+  return ok;
+}
+async function getLux(){
+  if(!native())return -1;
+  try{return Number(await nat("lux"))}catch(e){return -1}
+}
+async function lightTick(S){
+  const v=await getLux();if(v<0||!S.active)return;
+  if(v<12&&!torchOn){
+    if(await setTorch(true)){torchAuto=true;S.pend.push("আলো অনেক কম। টর্চ চালু করেছি।")}
+    else if(!S.darkWarned){S.darkWarned=true;S.pend.push("আলো অনেক কম।")}
+  }else if(v>120&&torchOn&&torchAuto&&Date.now()-torchT>20000){
+    await setTorch(false);torchAuto=false;S.pend.push("আলো এখন ঠিক আছে। টর্চ বন্ধ করেছি।");
+  }
+}
+
+/* ---------- বাঁশির সুর: মানুষ যত কাছে, সুর তত উঁচু ও দ্রুত ---------- */
+const beeper=(function(){
+  let ac=null,near=0,on=false;
+  function ensure(){
+    try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}
+  }
+  function ping(f){
+    try{
+      const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;
+      o.type="sine";o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.09,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
       o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+0.25);
     }catch(e){}
   }
