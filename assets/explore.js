@@ -1,3 +1,46 @@
+      if(OBJ_DUP[k]&&Date.now()-OBJ_ON<5000)return;
+      if(SC[k]&&!seen[k]){seen[k]=1;out.push(k)}
+    });
+    return out;
+  }
+  return {id:"scene",mask:16,
+    reset:function(){hist={L:[],C:[],R:[]};sig="";lastT=0;roadT=0},
+    tick:function(r){
+      if(!r.scene)return null;
+      const cur={};
+      ["L","C","R"].forEach(function(z){
+        hist[z].push(names(z,r));if(hist[z].length>3)hist[z].shift();
+        const cnt={};
+        hist[z].forEach(function(a){a.forEach(function(k){cnt[k]=(cnt[k]||0)+1})});
+        cur[z]=Object.keys(cnt).filter(function(k){return cnt[k]>=2}).slice(0,2);
+      });
+      const nm=function(a){return a.map(function(k){return SC[k]}).join(" ও ")};
+      const parts=[];
+      if(cur.C.length)parts.push("সামনে "+nm(cur.C));
+      if(cur.R.length)parts.push("ডান দিকে "+nm(cur.R));
+      if(cur.L.length)parts.push("বাম দিকে "+nm(cur.L));
+      const k=parts.join("|");
+      if(!k||k===sig||Date.now()-lastT<3500||money.present)return null;
+      const road=[].concat(cur.L,cur.C,cur.R).some(function(x){return ROAD[x]});
+      let t=parts.join("। ");
+      if(road&&Date.now()-roadT>25000)t+="। রাস্তায় সাবধানে পা ফেলুন, ছড়ি দিয়ে দেখে চলুন";
+      return {p:4,t:t,commit:function(){sig=k;lastT=Date.now();if(road&&t.indexOf("ছড়ি")>=0)roadT=Date.now()}};
+    }};
+})();
+[money,text,barcode,person,objs,scene].forEach(X.register);
+
+/* ---------- সেশন, কয়েন ও অ্যাড ---------- */
+const K_USED="lom_x_used",K_COINS="lom_x_coins";
+const used=function(){return +ls(K_USED,0)||0};
+const coins=function(){return +ls(K_COINS,0)||0};
+function paintInfo(){
+  const left=Math.max(0,CFG.FREE-used());
+  setSt("xInfo","বিনামূল্যের সেশন বাকি: "+B(left)+"। কয়েন: "+B(coins())+"।");
+}
+function canStart(){return isDev()||used()<CFG.FREE||coins()>=CFG.COST}
+function consume(){
+  if(isDev())return;
+  if(used()>=CFG.FREE)lsS(K_COINS,coins()-CFG.COST);
   lsS(K_USED,used()+1);
 }
 async function watchAd(){
