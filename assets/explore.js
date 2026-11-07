@@ -1,3 +1,36 @@
+      if(!f.length){if(++miss>=3){key="";beeper.set(0)}return null}
+      miss=0;
+      const a=f[0],d=Math.max(0.3,Math.round(0.126/Math.max(a.w,0.03)*2)/2);
+      beeper.set(d);
+      const zone=a.x<0.35?"বাম দিকে":a.x>0.65?"ডান দিকে":"সামনে";
+      const near=d<0.8?"খুব কাছে":d<1.6?"কাছে":d<3?"একটু দূরে":"দূরে";
+      const k=f.length+"|"+zone+"|"+near;
+      if(k===key||Date.now()-lastT<3500)return null;
+      const dt=dist(d);
+      const t=f.length===1?"একজন মানুষ, "+zone+", "+near+", প্রায় "+dt:B(f.length)+" জন মানুষ, সবচেয়ে কাছের জন "+zone+", প্রায় "+dt;
+      return {p:6,t:t,commit:function(){key=k;lastT=Date.now()}};
+    }};
+})();
+
+/* বস্তু শনাক্তকারী (TensorFlow Lite): মানুষ, যানবাহন, প্রাণী ইত্যাদি, দিকসহ */
+const OB={"person":"মানুষ","bicycle":"সাইকেল","car":"গাড়ি","motorcycle":"মোটরসাইকেল","bus":"বাস","train":"ট্রেন","truck":"ট্রাক","traffic light":"ট্রাফিক বাতি","stop sign":"থামার চিহ্ন","bench":"বেঞ্চ","cat":"বিড়াল","dog":"কুকুর","horse":"ঘোড়া","sheep":"ভেড়া","cow":"গরু","chair":"চেয়ার","couch":"সোফা","potted plant":"টবের গাছ","bed":"বিছানা","dining table":"টেবিল"};
+const VEH={"bicycle":1,"car":1,"motorcycle":1,"bus":1,"train":1,"truck":1};
+const OBJ_DUP={"car":1,"bus":1,"truck":1,"bicycle":1,"motorcycle":1,"dog":1,"cat":1,"chair":1,"couch":1,"bed":1,"table":1};
+let OBJ_ON=0;
+const objs=(function(){
+  let hist=[],sig="",lastT=0;
+  const zone=function(x){return x<0.35?"বাম দিকে":x>0.65?"ডান দিকে":"সামনে"};
+  const near=function(m){return m>0.6?"খুব কাছে":m>0.35?"কাছে":"দূরে"};
+  return {id:"objs",mask:32,
+    reset:function(){hist=[];sig="";lastT=0;OBJ_ON=0},
+    tick:function(r){
+      if(!r.objs)return null;
+      OBJ_ON=Date.now();
+      const faces=(r.faces||[]).length,fr={};
+      r.objs.forEach(function(o){
+        const k=String(o.n).toLowerCase();
+        if(!OB[k]||o.c<0.6)return;
+        if(k==="person"&&faces)return;
         const key=k+"|"+zone(o.x),m=Math.max(o.h||0,o.w||0);
         if(!fr[key]||fr[key]<m)fr[key]=m;
       });
