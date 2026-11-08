@@ -1,8 +1,10 @@
 package PKG_PLACEHOLDER
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -62,6 +64,7 @@ class VideoEngine(
         when (name) {
             "vedPick" -> pick(true, id)
             "vedPickAudio" -> pick(false, id)
+            "vedRecord" -> record(id)
             "vedExport" -> startExport(args.optString(0, "{}"), id)
             "vedCancel" -> cancelExport(id)
             else -> return false
@@ -73,20 +76,48 @@ class VideoEngine(
         act.runOnUiThread { reply(id, json) }
     }
 
+    private fun err(code: String): String {
+        return "{\"ok\":false,\"err\":\"" + code + "\"}"
+    }
+
+    private fun freeOld() {
+        val old = pickId
+        pickId = null
+        if (old != null) reply(old, err("replaced"))
+    }
+
     private fun pick(video: Boolean, id: String) {
-        if (pickId != null) {
-            reply(id, "{}")
-            return
-        }
+        freeOld()
         pickId = id
         try {
             val i = Intent(Intent.ACTION_GET_CONTENT)
             i.type = if (video) "video/*" else "audio/*"
             i.addCategory(Intent.CATEGORY_OPENABLE)
             act.startActivityForResult(Intent.createChooser(i, ""), if (video) rcVideo else rcAudio)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             pickId = null
-            reply(id, "{}")
+            reply(id, err("open:" + e.javaClass.simpleName))
+        }
+    }
+
+    private fun record(id: String) {
+        freeOld()
+        if (Build.VERSION.SDK_INT >= 23 &&
+            act.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+        ) {
+            try {
+                act.requestPermissions(arrayOf(Manifest.permission.CAMERA), 78)
+            } catch (e: Throwable) {
+            }
+            reply(id, err("perm"))
+            return
+        }
+        pickId = id
+        try {
+            act.startActivityForResult(Intent(MediaStore.ACTION_VIDEO_CAPTURE), rcVideo)
+        } catch (e: Throwable) {
+            pickId = null
+            reply(id, err("camera:" + e.javaClass.simpleName))
         }
     }
 
@@ -109,7 +140,7 @@ class VideoEngine(
                 val dest = File(act.cacheDir, prefix + System.currentTimeMillis())
                 val ins = act.contentResolver.openInputStream(uri)
                 if (ins == null) {
-                    done(id, "{}")
+                    done(id, err("noinput"))
                     return@Thread
                 }
                 ins.use { src ->
@@ -145,7 +176,7 @@ class VideoEngine(
                 }
                 done(id, o.toString())
             } catch (e: Throwable) {
-                done(id, "{}")
+                done(id, err("copy:" + e.javaClass.simpleName))
             }
         }.start()
     }
