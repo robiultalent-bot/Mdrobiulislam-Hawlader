@@ -21,7 +21,7 @@ bn:{
  btn:"🎬 ভিডিও স্টুডিও",title:"🎬 ভিডিও স্টুডিও",back:"← ব্যাক (Back)",
  lang:"🌐 ভাষা (Language)",intro:"এখানে ভিডিও কাটা, রং ঠিক করা, গান মেশানো ও নতুন ভিডিও সেভ করা যায়। ফ্রি সংস্করণে ভিডিওর নিচে ওয়াটারমার্ক বসে।",
  hear:"🔊 শোনো",
- c1:"১. ভিডিও বাছো",pick:"📂 গ্যালারি থেকে ভিডিও বাছো",none:"এখনও ভিডিও বাছা হয়নি।",
+ c1:"১. ভিডিও বাছো",pick:"📂 গ্যালারি থেকে ভিডিও বাছো",rec:"🎥 ক্যামেরায় নতুন ভিডিও করো",permMsg:"ক্যামেরার অনুমতি চাওয়া হয়েছে। অনুমতি দিয়ে আবার বোতামটা চাপো।",why:" কারণ: ",none:"এখনও ভিডিও বাছা হয়নি।",
  picking:"গ্যালারি খুলছে। একটা ভিডিও বেছে নাও।",loading:"ভিডিও আনা হচ্ছে, একটু অপেক্ষা করো।",
  picked:"ভিডিও পাওয়া গেছে। সময় ",noPick:"কোনো ভিডিও বাছা হয়নি।",
  c2:"২. কাটো (শুরু ও শেষ)",st:"শুরু: ",en:"শেষ: ",setS:"▶ এখন থেকে শুরু",setE:"⏹ এখন পর্যন্ত শেষ",len:"নতুন ভিডিওর দৈর্ঘ্য: ",
@@ -42,7 +42,7 @@ en:{
  btn:"🎬 Video Studio",title:"🎬 Video Studio",back:"← Back",
  lang:"🌐 Language",intro:"Trim videos, adjust colours, add music and save a new video. In the free version a watermark appears at the bottom of the video.",
  hear:"🔊 Listen",
- c1:"1. Choose a video",pick:"📂 Choose a video from gallery",none:"No video chosen yet.",
+ c1:"1. Choose a video",pick:"📂 Choose a video from gallery",rec:"🎥 Record a new video with camera",permMsg:"Camera permission was requested. Allow it and tap the button again.",why:" Reason: ",none:"No video chosen yet.",
  picking:"Opening the gallery. Please pick a video.",loading:"Loading the video, please wait.",
  picked:"Video ready. Length ",noPick:"No video was chosen.",
  c2:"2. Trim (start and end)",st:"Start: ",en:"End: ",setS:"▶ Start from here",setE:"⏹ End at here",len:"New video length: ",
@@ -92,7 +92,7 @@ function html(){
   h+=card(t("lang"),'<select id="vsLang" aria-label="'+t("lang")+'" style="width:100%;font-size:16px;padding:8px">'
     +'<option value="bn"'+(lang==="bn"?" selected":"")+'>বাংলা</option><option value="en"'+(lang==="en"?" selected":"")+'>English</option></select>'
     +'<p class="lzSm">'+t("intro")+'</p><div class="lzRow"><button class="lzBtn s" id="vsHear">'+t("hear")+'</button></div>');
-  h+=card(t("c1"),'<div class="lzRow"><button class="lzBtn" id="vsPick">'+t("pick")+'</button></div>'
+  h+=card(t("c1"),'<div class="lzRow"><button class="lzBtn" id="vsPick">'+t("pick")+'</button><button class="lzBtn" id="vsRec">'+t("rec")+'</button></div>'
     +'<p class="lzSm" id="vsInfo"></p><video id="vsPrev" controls playsinline style="width:100%;max-height:260px;background:#000;border-radius:10px;display:none" aria-label="preview"></video>');
   h+=card(t("c2"),lbl("vsSt","st",0,0,10,0.1,0)+lbl("vsEn","en",0,0,10,0.1,10)
     +'<div class="lzRow"><button class="lzBtn s" id="vsSetS">'+t("setS")+'</button><button class="lzBtn s" id="vsSetE">'+t("setE")+'</button></div>'
@@ -137,25 +137,28 @@ function loadVals(){
   if(p&&S.v){p.style.display="block";p.src=S.v.url;p.onerror=function(){msg(t("prevErr"),false)}}
 }
 
-async function pickVideo(){
+async function getVideo(mode){
   if(!native()){msg(t("onlyApp"));return}
   if(S.busy)return;
   speak(t("picking"));
   let r={};
-  try{r=await nat("vedPick")}catch(e){r={}}
-  if(!r||!r.ok){msg(t("noPick"));return}
+  try{r=await nat(mode)}catch(e){r={ok:false,err:String(e).slice(0,80)}}
+  if(r&&r.err==="perm"){msg(t("permMsg"));return}
+  if(!r||!r.ok){msg(t("noPick")+((r&&r.err)?t("why")+r.err:""));return}
   msg(t("loading"),false);
   S.v=r;S.start=0;S.end=r.durationMs/1000;
   loadVals();upd();
   msg(t("picked")+fmt(r.durationMs/1000));
 }
+function pickVideo(){return getVideo("vedPick")}
+function recVideo(){return getVideo("vedRecord")}
 async function pickMusic(){
   if(!native()){msg(t("onlyApp"));return}
   if(S.busy)return;
   speak(t("picking"));
   let r={};
-  try{r=await nat("vedPickAudio")}catch(e){r={}}
-  if(!r||!r.ok){msg(t("noPick"));return}
+  try{r=await nat("vedPickAudio")}catch(e){r={ok:false,err:String(e).slice(0,80)}}
+  if(!r||!r.ok){msg(t("noPick")+((r&&r.err)?t("why")+r.err:""));return}
   S.a=r;upd();msg(t("mname"));
 }
 function resetAll(){
@@ -211,6 +214,7 @@ function bind(){
   };
   $("vsHear").onclick=function(){speak(t("title")+". "+t("intro"))};
   $("vsPick").onclick=pickVideo;
+  $("vsRec").onclick=recVideo;
   $("vsMus").onclick=pickMusic;
   $("vsMDel").onclick=function(){S.a=null;upd()};
   $("vsExp").onclick=doExport;
