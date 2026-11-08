@@ -140,7 +140,7 @@ p=sys.argv[1]
 s=open(p,encoding="utf-8").read()
 s=s.replace("    private lateinit var ads: AdHelper\n","    private lateinit var ads: AdHelper\n    private lateinit var video: VideoEngine //VID\n",1)
 s=s.replace("        ads.init()\n","        ads.init()\n        video = VideoEngine(this, { cid, json -> resolve(cid, json) }, { code -> web.evaluateJavascript(code, null) }) //VID\n",1)
-s=s.replace("            else -> ","            \"vedPick\", \"vedPickAudio\", \"vedExport\", \"vedCancel\" -> video.handle(name, args, id) //VID\n            else -> ",1)
+s=s.replace("            else -> ","            \"vedPick\", \"vedPickAudio\", \"vedExport\", \"vedCancel\", \"vedRecord\" -> video.handle(name, args, id) //VID\n            else -> ",1)
 a='    @Deprecated("Deprecated in Java")\n    override fun onBackPressed()'
 b='    @Deprecated("Deprecated in Java") //VID\n    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) { //VID\n        super.onActivityResult(requestCode, resultCode, data) //VID\n        video.onResult(requestCode, resultCode, data) //VID\n    } //VID\n'
 s=s.replace(a,b+a,1)
