@@ -3,7 +3,7 @@ L="$GITHUB_WORKSPACE/build.log"
 diag(){
   {
     echo "=== DIAG START ==="
-    grep -E "incompatible version of Kotlin|binary version of its metadata|What went wrong|Execution failed|RETRY|FALLBACK|Vision enabled|Video enabled|injected|skipped|Model" "$L" 2>/dev/null | head -20 || true
+    grep -E "incompatible version of Kotlin|binary version of its metadata|What went wrong|Execution failed|RETRY|FALLBACK|Vision enabled|Video enabled|Video patch|injected|skipped|Model|^e: |error:|Could not resolve|minCompileSdk|minAgpVersion|Duplicate class|requires" "$L" 2>/dev/null | head -40 || true
     echo "=== DIAG END ==="
   } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}" || true
   return 0
