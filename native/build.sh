@@ -89,7 +89,7 @@ cp assets/index.html "$ASSETS/index.html"
 cp native/shim.js "$ASSETS/shim.js"
 sed -i '0,/<head>/s//<head><script src="shim.js"><\/script>/' "$ASSETS/index.html"
 grep -c 'shim.js' "$ASSETS/index.html" | tee -a "$L"
-for MODJS in soundscape.js ads.js explore.js video.js; do
+for MODJS in soundscape.js ads.js explore.js video.js about.js assistant.js; do
   if [ -f "assets/$MODJS" ]; then
     cp "assets/$MODJS" "$ASSETS/$MODJS"
     python3 - "$ASSETS/index.html" "$MODJS" <<'SND_PY'
