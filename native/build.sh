@@ -23,6 +23,8 @@ MF=android/app/src/main/AndroidManifest.xml
 grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
 grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
 grep -q 'permission.CAMERA' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.CAMERA"/><uses-feature android:name="android.hardware.camera" android:required="false"/>|' $MF
+grep -q 'permission.RECORD_AUDIO' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.RECORD_AUDIO"/>|' $MF
+grep -q 'RecognitionService' $MF || sed -i 's|</queries>|<intent><action android:name="android.speech.RecognitionService"/></intent></queries>|' $MF
 APPID="ca-app-pub-5481902015314492~1735182591"
 grep -q 'ads.APPLICATION_ID' $MF || python3 - "$MF" "$APPID" <<'MF_PY'
 import re,sys
@@ -56,6 +58,7 @@ echo "Native package: $PK  file: $MA" | tee -a "$L"
 ASSETS=android/app/src/main/assets
 mkdir -p "$ASSETS"
 strip_obj(){ sed -i -e '/\/\/OBJ-BEGIN/,/\/\/OBJ-END/d' -e '/\/\/OBJ1/d' -e '/mediapipe/d' "$1"; }
+strip_mic(){ sed -i '/\/\/MIC/d' "$MD/MainActivity.kt"; rm -f "$MD/Mic.kt"; }
 strip_video(){ sed -i '/\/\/VID/d' "$MD/MainActivity.kt"; rm -f "$MD/VideoEngine.kt"; sed -i '/androidx.media3/d' "$GR"; }
 OBJ=0
 if [ -f native/Vision.kt ] && grep -q 'OBJ-BEGIN' native/Vision.kt; then
@@ -160,6 +163,29 @@ VED_PY
     rm -f "$MD/VideoEngine.kt"
   fi
 fi
+MIC=0
+if [ -f native/Mic.kt ]; then
+  cp native/Mic.kt "$MD/Mic.kt"
+  sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/Mic.kt"
+  if python3 - "$MD/MainActivity.kt" <<'MIC_PY'
+import sys
+p=sys.argv[1]
+s=open(p,encoding="utf-8").read()
+s=s.replace("    private lateinit var ads: AdHelper\n","    private lateinit var ads: AdHelper\n    private lateinit var mic: Mic //MIC\n",1)
+s=s.replace("        ads.init()\n","        ads.init()\n        mic = Mic(this) { cid, json -> resolve(cid, json) } //MIC\n",1)
+s=s.replace("            else -> ","            \"micListen\", \"micStop\" -> mic.handle(name, args, id) //MIC\n            else -> ",1)
+for k in ["private lateinit var mic","mic = Mic(","mic.handle("]:
+    assert k in s,k
+open(p,"w",encoding="utf-8").write(s)
+MIC_PY
+  then
+    MIC=1
+    echo "Mic enabled" | tee -a "$L"
+  else
+    echo "Mic patch failed, skipped" | tee -a "$L"
+    rm -f "$MD/Mic.kt"
+  fi
+fi
 head -3 "$MD/MainActivity.kt" | tee -a "$L"
 flutter pub get 2>&1 | tee -a "$L"
 if ! flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then
@@ -170,6 +196,12 @@ if ! flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then
     for KF in android/settings.gradle android/settings.gradle.kts android/build.gradle android/build.gradle.kts; do
       [ -f "$KF" ] && sed -i -e "s/\(org.jetbrains.kotlin.android\"[^0-9]*\)[0-9][0-9.]*/\1$KV/" -e "s/\(kotlin_version[^0-9]*\)[0-9][0-9.]*/\1$KV/" "$KF"
     done
+    if flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then exit 0; fi
+  fi
+  if [ "$MIC" = "1" ] && grep -q 'Mic.kt' "$L"; then
+    echo "FALLBACKM: rebuilding without voice input" | tee -a "$L"
+    strip_mic
+    MIC=0
     if flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then exit 0; fi
   fi
   if [ "$VED" = "1" ]; then
@@ -185,7 +217,7 @@ if ! flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then
   fi
   [ "$VIS" = "1" ] || exit 1
   echo "FALLBACK: first build failed, rebuilding without camera features" | tee -a "$L"
-  rm -f "$MD/Vision.kt" "$MD/VideoEngine.kt"
+  rm -f "$MD/Vision.kt" "$MD/VideoEngine.kt" "$MD/Mic.kt"
   sed -i '/androidx.media3/d' "$GR"
   cp native/MainActivity.kt "$MD/MainActivity.kt"
   sed -i "s/PKG_PLACEHOLDER/$PK/" "$MD/MainActivity.kt"
