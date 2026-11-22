@@ -2,7 +2,7 @@
 "use strict";
 if(window.__LOM_AST)return;window.__LOM_AST=1;
 
-const API="https://script.google.com/macros/s/AKfycbx1MJw7ZPlxD9oY9L7xz-QrxUYIWPXrElFNPdy-wXzqC6VlGLJ05Y5auSI9o4dc7gr_/exec";
+const API="https://script.google.com/macros/s/AKfycbygx8ZJzgNBctpjcXkConElGywXwD-_ukk1J87Syt_NMz5DgJWDxnnDgpSF-DSqTIiB/exec";
 
 const $=function(i){return document.getElementById(i)};
 const esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
@@ -38,7 +38,7 @@ async function send(){
   let reply="এখন উত্তর দিতে পারছি না। ইন্টারনেট ঠিক আছে কি না দেখো।";
   try{
     const ctl=new AbortController();
-    const to=setTimeout(function(){ctl.abort()},25000);
+    const to=setTimeout(function(){ctl.abort()},40000);
     const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},signal:ctl.signal,
       body:JSON.stringify({messages:H.slice(-8)})});
     clearTimeout(to);
@@ -56,16 +56,16 @@ function build(){
   const ex=home.querySelector('[data-go="explore"]');if(!ex)return false;
   const b=document.createElement("button");
   b.className="lzBig";b.id="lzAiBtn";b.setAttribute("data-go","assistant");
-  b.textContent="🤖 মনের আলো সহকারী (Assistant)";
+  b.textContent="মনের আলো সহকারী";
   ex.insertAdjacentElement("afterend",b);
   const sec=document.createElement("section");
   sec.className="lzPg";sec.id="pg_assistant";sec.hidden=true;
-  sec.innerHTML='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">← ব্যাক (Back)</button><h2>🤖 সহকারী</h2></div>'
+  sec.innerHTML='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">ব্যাক</button><h2>সহকারী</h2></div>'
    +'<div class="lzCard"><h3>মনের আলো সহকারী</h3>'
    +'<p class="lzSm">আমি মনের আলো অ্যাপের সহকারী এআই। অ্যাপ, আমাদের টিম ও চ্যানেল নিয়ে প্রশ্ন করতে পারো। আমি ভুল করতে পারি, তাই দরকারি বিষয় যাচাই করে নিও।</p>'
    +'<div id="aiChat" aria-live="polite" style="max-height:40vh;overflow:auto"></div>'
    +'<textarea id="aiTxt" placeholder="তোমার প্রশ্ন লেখো" aria-label="তোমার প্রশ্ন" maxlength="500"></textarea>'
-   +'<div class="lzRow"><button class="lzBtn" id="aiSend">📤 পাঠাও</button><button class="lzBtn r" id="aiClr">🗑 মুছো</button></div>'
+   +'<div class="lzRow"><button class="lzBtn" id="aiSend">পাঠাও</button><button class="lzBtn r" id="aiClr">মুছো</button></div>'
    +'<p class="lzSm" id="aiNote" role="status" aria-live="polite"></p></div>';
   app.appendChild(sec);
   $("aiSend").onclick=send;
@@ -84,4 +84,79 @@ let n=0;
   if(build())return;
   setTimeout(wait,250);
 })();
+})();
+
+/* ===== পরিষ্কার-করা অংশ: ইমোজি, হেডিং, প্রিমিয়াম বোতাম, ভিডিওর ভুলের বার্তা ===== */
+(function(){
+"use strict";
+if(window.__LOM_CLEAN)return;window.__LOM_CLEAN=1;
+var P="[\\u{1F000}-\\u{1FAFF}\\u{2190}-\\u{21FF}\\u{2300}-\\u{23FF}\\u{2460}-\\u{24FF}\\u{25A0}-\\u{27BF}\\u{2B00}-\\u{2BFF}]";
+var RE=new RegExp("(?:"+P+"[\\uFE0F\\u20E3]?(?:\\u200D"+P+"[\\uFE0F]?)*)+\\s*","gu");
+var TEST=new RegExp(P,"u");
+function clean(t){
+  t=String(t==null?"":t);
+  return TEST.test(t)?t.replace(RE,""):t;
+}
+window.lomClean=clean;
+var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,NOSCRIPT:1,INPUT:1};
+function pass(){
+  var b=document.body;if(!b)return;
+  var w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT,null),n,list=[];
+  while((n=w.nextNode())){
+    var p=n.parentNode;
+    if(p&&SKIP[p.nodeName])continue;
+    if(TEST.test(n.nodeValue))list.push(n);
+  }
+  for(var i=0;i<list.length;i++){list[i].nodeValue=clean(list[i].nodeValue)}
+  var at=["aria-label","title","placeholder","alt"];
+  var els=b.querySelectorAll("[aria-label],[title],[placeholder],[alt]");
+  for(var j=0;j<els.length;j++){
+    for(var k=0;k<at.length;k++){
+      var v=els[j].getAttribute(at[k]);
+      if(v&&TEST.test(v))els[j].setAttribute(at[k],clean(v));
+    }
+  }
+  /* হেডিং: টকব্যাক আর "হেডিং" বলবে না, শুধু লেখা পড়বে */
+  var hs=b.querySelectorAll("h1,h2,h3,h4,h5,h6,[role=heading]");
+  for(var h=0;h<hs.length;h++){
+    if(hs[h].getAttribute("role")!=="presentation")hs[h].setAttribute("role","presentation");
+  }
+  /* প্রিমিয়াম/শপের বোতাম আর পাতা লুকানো */
+  var sh=b.querySelectorAll('[data-go="shop"],#pg_shop');
+  for(var s=0;s<sh.length;s++){
+    if(!sh[s].hidden){sh[s].hidden=true;sh[s].style.display="none";sh[s].setAttribute("aria-hidden","true");sh[s].tabIndex=-1}
+  }
+  if(document.title&&TEST.test(document.title))document.title=clean(document.title);
+}
+/* অ্যাপের নিজের কথা বলার সময়ও ইমোজি বাদ */
+function wrapSpeak(){
+  var o=window.ntSpeak;
+  if(typeof o!=="function"||o.__lom)return;
+  var f=function(t,en){return o.call(this,clean(t),en)};
+  f.__lom=1;window.ntSpeak=f;
+}
+/* ভিডিওর অজানা কাজের বার্তা সহজ করা */
+function wrapCall(){
+  var fi=window.flutter_inappwebview;
+  if(!fi||typeof fi.callHandler!=="function"||fi.callHandler.__lom)return;
+  var o=fi.callHandler;
+  var f=function(){
+    var r=o.apply(fi,arguments);
+    if(r&&r.catch){
+      return r.catch(function(e){
+        var m=String(e&&e.message?e.message:e);
+        if(m.indexOf("unknown handler")>=0)return Promise.reject("এই অ্যাপে এই সুবিধা চালু নেই। অ্যাপের নতুন সংস্করণ নামাতে হবে।");
+        return Promise.reject(e);
+      });
+    }
+    return r;
+  };
+  f.__lom=1;fi.callHandler=f;
+}
+var pend=false;
+function later(){if(pend)return;pend=true;setTimeout(function(){pend=false;try{pass()}catch(e){}},150)}
+try{wrapSpeak()}catch(e){}
+try{wrapCall()}catch(e){}
+try{pass()}catch(e){}
+try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true,characterData:true})}catch(e){}
 })();
