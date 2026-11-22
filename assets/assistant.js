@@ -49,6 +49,55 @@ async function send(){
   busy=false;note("");render();speak(reply);
 }
 
+
+let listening=false;
+const sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+const NAT=function(){return !!(window.flutter_inappwebview&&window.AndroidTTS)};
+function errMsg(code){
+  if(code==="perm"||code==="e9")return "মাইক্রোফোনের অনুমতি দিন। অনুমতি দিয়ে আবার চাপো।";
+  if(code==="na")return "এই ফোনে ভয়েস চেনার সুবিধা নেই। লিখে প্রশ্ন করো।";
+  if(code==="e7"||code==="e6")return "কিছু শোনা যায়নি। আবার চাপো, তারপর স্পষ্ট করে বলো।";
+  if(code==="e2"||code==="e1"||code==="e3"||code==="e5"||code==="e8")return "ভয়েস চেনায় সমস্যা হচ্ছে। ইন্টারনেট দেখে আবার চেষ্টা করো।";
+  if(code==="unk")return "এই অ্যাপ সংস্করণে ভয়েসে প্রশ্ন করার সুবিধা নেই। অ্যাপের নতুন সংস্করণ নামাও।";
+  return "ভয়েস চেনা যায়নি। আবার চেষ্টা করো।";
+}
+async function gotText(t){
+  const inp=$("aiTxt");
+  inp.value=String(t).slice(0,500);
+  await Promise.resolve(speak("তুমি বলেছো: "+inp.value));
+  send();
+}
+async function listen(lang){
+  if(busy||listening)return;
+  listening=true;
+  try{
+    if(NAT()){
+      note("শুনছি...");
+      await Promise.resolve(speak(lang==="en-US"?"Speak now.":"বলো।"));
+      await sleep(300);
+      let r=null;
+      try{r=await window.flutter_inappwebview.callHandler("micListen",lang)}catch(e){r={err:"unk"}}
+      if(typeof r==="string"){try{r=JSON.parse(r)}catch(e){r={err:"x"}}}
+      note("");
+      if(r&&r.text){await gotText(r.text)}
+      else{const m=errMsg(r&&r.err);note(m);speak(m)}
+    }else{
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){const m="এই ব্রাউজারে ভয়েসে প্রশ্ন করা যায় না। লিখে প্রশ্ন করো।";note(m);speak(m);return}
+      note("শুনছি...");
+      const t=await new Promise(function(res){
+        const rec=new SR();rec.lang=lang;rec.maxAlternatives=1;
+        rec.onresult=function(ev){res(ev.results[0][0].transcript)};
+        rec.onerror=function(){res("")};rec.onend=function(){res("")};
+        try{rec.start()}catch(e){res("")}
+      });
+      note("");
+      if(t)await gotText(t);else{const m=errMsg("e7");note(m);speak(m)}
+    }
+  }catch(e){note("")}
+  finally{listening=false}
+}
+
 function build(){
   const app=$("lzApp"),home=$("pg_home");
   if(!app||!home)return false;
@@ -63,12 +112,15 @@ function build(){
   sec.innerHTML='<div class="lzBar"><button class="lzBtn s lzBack" aria-label="ব্যাক, আগের পেজে ফিরে যাও">ব্যাক</button><h2>সহকারী</h2></div>'
    +'<div class="lzCard"><h3>মনের আলো সহকারী</h3>'
    +'<p class="lzSm">আমি মনের আলো অ্যাপের সহকারী এআই। অ্যাপ, আমাদের টিম ও চ্যানেল নিয়ে প্রশ্ন করতে পারো। আমি ভুল করতে পারি, তাই দরকারি বিষয় যাচাই করে নিও।</p>'
+   +'<div class="lzRow"><button class="lzBtn" id="aiMicBn">বাংলায় বলে প্রশ্ন করো</button><button class="lzBtn" id="aiMicEn">ইংরেজিতে বলে প্রশ্ন করো</button></div>'
    +'<div id="aiChat" aria-live="polite" style="max-height:40vh;overflow:auto"></div>'
    +'<textarea id="aiTxt" placeholder="তোমার প্রশ্ন লেখো" aria-label="তোমার প্রশ্ন" maxlength="500"></textarea>'
    +'<div class="lzRow"><button class="lzBtn" id="aiSend">পাঠাও</button><button class="lzBtn r" id="aiClr">মুছো</button></div>'
    +'<p class="lzSm" id="aiNote" role="status" aria-live="polite"></p></div>';
   app.appendChild(sec);
   $("aiSend").onclick=send;
+  $("aiMicBn").onclick=function(){listen("bn-BD")};
+  $("aiMicEn").onclick=function(){listen("en-US")};
   $("aiClr").onclick=function(){H.length=0;render()};
   render();
   let first=true;
