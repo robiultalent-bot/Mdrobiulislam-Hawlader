@@ -6,7 +6,8 @@
 if(window.__CRG)return;window.__CRG=1;
 
 /* ---------- এখানের সংখ্যা বদলালেই গেমের হিসাব বদলায় ---------- */
-const GOAL_KM=2;        // একটা দৌড়ের লক্ষ্য, কিলোমিটারে
+const TRIPS=[{km:3,n:"ছোট ট্রিপ, তিন কিলোমিটার",en:"Short trip, three kilometers"},{km:6,n:"মাঝারি ট্রিপ, ছয় কিলোমিটার",en:"Medium trip, six kilometers"},{km:10,n:"লম্বা ট্রিপ, দশ কিলোমিটার",en:"Long trip, ten kilometers"}];
+const KMS=0.0133;          // প্রথম গাড়ির গতি: প্রতি সেকেন্ডে কত কিলোমিটার
 const REPAIR=50;        // কয়েন দিয়ে গাড়ি মেরামতের খরচ
 const AD_COINS=100;     // একটা অ্যাডে কত কয়েন
 const DAILY=50;         // প্রতিদিনের প্রথম বোনাস
@@ -15,26 +16,35 @@ const TILT=13;          // কত ডিগ্রি কাত করলে ল�
 const DISC_MAX=6;       // একটা গাড়িতে সর্বোচ্চ কতবার অ্যাড দেখে ছাড়, প্রতিবার ৫%
 const UNLOCK=150;       // রং বা হর্ন আনলকের কয়েন
 const CARS=[
-  {n:"ছোট সবুজ গাড়ি",p:0,s:1,hz:60,cm:1,sh:0,d:"শুরুর গাড়ি। ধীর, কিন্তু শেখার জন্য ভালো।"},
-  {n:"হ্যাচব্যাক",p:600,s:1.3,hz:68,cm:1,sh:0,d:"হালকা আর চটপটে। গতি একটু বেশি।"},
-  {n:"সেডান",p:2000,s:1.6,hz:76,cm:1.1,sh:0,d:"আরামদায়ক পারিবারিক গাড়ি। প্রতি পারাপারে দশ শতাংশ বেশি কয়েন।"},
-  {n:"মাইক্রোবাস",p:10000,s:1.8,hz:64,cm:1.2,sh:1,d:"বড় আর মজবুত। প্রতি দৌড় শুরু হয় ঢাল নিয়ে। কুড়ি শতাংশ বেশি কয়েন।"},
-  {n:"স্পোর্টস গাড়ি",p:25000,s:2.2,hz:90,cm:1.3,sh:0,d:"দ্রুত আর ঝকঝকে। ত্রিশ শতাংশ বেশি কয়েন।"},
-  {n:"রেসিং গাড়ি",p:60000,s:2.6,hz:105,cm:1.5,sh:1,d:"রেসের জন্য বানানো। ঢাল নিয়ে শুরু। পঞ্চাশ শতাংশ বেশি কয়েন।"},
-  {n:"সুপার জেট গাড়ি",p:150000,s:3.2,hz:125,cm:2,sh:1,d:"সবচেয়ে দ্রুত। ঢাল নিয়ে শুরু। কয়েন দ্বিগুণ।"}
+  {n:"ছোট সবুজ গাড়ি",p:0,s:1,hz:60,eng:"e0",cm:1,sh:0,d:"শুরুর গাড়ি। ধীর, কিন্তু শেখার জন্য ভালো।"},
+  {n:"হ্যাচব্যাক",p:600,s:1.3,hz:68,eng:"e1",cm:1,sh:0,d:"হালকা আর চটপটে। গতি একটু বেশি।"},
+  {n:"সেডান",p:2000,s:1.6,hz:76,eng:"e2",cm:1.1,sh:0,d:"আরামদায়ক পারিবারিক গাড়ি। প্রতি পারাপারে দশ শতাংশ বেশি কয়েন।"},
+  {n:"মাইক্রোবাস",p:10000,s:1.8,hz:64,eng:"e3",cm:1.2,sh:1,d:"বড় আর মজবুত। প্রতি দৌড় শুরু হয় ঢাল নিয়ে। কুড়ি শতাংশ বেশি কয়েন।"},
+  {n:"স্পোর্টস গাড়ি",p:25000,s:2.2,hz:90,eng:"e4",cm:1.3,sh:0,d:"দ্রুত আর ঝকঝকে। ত্রিশ শতাংশ বেশি কয়েন।"},
+  {n:"রেসিং গাড়ি",p:60000,s:2.6,hz:105,eng:"e5",cm:1.5,sh:1,d:"রেসের জন্য বানানো। ঢাল নিয়ে শুরু। পঞ্চাশ শতাংশ বেশি কয়েন।"},
+  {n:"সুপার জেট গাড়ি",p:150000,s:3.2,hz:125,eng:"e6",cm:2,sh:1,d:"সবচেয়ে দ্রুত। ঢাল নিয়ে শুরু। কয়েন দ্বিগুণ।"}
 ];
 const COLORS=["সবুজ","লাল","নীল","হলুদ","বেগুনি","সাদা","কালো","কমলা","গোলাপি","সোনালি"];
-const HORNS=["সাধারণ হর্ন","মধুর হর্ন","ট্রাকের হর্ন","পুলিশের সাইরেন"];
-const OBS=[
-  {k:"car",bn:"গাড়ি",en:"a car"},
-  {k:"person",bn:"মানুষ",en:"a person"},
-  {k:"truck",bn:"ট্রাক",en:"a truck"},
-  {k:"pit",bn:"গর্ত",en:"a pothole"}
+const HORNS=["গাড়ির সাধারণ হর্ন","গাড়ির উঁচু হর্ন","গাড়ির গম্ভীর হর্ন","বাসের হর্ন","ট্রাকের এয়ার হর্ন","পুলিশের সাইরেন, লম্বা","পুলিশের সাইরেন, দ্রুত","পুলিশের দুই সুরের সাইরেন","অ্যাম্বুলেন্সের সাইরেন","ফায়ার ট্রাকের সাইরেন","মোটরসাইকেলের হর্ন","অটোরিকশার হর্ন","স্পোর্টস গাড়ির হর্ন","ট্যাক্সির হর্ন","ইলেকট্রিক হর্ন","ট্রেনের হর্ন","জাহাজের হর্ন","দুইবার বিপ","তিনবার বিপ","শহরের হর্ন"];
+const HORN_COST=[0,150,150,200,250,300,300,300,300,300,150,150,200,150,150,400,400,150,150,150];
+const OBS={
+  car:{k:"car",bn:"গাড়ি",en:"a car",loop:"e1",horn:["h01","h02","h14"],rate:[0.92,1.08]},
+  rick:{k:"rick",bn:"রিকশা",en:"a rickshaw",loop:"e_rick",horn:["h12"],rate:[0.95,1.05]},
+  bike:{k:"bike",bn:"মোটরসাইকেল",en:"a motorbike",loop:"e_bike",horn:["h11"],rate:[0.95,1.1]},
+  bus:{k:"bus",bn:"বাস",en:"a bus",loop:"e3",horn:["h04"],rate:[0.85,0.95]},
+  truck:{k:"truck",bn:"ট্রাক",en:"a truck",loop:"e_truck",horn:["h05"],rate:[0.9,1.0]},
+  person:{k:"person",bn:"মানুষ",en:"a person",loop:"steps",horn:[],rate:[0.95,1.05]},
+  pit:{k:"pit",bn:"গর্ত",en:"a pothole",loop:"pit",horn:[],rate:[1,1]}
+};
+const STAGES=[
+  {n:"শহরের পথ",en:"the city road",pool:["car","rick","bike","person","bus","car","rick"],say:"আপনি শহরের পথে। গাড়ি, রিকশা আর মানুষ সামলে চলুন।",sayEn:"You are on the city road. Watch for cars, rickshaws and people."},
+  {n:"হাইওয়ে",en:"the highway",pool:["car","truck","bus","car","truck","bike"],say:"হাইওয়েতে উঠলেন। ট্রাক আর বাস আসছে, সাবধান।",sayEn:"You are on the highway. Trucks and buses ahead."},
+  {n:"গ্রামের পথ",en:"the village road",pool:["person","rick","pit","bike","person","car","pit"],say:"গ্রামের পথে ঢুকলেন। মানুষ আর গর্ত থেকে সাবধান।",sayEn:"You are on the village road. Watch for people and potholes."}
 ];
 /* ------------------------------------------------------------- */
 
 const $=i=>document.getElementById(i);
-const KEY="crg_v4";
+const KEY="crg_v5";
 let S={coins:0,own:[0],car:0,lv:{},col:{},best:0,total:0,day:"",eng:"",vo:null,rate:0,runs:0,disc:{},cols:[0],hornOwn:[0],horn:0,broken:false,lang:"bn"};
 try{const j=JSON.parse(localStorage.getItem(KEY)||"null");if(j)S=Object.assign(S,j)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -67,8 +77,10 @@ function say(t,en){
 const sayG=t=>say(t,isEn());           // খেলার ভাষায় বলা
 function hush(){try{if(hasNT()&&NT.on)ntCall("ttsStop",null)}catch(e){}try{speechSynthesis.cancel()}catch(e){}}
 
-/* ---------- শব্দ ঘর ---------- */
+/* ---------- শব্দ ঘর: আসল রেকর্ড-করা ধরনের নমুনা ---------- */
 let AC=null,bus=null,NB=null;
+const BUF={};
+let loaded=false;
 function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
 function out(){
   const a=ac();if(!a)return null;
@@ -76,6 +88,17 @@ function out(){
   return bus||a.destination;
 }
 function newBus(){ try{if(bus){bus.disconnect()}}catch(e){} bus=null; return out() }
+async function loadAudio(){
+  if(loaded)return;loaded=true;
+  const a=ac();const M=window.__CRG_AUD||{};if(!a)return;
+  const keys=Object.keys(M);
+  await Promise.all(keys.map(async k=>{
+    try{
+      const bin=atob(M[k]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+      BUF[k]=await new Promise((res,rej)=>{const p=a.decodeAudioData(u.buffer,res,rej);if(p&&p.then)p.then(res,rej)});
+    }catch(e){}
+  }));
+}
 function noiseBuf(){
   const a=ac();if(!a)return null;
   if(!NB){NB=a.createBuffer(1,a.sampleRate*1.5,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}
@@ -85,135 +108,91 @@ function pan(a,p){
   if(a.createStereoPanner){const n=a.createStereoPanner();n.pan.value=Math.max(-1,Math.min(1,p||0));return n}
   return null;
 }
-function chain(a,nodes,p){
-  const o=out(),pn=pan(a,p);
-  for(let i=0;i<nodes.length-1;i++)nodes[i].connect(nodes[i+1]);
-  const last=nodes[nodes.length-1];
-  if(pn){last.connect(pn);pn.connect(o)}else last.connect(o);
-  return pn;
+/* নমুনা একবার বাজানো */
+function play(name,p,vol,rate,delay){
+  const a=ac(),b=BUF[name];if(!a||!b)return null;
+  try{
+    const s=a.createBufferSource(),g=a.createGain(),t=a.currentTime+(delay||0);
+    s.buffer=b;s.playbackRate.value=rate||1;g.gain.value=vol==null?0.8:vol;
+    const pn=pan(a,p),o=out();s.connect(g);
+    if(pn){g.connect(pn);pn.connect(o)}else g.connect(o);
+    s.start(t);return s;
+  }catch(e){return null}
 }
-/* একটা সাধারণ স্বর */
+/* সাধারণ স্বর (শুধু কাউন্টডাউন বিপ আর নমুনা না থাকলে বিকল্প) */
 function tone(freq,dur,p,vol,type,slide){
   const a=ac();if(!a)return;
   try{
     const o=a.createOscillator(),g=a.createGain(),t=a.currentTime;
-    o.type=type||"square";o.frequency.setValueAtTime(freq,t);
+    o.type=type||"sine";o.frequency.setValueAtTime(freq,t);
     if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,freq*slide),t+dur);
     g.gain.setValueAtTime(vol||0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    chain(a,[o,g],p);o.start(t);o.stop(t+dur+0.02);
-  }catch(e){}
-}
-/* আওয়াজের ঝড়: ফিল্টার দিয়ে ঝাপটা, হুইশ, ধাক্কা */
-function noise(dur,p,vol,ftype,f0,f1,q){
-  const a=ac();if(!a)return;
-  try{
-    const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),t=a.currentTime;
-    s.buffer=noiseBuf();s.loop=true;f.type=ftype||"bandpass";f.Q.value=q||1;
-    f.frequency.setValueAtTime(f0,t);if(f1)f.frequency.exponentialRampToValueAtTime(f1,t+dur);
-    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.2,t+Math.min(0.05,dur/3));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    chain(a,[s,f,g],p);s.start(t);s.stop(t+dur+0.05);
+    const pn=pan(a,p),out_=out();o.connect(g);if(pn){g.connect(pn);pn.connect(out_)}else g.connect(out_);
+    o.start(t);o.stop(t+dur+0.02);
   }catch(e){}
 }
 const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 
-/* ---- ইঞ্জিন: দুই সুর, গুনগুন কাঁপুনি, বাতাসের শোঁ শোঁ ---- */
+/* ---- ইঞ্জিন: গাড়ি অনুযায়ী আলাদা নমুনা, গতি বাড়লে পিচ বাড়ে; সঙ্গে বাতাস ও রাস্তার শব্দ ---- */
 let eng=null;
-function engineStart(hz){
-  const a=ac();if(!a||eng)return;
+function engineStart(){
+  const a=ac();if(!a||eng||!BUF[CARS[S.car].eng])return;
   try{
-    const o1=a.createOscillator(),o2=a.createOscillator(),f=a.createBiquadFilter(),g=a.createGain();
-    const lfo=a.createOscillator(),lg=a.createGain();
-    o1.type="sawtooth";o2.type="square";o1.frequency.value=hz;o2.frequency.value=hz*0.5;
-    f.type="lowpass";f.frequency.value=380;g.gain.value=0.05;
-    lfo.frequency.value=hz*0.18;lg.gain.value=0.02;lfo.connect(lg);lg.connect(g.gain);
-    const m1=a.createGain(),m2=a.createGain();m1.gain.value=0.6;m2.gain.value=0.5;
-    o1.connect(m1);o2.connect(m2);m1.connect(f);m2.connect(f);f.connect(g);
-    const o=out(),pn=pan(a,0);if(pn){g.connect(pn);pn.connect(o)}else g.connect(o);
-    const ws=a.createBufferSource(),wf=a.createBiquadFilter(),wg=a.createGain();
-    ws.buffer=noiseBuf();ws.loop=true;wf.type="bandpass";wf.frequency.value=900;wf.Q.value=0.7;wg.gain.value=0.004;
-    ws.connect(wf);wf.connect(wg);wg.connect(o);
-    o1.start();o2.start();lfo.start();ws.start();
-    eng={o1,o2,lfo,f,g,ws,wg,base:hz};
+    const o=out(),mk=(name,vol,rate)=>{const s=a.createBufferSource(),g=a.createGain();s.buffer=BUF[name];s.loop=true;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(o);s.start();return{s,g}};
+    eng={e:mk(CARS[S.car].eng,0.55,0.8)};
+    if(BUF.wind)eng.w=mk("wind",0.0,1);
+    if(BUF.road)eng.r=mk("road",0.0,1);
   }catch(e){eng=null}
 }
 function engineSet(rev,wind){
   if(!eng||!AC)return;
   try{
-    const t=AC.currentTime,hz=eng.base*rev;
-    eng.o1.frequency.setTargetAtTime(hz,t,0.25);eng.o2.frequency.setTargetAtTime(hz*0.5,t,0.25);
-    eng.lfo.frequency.setTargetAtTime(hz*0.18,t,0.25);eng.f.frequency.setTargetAtTime(300+hz*3.2,t,0.3);
-    eng.wg.gain.setTargetAtTime(0.004+0.016*wind,t,0.3);
+    const t=AC.currentTime;
+    eng.e.s.playbackRate.setTargetAtTime(rev,t,0.25);
+    if(eng.w)eng.w.g.gain.setTargetAtTime(0.05+0.35*wind,t,0.4);
+    if(eng.r)eng.r.g.gain.setTargetAtTime(0.05+0.3*wind,t,0.4);
   }catch(e){}
 }
-function engineStop(){try{if(eng){eng.o1.stop();eng.o2.stop();eng.lfo.stop();eng.ws.stop();eng=null}}catch(e){eng=null}}
-function gearUp(){tone(180,0.5,0,0.1,"sawtooth",2.6);noise(0.4,0,0.08,"bandpass",600,2400,1)}
+function engineStop(){try{if(eng){["e","w","r"].forEach(k=>{if(eng[k])try{eng[k].s.stop()}catch(e){}});eng=null}}catch(e){eng=null}}
+function gearUp(){play("gear",0,0.6)}
 
-/* ---- বাধা কাছে আসার শব্দ: প্রতিটার নিজস্ব চরিত্র, নিজের দিক থেকে, কাছে এলে জোরালো, পেরিয়ে গেলে ডপলারে নিচু ---- */
+/* ---- বাধা কাছে আসার শব্দ: নিজের ইঞ্জিন, নিজের হর্ন, নিজের দিক থেকে; দূরে চাপা, কাছে এলে পরিষ্কার, পেরিয়ে গেলে ডপলারে নিচু ---- */
 function approach(x,lane,reach){
   const a=ac();if(!a)return;
-  const t0=a.currentTime,p=(lane-1)*0.9,end=t0+reach,tail=end+1.3;
+  const t0=a.currentTime,p=(lane-1)*0.9,end=t0+reach,tail=end+1.4;
   try{
-    const g=a.createGain();g.gain.setValueAtTime(0.01,t0);
-    g.gain.exponentialRampToValueAtTime(0.34,end-0.15);g.gain.exponentialRampToValueAtTime(0.001,tail);
-    const srcs=[];
     if(x.t==="o"){
-      const k=x.o.k;
-      if(k==="car"||k==="truck"){
-        const f0=k==="car"?95:52,o1=a.createOscillator(),o2=a.createOscillator(),lp=a.createBiquadFilter();
-        o1.type="sawtooth";o2.type=k==="car"?"square":"sawtooth";
-        o1.frequency.setValueAtTime(f0*0.92,t0);o1.frequency.linearRampToValueAtTime(f0*1.12,end);o1.frequency.exponentialRampToValueAtTime(f0*0.78,tail);
-        o2.frequency.setValueAtTime(f0*1.5*0.92,t0);o2.frequency.linearRampToValueAtTime(f0*1.5*1.12,end);o2.frequency.exponentialRampToValueAtTime(f0*1.5*0.78,tail);
-        lp.type="lowpass";lp.frequency.value=k==="car"?900:520;
-        o1.connect(lp);o2.connect(lp);lp.connect(g);srcs.push(o1,o2);
-        if(k==="truck"){tone(250,0.7,p,0.1,"sawtooth");setTimeout(()=>tone(315,0.9,p,0.1,"sawtooth"),Math.max(0,(reach-1.6)*1000))}
-      }else if(k==="person"){
-        const s=a.createBufferSource(),bp=a.createBiquadFilter(),gate=a.createGain(),lfo=a.createOscillator(),lg=a.createGain();
-        s.buffer=noiseBuf();s.loop=true;bp.type="bandpass";bp.frequency.value=1500;bp.Q.value=1.6;
-        gate.gain.value=0.2;lfo.type="square";lfo.frequency.value=2.4;lg.gain.value=0.2;lfo.connect(lg);lg.connect(gate.gain);
-        s.connect(bp);bp.connect(gate);gate.connect(g);srcs.push(s,lfo);
-        const o=a.createOscillator(),og=a.createGain();o.type="triangle";o.frequency.setValueAtTime(420,t0);og.gain.value=0.05;o.connect(og);og.connect(g);srcs.push(o);
-      }else{
-        const o=a.createOscillator(),lfo=a.createOscillator(),lg=a.createGain(),gate=a.createGain();
-        o.type="sine";o.frequency.value=62;gate.gain.value=0.5;lfo.type="sawtooth";lfo.frequency.value=1.7;lg.gain.value=0.5;
-        lfo.connect(lg);lg.connect(gate.gain);o.connect(gate);gate.connect(g);srcs.push(o,lfo);
+      const O=x.o,b=BUF[O.loop];
+      if(b){
+        const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),r=O.rate[0]+Math.random()*(O.rate[1]-O.rate[0]);
+        s.buffer=b;s.loop=true;
+        const veh=O.k!=="person"&&O.k!=="pit";
+        s.playbackRate.setValueAtTime(r*(veh?0.94:1),t0);
+        if(veh){s.playbackRate.linearRampToValueAtTime(r*1.08,end);s.playbackRate.exponentialRampToValueAtTime(r*0.8,tail)}
+        f.type="lowpass";f.frequency.setValueAtTime(500,t0);f.frequency.exponentialRampToValueAtTime(7000,end);f.frequency.exponentialRampToValueAtTime(1200,tail);
+        g.gain.setValueAtTime(0.02,t0);g.gain.exponentialRampToValueAtTime(veh?0.6:0.5,end-0.1);g.gain.exponentialRampToValueAtTime(0.001,tail);
+        const pn=pan(a,p),o=out();s.connect(f);f.connect(g);
+        if(pn){pn.pan.setValueAtTime(p,t0);pn.pan.linearRampToValueAtTime(p*0.5,end);pn.pan.linearRampToValueAtTime(Math.max(-1,Math.min(1,p*1.3)),tail);g.connect(pn);pn.connect(o)}else g.connect(o);
+        s.start(t0);s.stop(tail+0.1);
+      }else tone(200,0.4,p,0.15,"triangle");
+      if(O.horn.length&&Math.random()<0.85){
+        const h=O.horn[Math.floor(Math.random()*O.horn.length)];
+        play(h,p*0.7,0.55,1,Math.max(0.4,reach-2.4+Math.random()*0.8));
       }
     }else{
-      const o=a.createOscillator(),gate=a.createGain(),lfo=a.createOscillator(),lg=a.createGain();
-      o.type="sine";o.frequency.value=x.t==="c"?1320:760;gate.gain.value=0.5;lfo.type="square";lfo.frequency.value=x.t==="c"?7:3;lg.gain.value=0.5;
-      lfo.connect(lg);lg.connect(gate.gain);o.connect(gate);gate.connect(g);srcs.push(o,lfo);
+      play(x.t==="c"?"coin":"shget",p,0.35,1,Math.max(0,reach-1.2));
+      tone(x.t==="c"?1320:760,0.12,p,0.06);
     }
-    const o=out(),pn=pan(a,p);
-    if(pn){pn.pan.setValueAtTime(p,t0);pn.pan.linearRampToValueAtTime(p*0.55,end);pn.pan.linearRampToValueAtTime(p*1.2>1?1:p*1.2,tail);g.connect(pn);pn.connect(o)}else g.connect(o);
-    srcs.forEach(s=>{try{s.start(t0);s.stop(tail+0.1)}catch(e){}});
   }catch(e){}
 }
-/* ধাক্কার শব্দ: আঘাত, ধাতব ঝনঝন, কাচ ভাঙা, টায়ারের চিৎকার, বাষ্পের হিস */
-function crashSound(){
-  noise(0.35,0,0.5,"lowpass",900,120,0.7);
-  tone(70,0.8,0,0.5,"sine",0.35);
-  tone(46,1.0,0,0.4,"sine",0.5);
-  [[523,0.9],[871,0.8],[1320,0.6],[1990,0.5]].forEach((f,i)=>setTimeout(()=>tone(f[0],f[1],(i%3-1)*0.5,0.12,"square"),40+i*35));
-  for(let i=0;i<9;i++)setTimeout(()=>tone(3800+Math.random()*3500,0.12,Math.random()*2-1,0.05,"sine"),150+i*70+Math.random()*60);
-  tone(950,0.6,0,0.1,"sawtooth",0.45);
-  setTimeout(()=>noise(1.6,0,0.07,"highpass",3500,2500,0.5),600);
-  buzz(300);
-}
-/* সফল পারের শব্দ: হুস করে পাশ দিয়ে যাওয়া আর মিষ্টি টুং */
-function passSound(lane){
-  const d=lane===0?-1:lane===2?1:0;
-  noise(0.55,d*0.8,0.18,"bandpass",500,2600,1.2);
-  setTimeout(()=>{tone(784,0.18,0,0.07,"sine");setTimeout(()=>tone(1175,0.28,0,0.07,"sine"),90)},120);
-}
-function coinSound(lane){[1046,1318,1568,2093].forEach((f,i)=>setTimeout(()=>tone(f,0.16,(lane-1)*0.6,0.09,"sine"),i*60))}
-function shieldSound(){tone(500,0.7,0,0.12,"triangle",2.4);setTimeout(()=>tone(1000,0.5,0,0.08,"sine"),150)}
-function shieldBreak(){noise(0.4,0,0.3,"bandpass",2500,400,1);tone(300,0.4,0,0.15,"triangle",0.4);buzz(80)}
-function mileSound(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,0.3,0,0.09,"triangle"),i*110))}
-function fanfare(){[523,659,784,1046,784,1046,1318].forEach((f,i)=>setTimeout(()=>tone(f,0.35,0,0.1,"triangle"),i*150))}
-function hornSound(k){
-  const f=[[300,0.4,"square"],[420,0.7,"triangle"],[140,1.0,"sawtooth"]][k];
-  if(k===3){tone(700,0.4,0,0.14,"sawtooth",1.5);setTimeout(()=>tone(1050,0.4,0,0.14,"sawtooth",0.7),420);setTimeout(()=>tone(700,0.4,0,0.14,"sawtooth",1.5),840)}
-  else if(f){tone(f[0],f[1],0,0.15,f[2]);setTimeout(()=>tone(f[0]*1.26,f[1],0,0.1,f[2]),30)}
-}
+function crashSound(){if(BUF.crash)play("crash",0,0.95);else tone(90,0.9,0,0.3,"sawtooth",0.4);buzz(300);if(BUF.hiss)play("hiss",0,0.4,1,1.0)}
+function passSound(lane){if(BUF.pass)play("pass",(lane-1)*0.6,0.7);else tone(880,0.1,0,0.08)}
+function coinSound(lane){if(BUF.coin)play("coin",(lane-1)*0.6,0.7);else tone(1500,0.2,0,0.1)}
+function shieldSound(){play("shget",0,0.7)}
+function shieldBreak(){play("shbreak",0,0.8);buzz(80)}
+function mileSound(){if(BUF.mile)play("mile",0,0.6);else tone(800,0.3,0,0.1)}
+function fanfare(){if(BUF.fanfare)play("fanfare",0,0.8);else tone(1000,0.4,0,0.1)}
+function hornSound(k){const s=play("h"+String(k+1).padStart(2,"0"),0,0.9);if(!s)tone(300,0.4,0,0.14,"square")}
 
 /* ---------- অ্যাড ---------- */
 async function watchAd(){
@@ -269,6 +248,7 @@ async function open(){
   stack=[menu];
   ac();
   await ensureTts();
+  await loadAudio();
   const today=new Date().toISOString().slice(0,10);
   let extra="";
   if(S.day!==today){S.day=today;save();addCoins(DAILY);extra="আজকের প্রথম বোনাস "+B(DAILY)+" কয়েন পেয়েছো।"}
@@ -296,7 +276,7 @@ function rank(){const b=S.best;return b<10?"নতুন চালক":b<30?"দ
 function menu(extra){
   const c=CARS[S.car];
   screen("অডিও কার রেস",(extra?extra+" ":"")+(S.broken?"তোমার গাড়ি ভাঙা, আগে মেরামত করতে হবে। ":"")+"কয়েন "+B(coins())+"। গাড়ি: "+c.n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(S.lv[S.car]||0)+"। র‍্যাংক: "+rank()+"। সেরা স্কোর "+B(S.best)+"। "+offerLine(),[
-    btn(S.broken?"গাড়ি মেরামত করে দৌড় শুরু করো":"দৌড় শুরু করো",()=>{ if(S.broken)nav(()=>repairPage("start")); else nav(runStart) }),
+    btn(S.broken?"গাড়ি মেরামত করে দৌড় শুরু করো":"দৌড় শুরু করো",()=>{ if(S.broken)nav(()=>repairPage("start")); else nav(tripPage) }),
     btn("গাড়ির শোরুম: কেনো, অফার দেখো",()=>nav(showroom)),
     btn("আমার গাড়ি সাজাও: রং, হর্ন, স্পিড",()=>nav(customize)),
     btn("অ্যাড দেখে "+B(AD_COINS)+" কয়েন নাও",async()=>{await adCoins();redo()}),
@@ -305,7 +285,7 @@ function menu(extra){
   ]);
 }
 function how(){
-  screen("কীভাবে খেলতে হয়","ফোন সোজা করে ধরো, পর্দা তোমার দিকে। তিনটা লেন: বাঁয়ে, মাঝে, ডানে। কণ্ঠ বলবে কোন লেনে কী আছে, আর তুমি কোন লেনে আছো সেটা ধরে সাবধান করবে। যে লেনে যেতে চাও, ফোনটা সেদিকে কাত করো। বাঁয়ে কাত করলে বাঁয়ে, সোজা করলে মাঝে, ডানে কাত করলে ডানে। কাত করা কঠিন হলে বোতামেও যেতে পারবে। বাধার লেনে থাকলে ধাক্কা লাগবে। ঢাল থাকলে একবার বেঁচে যাবে। ফোন ঝাঁকালে হর্ন বাজবে। হর্ন শুনলে সামনের মানুষ পাশে সরে যায়। লক্ষ্য "+B(GOAL_KM)+" কিলোমিটার। আধা কিলোমিটার পরপর কণ্ঠ জানাবে। গাড়ি ভাঙলে মেরামত না করে আবার খেলা যাবে না। কয়েন জমিয়ে শোরুম থেকে নতুন গাড়ি কিনতে পারবে। রং আর হর্ন দিয়ে গাড়ি সাজাতে পারবে।",[]);
+  screen("কীভাবে খেলতে হয়","ফোন সোজা করে ধরো, পর্দা তোমার দিকে। তিনটা লেন: বাঁয়ে, মাঝে, ডানে। কণ্ঠ বলবে কোন লেনে কী আছে, আর তুমি কোন লেনে আছো সেটা ধরে সাবধান করবে। যে লেনে যেতে চাও, ফোনটা সেদিকে কাত করো। বাঁয়ে কাত করলে বাঁয়ে, সোজা করলে মাঝে, ডানে কাত করলে ডানে। কাত করা কঠিন হলে বোতামেও যেতে পারবে। বাধার লেনে থাকলে ধাক্কা লাগবে। ঢাল থাকলে একবার বেঁচে যাবে। ফোন ঝাঁকালে হর্ন বাজবে। হর্ন শুনলে সামনের মানুষ পাশে সরে যায়। ট্রিপ তিন, ছয় বা দশ কিলোমিটারের। পথের ধরন বদলায়: শহর, হাইওয়ে, গ্রামের পথ। কিছুদূর পরপর কণ্ঠ জানাবে কত পার হলো। গাড়ি ভাঙলে মেরামত না করে আবার খেলা যাবে না। কয়েন জমিয়ে শোরুম থেকে নতুন গাড়ি কিনতে পারবে। রং আর হর্ন দিয়ে গাড়ি সাজাতে পারবে।",[]);
 }
 
 /* ---------- কণ্ঠ বাছাই ---------- */
@@ -410,30 +390,38 @@ function customize(){
       redo();
     }));
   }else bs.push(btn("স্পিড সর্বোচ্চ ধাপে",()=>say("স্পিড সর্বোচ্চ ধাপে আছে")));
-  COLORS.forEach((n,k)=>{
-    const has=S.cols.includes(k),cur=(S.col[S.car]||0)===k;
-    bs.push(btn("রং "+n+(cur?", এখন বাছা":has?", ব্যবহার করো":", তালা, "+B(UNLOCK)+" কয়েন বা অ্যাড"),()=>{
-      if(has){S.col[S.car]=k;save();say("রং "+n);redo()}else nav(()=>unlock("c",k));
-    }));
-  });
-  HORNS.forEach((n,k)=>{
-    const has=S.hornOwn.includes(k),cur=S.horn===k;
-    bs.push(btn(n+(cur?", এখন বাছা":has?", ব্যবহার করো":", তালা, "+B(UNLOCK)+" কয়েন বা অ্যাড"),()=>{
-      hornSound(k);
-      if(has){S.horn=k;save();redo()}else nav(()=>unlock("h",k));
-    }));
-  });
+  bs.push(btn("গাড়ির রং বাছো (এখন: "+COLORS[S.col[S.car]||0]+")",()=>nav(colorPage)));
+  bs.push(btn("হর্ন বাছো (এখন: "+HORNS[S.horn]+")",()=>nav(hornPage)));
   screen("গাড়ি সাজাও",CARS[S.car].n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(lv)+", হর্ন "+HORNS[S.horn]+"। তোমার কয়েন "+B(coins())+"।",bs);
 }
+function colorPage(){
+  const bs=COLORS.map((n,k)=>{
+    const has=S.cols.includes(k),cur=(S.col[S.car]||0)===k;
+    return btn("রং "+n+(cur?", এখন বাছা":has?", ব্যবহার করো":", তালা, "+B(UNLOCK)+" কয়েন বা অ্যাড"),()=>{
+      if(has){S.col[S.car]=k;save();say("রং "+n);redo()}else nav(()=>unlock("c",k));
+    });
+  });
+  screen("গাড়ির রং","তোমার কয়েন "+B(coins())+"।",bs);
+}
+function hornPage(){
+  const bs=HORNS.map((n,k)=>{
+    const has=S.hornOwn.includes(k),cur=S.horn===k;
+    return btn(n+(cur?", এখন বাছা":has?", ব্যবহার করো":", তালা, "+B(HORN_COST[k])+" কয়েন বা অ্যাড"),()=>{
+      hornSound(k);
+      if(has){S.horn=k;save();redo()}else nav(()=>unlock("h",k));
+    });
+  });
+  screen("হর্ন বাছাই","একটা বোতামে ডাবল ট্যাপ করলে হর্নের শব্দ শুনবে। বাছতে আবার ডাবল ট্যাপ করো। তোমার কয়েন "+B(coins())+"।",bs);
+}
 function unlock(kind,k){
-  const nm=kind==="c"?"রং "+COLORS[k]:HORNS[k];
+  const nm=kind==="c"?"রং "+COLORS[k]:HORNS[k],cost=kind==="c"?UNLOCK:HORN_COST[k];
   const done=()=>{if(kind==="c"){S.cols.push(k);S.col[S.car]=k}else{S.hornOwn.push(k);S.horn=k}save();say(nm+" আনলক হলো, বাছা হলো।");goBack()};
   screen(nm+" আনলক","দুটো উপায় আছে। কয়েন খরচ করতে পারো, বা একটা অ্যাড দেখলে বিনা কয়েনে পাবে। তোমার কয়েন "+B(coins())+"।",[
     btn("অ্যাড দেখে বিনা কয়েনে নাও",async()=>{
       await say("অ্যাড আসছে।");
       if(await watchAd())done();else await say("এখন অ্যাড পাওয়া যাচ্ছে না।");
     }),
-    btn(B(UNLOCK)+" কয়েন দিয়ে নাও",()=>{if(coins()>=UNLOCK){addCoins(-UNLOCK);done()}else say("কয়েন কম।")})
+    btn(B(cost)+" কয়েন দিয়ে নাও",()=>{if(coins()>=cost){addCoins(-cost);done()}else say("কয়েন কম।")})
   ]);
 }
 
@@ -462,7 +450,7 @@ function repairPage(mode){
   msg+="তোমার কয়েন "+B(coins())+"। একটা পরামর্শ: অ্যাড দেখে ঠিক করলে কয়েন বেঁচে যায়, গাড়ি কেনার লক্ষ্যের আরও কাছে থাকবে। ";
   if(o)msg+=o.ok?"তোমার জন্য অফার অপেক্ষা করছে: "+CARS[o.i].n+", দাম "+B(price(o.i))+" কয়েন। ":"পরের লক্ষ্য "+CARS[o.i].n+", আরও "+B(price(o.i)-coins())+" কয়েন লাগবে। ";
   msg+="কোনটা করবে, বেছে নাও।";
-  const fixed=()=>{S.broken=false;save();if(mode==="resume"&&R)resume();else setTop(runStart)};
+  const fixed=()=>{S.broken=false;save();if(mode==="resume"&&R)resume();else setTop(tripPage)};
   const bs=[
     btn("অ্যাড দেখে বিনা কয়েনে গাড়ি ঠিক করো (সেরা উপায়)",async()=>{
       await say("অ্যাড আসছে।");
@@ -486,26 +474,38 @@ function repairPage(mode){
 /* ---------- দৌড় ---------- */
 let R=null,timer=null;
 function stopRun(){if(timer){clearInterval(timer);timer=null}R=null;sensorsOff();engineStop();newBus()}
-const MILE_BN=["শূন্য","আধা","এক","দেড়","দুই","আড়াই","তিন"];
-const MILE_EN=["zero","half a","one","one and a half","two","two and a half","three"];
-const mileBn=k=>MILE_BN[k]||B(k/2),mileEn=k=>MILE_EN[k]||String(k/2);
-async function runStart(){
+const kmBn=x=>x===0.5?"আধা":x===1.5?"দেড়":x===2.5?"আড়াই":Number.isInteger(x)?B(x):"সাড়ে "+B(Math.floor(x));
+const kmEn=x=>String(x);
+let tripBoost=false;
+function tripPage(){
+  const bs=TRIPS.map(t=>btn((isEn()?t.en:t.n),()=>setTop(()=>runStart(t))));
+  bs.unshift(btn(tripBoost?"বুস্ট চালু আছে: ঢাল আর দ্বিগুণ কয়েন":"অ্যাড দেখে বুস্ট নাও: ঢাল আর দ্বিগুণ কয়েন",async()=>{
+    if(tripBoost){say("বুস্ট আগে থেকেই চালু আছে");return}
+    await say("অ্যাড আসছে।");
+    if(await watchAd()){tripBoost=true;await say("বুস্ট চালু। এই ট্রিপে ঢাল নিয়ে শুরু করবে আর কয়েন দ্বিগুণ পাবে।");redo()}
+    else await say("এখন অ্যাড পাওয়া যাচ্ছে না।");
+  }));
+  screen("ট্রিপ বেছে নাও","পথ যত লম্বা, বোনাস তত বেশি। পথ বদলাবে: শহর, হাইওয়ে, গ্রামের পথ। "+offerLine(),bs);
+}
+async function runStart(trip){
   stopRun();newBus();
   S.runs++;save();
+  trip=trip||TRIPS[0];
   const sp=speedOf(S.car),car=CARS[S.car];
-  R={t:0,dist:0,mile:1,lane:1,wave:null,next:2,passed:0,earn:0,sp,paused:true,streak:0,shield:!!car.sh,ev:[],
-     reach:5,gap:8,lvl:0,tilt:false,honkAt:-99,coinPass:0};
+  R={t:0,dist:0,km:trip.km,mile:1,step:trip.km<=3?0.5:1,lane:1,wave:null,next:2.5,passed:0,earn:0,sp,paused:true,streak:0,shield:!!car.sh||tripBoost,cmul:tripBoost?2:1,ev:[],
+     reach:5,gap:8,lvl:0,tilt:false,honkAt:-99,stage:-1};
+  tripBoost=false;
   screen("প্রস্তুত হও","ফোনটা সোজা করে ধরো। এখন মাঝের লেন ঠিক করছি।",[]);
   gCal=[];sensorsOn();
   const me=R;
-  sayG(isEn()?"Hold the phone straight. Your goal is two kilometers.":"ফোন সোজা করে ধরো। আজকের লক্ষ্য দুই কিলোমিটার।");
+  sayG(isEn()?"Hold the phone straight. Your trip is "+kmEn(trip.km)+" kilometers.":"ফোন সোজা করে ধরো। আজকের পথ "+B(trip.km)+" কিলোমিটার।");
   await sleep(3200);if(R!==me)return;
   if(gSeen&&gCal.length>3){gCenter=gCal.reduce((a,b)=>a+b,0)/gCal.length;R.tilt=true}
   gCal=null;
   tone(500,0.15,0,0.12);await sleep(500);if(R!==me)return;
   tone(600,0.15,0,0.12);await sleep(500);if(R!==me)return;
   tone(900,0.5,0,0.14);
-  engineStart(car.hz);
+  engineStart();
   R.paused=false;
   setTop(drawRun);
   sayG(R.tilt?(isEn()?"Go! Tilt your phone left or right.":"চলো! ফোন বাঁয়ে বা ডানে কাত করো।"):(isEn()?"Go! No sensor found, use the buttons.":"চলো! সেন্সর পাইনি, বোতাম ব্যবহার করো।"));
@@ -529,7 +529,7 @@ function honk(){
   R.honkAt=R.t;
   let moved=false;
   R.wave.items.forEach((x,i)=>{if(x&&x.t==="o"&&x.o.k==="person"){R.wave.items[i]=null;moved=true}});
-  if(moved){setTimeout(()=>{noise(0.5,0,0.12,"bandpass",1200,600,1);sayG(isEn()?"The person stepped aside.":"মানুষটা সরে গেছে।")},700)}
+  if(moved){setTimeout(()=>{play("whoosh",0,0.3);sayG(isEn()?"The person stepped aside.":"মানুষটা সরে গেছে।")},700)}
 }
 document.addEventListener("dblclick",e=>{ if(R&&!R.paused&&!e.target.closest("button"))honk() });
 
@@ -556,26 +556,28 @@ function phrase(items,cur){
 function tick(){
   if(!R||R.paused)return;
   R.t+=0.1;
-  const lvl=Math.min(3,Math.floor(R.dist/0.5));
-  const v=GOAL_KM/150*Math.pow(R.sp,0.8)*(1+0.08*lvl);   // কিলোমিটার প্রতি সেকেন্ড
+  const lvl=Math.min(5,Math.floor(R.dist/(R.km/6)));
+  const v=KMS*Math.pow(R.sp,0.8)*(1+0.06*lvl);   // কিলোমিটার প্রতি সেকেন্ড
   R.dist+=v*0.1;
   if(lvl>R.lvl){R.lvl=lvl;gearUp()}
-  engineSet(1+R.lvl*0.2+0.1*Math.sin(R.t*3),Math.min(1,R.sp*0.3+R.lvl*0.25));
+  engineSet(0.8+R.lvl*0.14+R.sp*0.05+0.04*Math.sin(R.t*3),Math.min(1,R.sp*0.25+R.lvl*0.15));
   /* কাত থেকে লেন */
   if(R.tilt&&G!=null){
     const d=G-gCenter;
     if(d<-TILT)go(0);else if(d>TILT)go(2);else if(Math.abs(d)<TILT*0.6)go(1);
   }
-  R.reach=Math.max(4.8,5.4-0.25*R.sp-0.15*R.lvl);
+  R.reach=Math.max(4.6,5.4-0.25*R.sp-0.1*R.lvl);
   R.gap=R.reach+Math.max(2.4,3.4-0.25*R.sp);
+  /* পথের ধরন বদল */
+  const st=Math.floor(R.dist/2)%3;
+  if(st!==R.stage&&!R.wave){R.stage=st;sayG(isEn()?STAGES[st].sayEn:STAGES[st].say);R.next=Math.max(R.next,R.t+5.5)}
   /* মাইলফলক */
-  if(R.dist>=GOAL_KM){finish();return}
-  if(!R.wave&&R.dist>=R.mile*0.5){
-    const k=R.mile;R.mile++;
+  if(R.dist>=R.km){finish();return}
+  if(!R.wave&&R.dist>=R.mile*R.step&&R.dist<R.km-0.2){
+    const d=R.mile*R.step;R.mile++;
     mileSound();
-    const left=GOAL_KM*2-k;
-    const t=isEn()?(k+" half-kilometers done. "+(R.lvl>0?"Speed is rising.":"")):("পার হলো "+mileBn(k)+" কিলোমিটার। বাকি "+mileBn(left)+" কিলোমিটার। "+(R.lvl>0&&k<GOAL_KM*2?"গতি বাড়ছে।":""));
-    sayG(isEn()?"Passed "+MILE_EN[k]+" kilometer"+(k===2?"":"s")+". "+MILE_EN[left]+" to go.":t);
+    const left=Math.round((R.km-d)*2)/2;
+    sayG(isEn()?"Passed "+kmEn(d)+" kilometers. "+kmEn(left)+" to go.":"পার হলো "+kmBn(d)+" কিলোমিটার। বাকি "+kmBn(left)+" কিলোমিটার।");
     R.next=Math.max(R.next,R.t+4.2);
   }
   /* নতুন ঢেউ */
@@ -583,7 +585,7 @@ function tick(){
     const n=Math.random()<0.4+0.1*R.lvl?2:1;
     const items=[null,null,null];
     const order=[0,1,2].sort(()=>Math.random()-.5);
-    for(let k=0;k<n;k++)items[order[k]]={t:"o",o:pick(OBS)};
+    for(let k=0;k<n;k++)items[order[k]]={t:"o",o:OBS[pick(STAGES[Math.max(0,R.stage)].pool)]};
     if(Math.random()<0.55&&order[n]!==undefined)items[order[n]]={t:Math.random()<0.15?"s":"c"};
     R.wave={items,hit:R.t+R.reach};
     sayG(phrase(items,R.lane));
@@ -598,7 +600,7 @@ function tick(){
       crash();return;
     }
     R.passed++;R.streak++;
-    let c=Math.round(8*R.sp*(1+R.lvl*0.25)*CARS[S.car].cm);
+    let c=Math.round(8*R.sp*(1+R.lvl*0.2)*CARS[S.car].cm*R.cmul);
     let sp="";
     if(x&&x.t==="c"){c+=30;coinSound(R.lane)}
     else if(x&&x.t==="s"){R.shield=true;shieldSound();sp=isEn()?"Shield collected.":"ঢাল পেয়েছেন।"}
@@ -616,24 +618,24 @@ function crash(){
 function resume(){
   if(!R)return;
   R.paused=false;R.wave=null;R.ev=[];R.next=R.t+2.5;R.lane=1;R.streak=0;
-  engineStart(CARS[S.car].hz);
+  engineStart();
   setTop(drawRun);sayG(isEn()?"The car is fixed. Keep going.":"গাড়ি ঠিক হয়েছে। চালিয়ে যান।");
 }
 function finish(){
-  const car=CARS[S.car];
-  const bonus=Math.round(60*R.sp*car.cm);addCoins(bonus);
+  const car=CARS[S.car],km=R.km;
+  const bonus=Math.round(30*R.sp*car.cm*R.km*R.cmul);addCoins(bonus);
   S.best=Math.max(S.best,R.passed);S.total+=R.earn+bonus;save();
   const earn=R.earn+bonus,p=R.passed,secs=Math.round(R.t),m=Math.floor(secs/60),s2=secs%60;
   stopRun();fanfare();buzz(200);
   const tm=(m?B(m)+" মিনিট ":"")+B(s2)+" সেকেন্ড";
-  const msg="অভিনন্দন! "+B(GOAL_KM)+" কিলোমিটারের লক্ষ্য পূরণ। সময় লেগেছে "+tm+"। "+B(p)+"বার নিরাপদে পার হয়েছো। বোনাস "+B(bonus)+" কয়েন। মোট "+B(earn)+" কয়েন পেয়েছো। এখন কয়েন "+B(coins())+"। র‍্যাংক: "+rank()+"। "+offerLine();
+  const msg="অভিনন্দন! "+B(km)+" কিলোমিটারের লক্ষ্য পূরণ। সময় লেগেছে "+tm+"। "+B(p)+"বার নিরাপদে পার হয়েছো। বোনাস "+B(bonus)+" কয়েন। মোট "+B(earn)+" কয়েন পেয়েছো। এখন কয়েন "+B(coins())+"। র‍্যাংক: "+rank()+"। "+offerLine();
   setTop(()=>screen("লক্ষ্য পূরণ",msg,[
     btn("অ্যাড দেখে এই দৌড়ের কয়েন দ্বিগুণ করো (+"+B(earn)+")",async()=>{
       await say("অ্যাড আসছে।");
       if(await watchAd()){addCoins(earn);await say("কয়েন দ্বিগুণ হলো। এখন কয়েন "+B(coins()))}else await say("এখন অ্যাড পাওয়া যাচ্ছে না।");
       redo();
     }),
-    btn("আবার চালাও",()=>setTop(runStart)),
+    btn("আবার চালাও",()=>setTop(tripPage)),
     btn("গাড়ির শোরুম দেখো",()=>nav(showroom))
   ]));
   sayG(isEn()?"Goal reached. Congratulations!":"লক্ষ্য পূরণ। অভিনন্দন! সময় লেগেছে "+tm+"। মোট "+B(earn)+" কয়েন পেয়েছেন।");
