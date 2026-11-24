@@ -28,11 +28,11 @@ const COLORS=["সবুজ","লাল","নীল","হলুদ","বেগ�
 const HORNS=["গাড়ির সাধারণ হর্ন","গাড়ির উঁচু হর্ন","গাড়ির গম্ভীর হর্ন","বাসের হর্ন","ট্রাকের এয়ার হর্ন","পুলিশের সাইরেন, লম্বা","পুলিশের সাইরেন, দ্রুত","পুলিশের দুই সুরের সাইরেন","অ্যাম্বুলেন্সের সাইরেন","ফায়ার ট্রাকের সাইরেন","মোটরসাইকেলের হর্ন","অটোরিকশার হর্ন","স্পোর্টস গাড়ির হর্ন","ট্যাক্সির হর্ন","ইলেকট্রিক হর্ন","ট্রেনের হর্ন","জাহাজের হর্ন","দুইবার বিপ","তিনবার বিপ","শহরের হর্ন"];
 const HORN_COST=[0,150,150,200,250,300,300,300,300,300,150,150,200,150,150,400,400,150,150,150];
 const OBS={
-  car:{k:"car",bn:"গাড়ি",en:"a car",loop:"e1",horn:["h01","h02","h14"],rate:[0.92,1.08]},
-  rick:{k:"rick",bn:"রিকশা",en:"a rickshaw",loop:"e_rick",horn:["h12"],rate:[0.95,1.05]},
-  bike:{k:"bike",bn:"মোটরসাইকেল",en:"a motorbike",loop:"e_bike",horn:["h11"],rate:[0.95,1.1]},
-  bus:{k:"bus",bn:"বাস",en:"a bus",loop:"e3",horn:["h04"],rate:[0.85,0.95]},
-  truck:{k:"truck",bn:"ট্রাক",en:"a truck",loop:"e_truck",horn:["h05"],rate:[0.9,1.0]},
+  car:{k:"car",bn:"গাড়ি",en:"a car",loop:"e1",horn:["h01","h02","h14","h13","h15","h20","h18"],rate:[0.92,1.08]},
+  rick:{k:"rick",bn:"রিকশা",en:"a rickshaw",loop:"e_rick",horn:["h12","h19","h18"],rate:[0.95,1.05]},
+  bike:{k:"bike",bn:"মোটরসাইকেল",en:"a motorbike",loop:"e_bike",horn:["h11","h19","h18"],rate:[0.95,1.1]},
+  bus:{k:"bus",bn:"বাস",en:"a bus",loop:"e3",horn:["h04","h03"],rate:[0.85,0.95]},
+  truck:{k:"truck",bn:"ট্রাক",en:"a truck",loop:"e_truck",horn:["h05","h03"],rate:[0.9,1.0]},
   person:{k:"person",bn:"মানুষ",en:"a person",loop:"steps",horn:[],rate:[0.95,1.05]},
   pit:{k:"pit",bn:"গর্ত",en:"a pothole",loop:"pit",horn:[],rate:[1,1]}
 };
@@ -81,6 +81,8 @@ function hush(){try{if(hasNT()&&NT.on)ntCall("ttsStop",null)}catch(e){}try{speec
 let AC=null,bus=null,NB=null;
 const BUF={};
 let loaded=false;
+const NEED=["h01","h02","h03","h04","h05","h06","h07","h08","h09","h10","h11","h12","h13","h14","h15","h16","h17","h18","h19","h20","e0","e1","e2","e3","e4","e5","e6","e_rick","e_bike","e_truck","steps","pit","wind","road","crash","shbreak","coin","shget","pass","whoosh","mile","fanfare","gear","hiss"];
+const missing=()=>NEED.filter(k=>!BUF[k]);
 function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
 function out(){
   const a=ac();if(!a)return null;
@@ -134,7 +136,7 @@ function tone(freq,dur,p,vol,type,slide){
 const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 
 /* ---- ইঞ্জিন: গাড়ি অনুযায়ী আলাদা নমুনা, গতি বাড়লে পিচ বাড়ে; সঙ্গে বাতাস ও রাস্তার শব্দ ---- */
-let eng=null;
+let eng=null,lastObsHorn="";
 function engineStart(){
   const a=ac();if(!a||eng||!BUF[CARS[S.car].eng])return;
   try{
@@ -176,8 +178,10 @@ function approach(x,lane,reach){
         s.start(t0);s.stop(tail+0.1);
       }else tone(200,0.4,p,0.15,"triangle");
       if(O.horn.length&&Math.random()<0.85){
-        const h=O.horn[Math.floor(Math.random()*O.horn.length)];
-        play(h,p*0.7,0.55,1,Math.max(0.4,reach-2.4+Math.random()*0.8));
+        let h=O.horn[Math.floor(Math.random()*O.horn.length)];
+        if(O.horn.length>1&&h===lastObsHorn)h=O.horn[(O.horn.indexOf(h)+1)%O.horn.length];
+        lastObsHorn=h;
+        play(h,p*0.7,0.55,0.93+Math.random()*0.14,Math.max(0.4,reach-2.4+Math.random()*0.8));
       }
     }else{
       play(x.t==="c"?"coin":"shget",p,0.35,1,Math.max(0,reach-1.2));
@@ -192,12 +196,23 @@ function shieldSound(){play("shget",0,0.7)}
 function shieldBreak(){play("shbreak",0,0.8);buzz(80)}
 function mileSound(){if(BUF.mile)play("mile",0,0.6);else tone(800,0.3,0,0.1)}
 function fanfare(){if(BUF.fanfare)play("fanfare",0,0.8);else tone(1000,0.4,0,0.1)}
-function hornSound(k){const s=play("h"+String(k+1).padStart(2,"0"),0,0.9);if(!s)tone(300,0.4,0,0.14,"square")}
+function hornFor(){
+  if(S.horn>=0)return S.horn;
+  const own=S.hornOwn.filter(k=>k!==lastPlayerHorn);
+  const k=own.length?own[Math.floor(Math.random()*own.length)]:0;
+  lastPlayerHorn=k;return k;
+}
+let lastPlayerHorn=-1;
+function hornSound(k){const s=play("h"+String(k+1).padStart(2,"0"),0,0.9,0.97+Math.random()*0.06);if(!s)tone(300,0.4,0,0.14,"square")}
+const hornName=()=>S.horn<0?"প্রতিবার আলাদা হর্ন":HORNS[S.horn];
 
 /* ---------- অ্যাড ---------- */
 async function watchAd(){
-  try{if(window.__LOM_ADS&&window.__LOM_ADS.watch)return await window.__LOM_ADS.watch()}catch(e){}
-  await sleep(2500);return true;
+  /* সব অ্যাড বোতাম এই একটা পথে যায়: অ্যাড মডিউল অ্যাডমবে অনুরোধ পাঠায়, দেখায়, পরের অ্যাড তৈরি রাখে */
+  if(window.__LOM_ADS&&window.__LOM_ADS.watch){
+    try{return (await window.__LOM_ADS.watch())===true}catch(e){return false}
+  }
+  await sleep(2500);return true;     // শুধু ব্রাউজারের প্রিভিউয়ে, যেখানে অ্যাড মডিউলই নেই
 }
 async function adCoins(){
   await say("অ্যাড আসছে। একটু অপেক্ষা করো।");
@@ -249,6 +264,7 @@ async function open(){
   ac();
   await ensureTts();
   await loadAudio();
+  try{window.__LOM_ADS&&window.__LOM_ADS.preload&&window.__LOM_ADS.preload()}catch(e){}
   const today=new Date().toISOString().slice(0,10);
   let extra="";
   if(S.day!==today){S.day=today;save();addCoins(DAILY);extra="আজকের প্রথম বোনাস "+B(DAILY)+" কয়েন পেয়েছো।"}
@@ -275,7 +291,8 @@ function rank(){const b=S.best;return b<10?"নতুন চালক":b<30?"দ
 /* ---------- মেনু ---------- */
 function menu(extra){
   const c=CARS[S.car];
-  screen("অডিও কার রেস",(extra?extra+" ":"")+(S.broken?"তোমার গাড়ি ভাঙা, আগে মেরামত করতে হবে। ":"")+"কয়েন "+B(coins())+"। গাড়ি: "+c.n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(S.lv[S.car]||0)+"। র‍্যাংক: "+rank()+"। সেরা স্কোর "+B(S.best)+"। "+offerLine(),[
+  const miss=missing().length;
+  screen("অডিও কার রেস",(extra?extra+" ":"")+(miss?"সতর্কতা: শব্দের "+B(miss)+"টা নমুনা লোড হয়নি, তাই কিছু শব্দ সাধারণ বিপে বাজবে। শব্দের ফাইলগুলো সব ঠিকমতো বসানো হয়েছে কি না দেখুন। ":"")+(S.broken?"তোমার গাড়ি ভাঙা, আগে মেরামত করতে হবে। ":"")+"কয়েন "+B(coins())+"। গাড়ি: "+c.n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(S.lv[S.car]||0)+"। র‍্যাংক: "+rank()+"। সেরা স্কোর "+B(S.best)+"। "+offerLine(),[
     btn(S.broken?"গাড়ি মেরামত করে দৌড় শুরু করো":"দৌড় শুরু করো",()=>{ if(S.broken)nav(()=>repairPage("start")); else nav(tripPage) }),
     btn("গাড়ির শোরুম: কেনো, অফার দেখো",()=>nav(showroom)),
     btn("আমার গাড়ি সাজাও: রং, হর্ন, স্পিড",()=>nav(customize)),
@@ -391,8 +408,8 @@ function customize(){
     }));
   }else bs.push(btn("স্পিড সর্বোচ্চ ধাপে",()=>say("স্পিড সর্বোচ্চ ধাপে আছে")));
   bs.push(btn("গাড়ির রং বাছো (এখন: "+COLORS[S.col[S.car]||0]+")",()=>nav(colorPage)));
-  bs.push(btn("হর্ন বাছো (এখন: "+HORNS[S.horn]+")",()=>nav(hornPage)));
-  screen("গাড়ি সাজাও",CARS[S.car].n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(lv)+", হর্ন "+HORNS[S.horn]+"। তোমার কয়েন "+B(coins())+"।",bs);
+  bs.push(btn("হর্ন বাছো (এখন: "+hornName()+")",()=>nav(hornPage)));
+  screen("গাড়ি সাজাও",CARS[S.car].n+", রং "+COLORS[S.col[S.car]||0]+", স্পিড ধাপ "+B(lv)+", হর্ন "+hornName()+"। তোমার কয়েন "+B(coins())+"।",bs);
 }
 function colorPage(){
   const bs=COLORS.map((n,k)=>{
@@ -411,6 +428,7 @@ function hornPage(){
       if(has){S.horn=k;save();redo()}else nav(()=>unlock("h",k));
     });
   });
+  bs.unshift(btn("প্রতিবার আলাদা হর্ন"+(S.horn<0?", এখন বাছা":", তোমার আনলক করা হর্ন থেকে এলোমেলো"),()=>{S.horn=-1;save();say("এখন প্রতিবার আলাদা হর্ন বাজবে");redo()}));
   screen("হর্ন বাছাই","একটা বোতামে ডাবল ট্যাপ করলে হর্নের শব্দ শুনবে। বাছতে আবার ডাবল ট্যাপ করো। তোমার কয়েন "+B(coins())+"।",bs);
 }
 function unlock(kind,k){
@@ -445,6 +463,7 @@ function sensorsOff(){gOn=false;try{window.removeEventListener("deviceorientatio
 
 /* ---------- মেরামত ---------- */
 function repairPage(mode){
+  try{window.__LOM_ADS&&window.__LOM_ADS.preload&&window.__LOM_ADS.preload()}catch(e){}
   const o=offer();
   let msg=mode==="resume"?"গাড়ি ভেঙে গেছে। এই দৌড়ে "+B(R?R.passed:0)+"বার নিরাপদে পার হয়েছো। ":"তোমার গাড়ি ভাঙা, মেরামত না করে খেলা যাবে না। ";
   msg+="তোমার কয়েন "+B(coins())+"। একটা পরামর্শ: অ্যাড দেখে ঠিক করলে কয়েন বেঁচে যায়, গাড়ি কেনার লক্ষ্যের আরও কাছে থাকবে। ";
@@ -524,7 +543,7 @@ function go(l){
   R.lane=l;tone(440+l*110,0.1,l-1,0.1,"sine");buzz(15);
 }
 function honk(){
-  hornSound(S.horn);
+  hornSound(hornFor());
   if(!R||R.paused||!R.wave||R.t-R.honkAt<4)return;
   R.honkAt=R.t;
   let moved=false;
