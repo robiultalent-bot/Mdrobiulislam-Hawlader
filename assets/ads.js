@@ -31,13 +31,33 @@ badge.style.cssText="position:fixed;top:6px;right:8px;z-index:50;padding:4px 10p
 function paint(){badge.textContent="🪙 "+bn(coins);badge.setAttribute("aria-label","কয়েন "+bn(coins))}
 document.body.appendChild(badge);paint();
 
+/* --- অ্যাডের হিসাব: কোন অ্যাড চাওয়া হলো, কী ফল হলো, তা নিজের ফায়ারবেসে জমা হয়। দেখতে: ফায়ারবেস ঠিকানার শেষে /adlog.json --- */
+function logEv(ev,r){
+  try{
+    const st=JSON.parse(localStorage.getItem("lom_adstat")||"{}");
+    st[ev]=(st[ev]||0)+1;if(ev==="load"&&r!==true)st.lastErr=String(r);
+    localStorage.setItem("lom_adstat",JSON.stringify(st));
+  }catch(e){}
+  try{
+    const u=localStorage.getItem("lom_cloud_v1");if(!u)return;
+    fetch(u+"/adlog.json",{method:"POST",body:JSON.stringify({ev:ev,r:String(r),t:Date.now(),b:window.__BUILD||0,test:TEST?1:0}),keepalive:true}).catch(()=>0);
+  }catch(e){}
+}
+let lastTry=0;
 async function ready(){
   if(!native())return true;
   for(let i=0;i<3;i++){
-    try{if((await live(nat("adLoad",unit())))===true)return true}catch(e){}
+    let res=null;
+    try{res=await live(nat("adLoad",unit()))}catch(e){res="exc"}
+    logEv("load",res);
+    if(res===true)return true;
     await live(new Promise(r=>setTimeout(r,3000)));
   }
   return false;
+}
+function preload(){
+  if(!native()||Date.now()-lastTry<20000)return;lastTry=Date.now();
+  try{Promise.resolve(nat("adLoad",unit())).then(r=>{logEv("load",r)}).catch(()=>0)}catch(e){}
 }
 async function watch(){
   try{cancelVoice()}catch(e){}
@@ -45,8 +65,9 @@ async function watch(){
   if(!(await ready()))return false;
   let ok=false;
   try{ok=(await live(nat("adShow")))===true}catch(e){}
+  logEv("show",ok);
   try{AC&&AC.resume()}catch(e){}
-  try{nat("adLoad",unit()).catch(()=>0)}catch(e){} // পরের অ্যাড আগেই লোড
+  lastTry=0;preload(); // পরের অ্যাড আগেই লোড
   return ok;
 }
 async function gate(l){
@@ -65,7 +86,7 @@ async function gate(l){
 }
 const _rl=runLevel;
 runLevel=function(l){return gate(l).then(()=>_rl(l))};
-if(native())setTimeout(()=>{try{nat("adLoad",unit()).catch(()=>0)}catch(e){}},4000);
+if(native()){setTimeout(preload,3000);setInterval(preload,120000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)preload()})}
 
-window.__LOM_ADS={get coins(){return coins},setCoins(n){coins=n;save();paint()},gate,watch,cfg:{TEST,FREE,COST,PER_AD}};
+window.__LOM_ADS={get coins(){return coins},setCoins(n){coins=n;save();paint()},gate,watch,preload,cfg:{TEST,FREE,COST,PER_AD}};
 })();
