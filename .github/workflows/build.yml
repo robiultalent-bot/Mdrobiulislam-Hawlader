@@ -16,6 +16,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.24.5
+      - name: Mark build number
+        shell: bash
+        run: echo "window.__LOM_BUILD=${{ github.run_number }};" > assets/lombuild.js
       - name: Build
         shell: bash
         run: |
@@ -34,6 +37,12 @@ jobs:
           echo "----------- LAST LINES -----------"
           tail -60 build.log || true
           echo "=========== REAL ERROR END ==========="
+      - name: Notes
+        if: always()
+        shell: bash
+        run: |
+          { echo "build ${{ github.run_number }}"; grep -E "FALLBACK|enabled|patch failed|RETRY|skipped" build.log | head -40; echo "--- errors ---"; grep -E "^e: |error:|What went wrong" -A2 build.log | head -80; } > notes.txt || true
+          [ -f notes.txt ] || echo "no notes" > notes.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,4 +55,5 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: APK ${{ github.run_number }}
+          body_path: notes.txt
           files: "**/flutter-apk/app-release.apk"

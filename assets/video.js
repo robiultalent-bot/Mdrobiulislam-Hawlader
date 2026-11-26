@@ -2,7 +2,7 @@
 "use strict";
 if(window.__LOM_V)return;window.__LOM_V=1;
 
-const WM="Developed by Blind Talent\nMain developer: H. M. Samrat";
+const WM="Developed by Blind Talent\nMain developer: Md Robiul Islam Hawlader\nPartner: H. M. Samrat";
 const $=function(i){return document.getElementById(i)};
 const sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
 const native=function(){return !!(window.flutter_inappwebview&&window.AndroidTTS)};
