@@ -187,6 +187,28 @@ MIC_PY
   fi
 fi
 head -3 "$MD/MainActivity.kt" | tee -a "$L"
+mkdir -p ~/.gradle/init.d
+cat > ~/.gradle/init.d/lomskip.gradle <<'LOM_INIT'
+allprojects { tasks.configureEach { t ->
+  if (t.class.name.contains('KotlinCompile')) {
+    try { t.compilerOptions.freeCompilerArgs.add('-Xskip-metadata-version-check') } catch (Throwable e) { try { t.kotlinOptions.freeCompilerArgs += ['-Xskip-metadata-version-check'] } catch (Throwable e2) {} }
+  }
+} }
+LOM_INIT
+printf -- '-dontwarn javax.lang.model.**\n-dontwarn autovalue.shaded.**\n-dontwarn com.google.auto.value.**\n-dontwarn com.google.errorprone.annotations.**\n' > android/app/proguard-rules.pro
+python3 - "$GR" <<'LOM_PG'
+import re,sys
+p=sys.argv[1]
+s=open(p,encoding="utf-8").read()
+if "proguard-rules.pro" not in s:
+    kts=p.endswith(".kts")
+    ins='\n            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")' if kts else "\n            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'"
+    n=re.sub(r'(buildTypes\s*\{\s*(?:getByName\("release"\)|release)\s*\{)',lambda m:m.group(1)+ins,s,count=1)
+    if n!=s:
+        open(p,"w",encoding="utf-8").write(n);print("proguard added")
+    else:
+        print("proguard not added")
+LOM_PG
 flutter pub get 2>&1 | tee -a "$L"
 if ! flutter build apk --release --no-shrink -t "$M" 2>&1 | tee -a "$L"; then
   MV=$(grep -o 'binary version of its metadata is [0-9][0-9.]*' "$L" | head -1 | grep -o '[0-9][0-9.]*$' || true)
