@@ -173,6 +173,7 @@ if(typeof window.runLevel==="function"){
   const orig=window.runLevel;
   window.runLevel=async function(l){
     lvStars=0;
+    if(l===1&&!S.disc){S.disc=1;save();await speak(`${name}, শুরুর আগে একটা কথা। এই গেম শান্ত হওয়ার আর মনের যত্নের একটা অনুশীলন। এটা চিকিৎসা নয়, চিকিৎসকের বিকল্পও নয়। কষ্ট বেশি হলে কারও সঙ্গে কথা বোলো। দুই আঙুলে উপরে সোয়াইপ করলে আমি সবসময় পাশে আছি।`)}
     await orig.apply(this,arguments);
     try{
       if(l>=1&&l<200){
@@ -183,5 +184,117 @@ if(typeof window.runLevel==="function"){
     }catch(e){}
   };
 }
+/* ================= ডক্টর মায়া: ছোট লেভেল, নানা রকম শান্ত শব্দ, সহজ ভাষা ================= */
+(function(){
+const ri=n=>Math.random()*n|0, R2=a=>a[ri(a.length)];
+/* ১. কঠিন শব্দ সরানো, দাবি নরম করা */
+try{
+ const sub=s=>String(s).replace(/বাইনোরাল সুর ও জেশ্চার ধাঁধা/g,"সুর আর ইশারার ধাঁধা").replace(/থিটা ওয়েভ ও ইকো/g,"গভীর শান্তি ও প্রতিধ্বনি").replace(/জেশ্চারগুলো/g,"ইশারাগুলো").replace(/জেশ্চার/g,"ইশারা").replace(/বাইনোরাল/g,"জোড়া সুরের").replace(/থিটা ওয়েভ/g,"গভীর শান্তির সুর");
+ gameLevels.forEach(d=>{d.title=sub(d.title);d.narrative=sub(d.narrative);if(d.socialMission)d.socialMission=sub(d.socialMission)});
+ PHASES.forEach(p=>{p.n=sub(p.n).replace("বিষণ্ণতা মুক্তি","মনের যত্ন");p.intro=sub(p.intro)});
+ RESP.length=0;["একটু একটু করে তোমার শরীর আলগা হচ্ছে।","চিন্তাগুলো আস্তে আস্তে দূরে সরে যাচ্ছে।","কোনো তাড়া নেই। শুধু শ্বাস আর তুমি।","তোমার কাঁধ আর মুখ নরম হয়ে আসছে।","শরীর এখন ভারী আর আরামদায়ক।","তুমি ঠিক পথেই আছো।"].forEach(x=>RESP.push(x));
+ RESP_OLD.length=0;RESP.forEach(x=>RESP_OLD.push(x));
+}catch(e){}
+/* ২. শ্বাসের নির্দেশ: প্রতিবার আলাদা ছবি-কল্পনা */
+const BI=["আস্তে আস্তে গভীর শ্বাস নাও...","নাক দিয়ে ঠান্ডা বাতাস টেনে নাও...","ফুলের গন্ধ নেওয়ার মতো করে ধীরে শ্বাস নাও...","পেট ফুলিয়ে আস্তে শ্বাস নাও...","পাহাড়ের হাওয়া বুক ভরে নাও..."];
+const BH=["শ্বাস ধরে রাখো...","একটু থেমে থাকো, আরাম করে...","শরীর হালকা, শ্বাস স্থির..."];
+const BE=["ধীরে ধীরে মুখ দিয়ে শ্বাস ছাড়ো...","মোমবাতি নেভানোর মতো আস্তে ছাড়ো...","সব ভার বেরিয়ে যেতে দাও, ধীরে ছাড়ো...","কাঁধ ঢিলে করে শ্বাস ছাড়ো..."];
+window.breathCycle=async function(){
+ const ph=[[R2(BI),5,1.2,inhale],[R2(BH),6,0,null],[R2(BE),7,.6,exhale]];
+ for(const [txt,n,sc,snd] of ph){
+  await say(txt);
+  if(sc)orb(sc,n);if(snd)snd(n);breathCue(snd===inhale?1:snd===exhale?-1:0,n);
+  for(let k=1;k<=n;k++){cap(bn(k));countSay(k);await sleep(1000)}
+ }
+ cap("");brainSync();bcount++;if(bcount>=2)await speak(RESP[(bcount-2)%RESP.length]);else await sleep(2500);
+};
+/* ৩. প্রকৃতির নানা শব্দ, কৃত্রিম নয় */
+function noiseBuf(sec,kind){
+ const n=AC.sampleRate*sec|0,b=AC.createBuffer(2,n,AC.sampleRate);
+ for(let c=0;c<2;c++){const d=b.getChannelData(c);let l=0,b0=0,b1=0,b2=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;
+   if(kind==="brown"){l=(l+.02*w)/1.02;d[i]=l*3.5}
+   else{b0=.99765*b0+w*.099;b1=.963*b1+w*.2965;b2=.57*b2+w*1.05;d[i]=(b0+b1+b2+w*.18)*.12}}}
+ return b;
+}
+function loopNoise(kind,sec,filt,fq,q,vol,pan,lfoHz,lfoDepth){
+ const s=AC.createBufferSource();s.buffer=noiseBuf(4,kind);s.loop=true;
+ const f=AC.createBiquadFilter();f.type=filt;f.frequency.value=fq;f.Q.value=q||.7;
+ const g=AC.createGain();g.gain.value=vol;const p=AC.createStereoPanner();p.pan.value=pan||0;
+ s.connect(f);f.connect(g);g.connect(p);p.connect(bgm);
+ let nodes=[s,f,g,p];
+ if(lfoHz){const o=AC.createOscillator(),og=AC.createGain();o.frequency.value=lfoHz;og.gain.value=vol*lfoDepth;o.connect(og);og.connect(g.gain);o.start();nodes.push(o,og)}
+ s.start();
+ return {gain:g,stop(){try{s.stop()}catch(e){}nodes.forEach(x=>{try{if(x.stop)x.stop()}catch(e){}});kill(nodes)}};
+}
+function bleep(t,fq,dur,vol,pan,type){
+ const o=AC.createOscillator(),g=AC.createGain(),p=AC.createStereoPanner();o.type=type||"sine";p.pan.value=pan;
+ o.frequency.setValueAtTime(fq[0],t);if(fq[1])o.frequency.exponentialRampToValueAtTime(fq[1],t+dur);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+Math.min(.02,dur/4));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ o.connect(g);g.connect(p);p.connect(bgm);o.start(t);o.stop(t+dur+.05);o.onended=()=>kill([o,g,p]);
+}
+const SCENES=[
+ {id:"rain",n:"বৃষ্টি",start(sec){const a=loopNoise("pink",sec,"highpass",900,.5,.10,0);const b=loopNoise("pink",sec,"lowpass",5500,.5,.05,0,.07,.4);
+   const iv=setInterval(()=>{const t=AC.currentTime;bleep(t,[2200+ri(1800),1500],.05,.035,Math.random()*2-1)},180);
+   return ()=>{clearInterval(iv);a.stop();b.stop()}},
+  lines:["বাইরে নরম বৃষ্টি পড়ছে।","টিনের চালে টুপটাপ শব্দ হচ্ছে।","বৃষ্টির ফোঁটা পাতায় পাতায় গড়িয়ে পড়ছে।","তুমি শুকনো আর আরামে বসে আছো।","মাটির সোঁদা গন্ধ ভেসে আসছে।","বৃষ্টি আস্তে আস্তে শান্ত হয়ে আসছে।"]},
+ {id:"sea",n:"সমুদ্র",start(sec){const a=loopNoise("brown",sec,"lowpass",650,.7,.20,-.2,.11,.9);const b=loopNoise("pink",sec,"bandpass",1800,.6,.035,.3,.09,.8);return ()=>{a.stop();b.stop()}},
+  lines:["দূরে সমুদ্রের ঢেউ আসছে আর যাচ্ছে।","ঢেউ বালিতে এসে মিলিয়ে যাচ্ছে।","ঢেউয়ের সঙ্গে তোমার শ্বাসও ওঠানামা করছে।","নোনা হাওয়া মুখে লাগছে।","আকাশ বড় আর খোলা।","ঢেউ ধীরে ধীরে সব ভার ভাসিয়ে নিয়ে যাচ্ছে।"]},
+ {id:"forest",n:"বন",start(sec){const a=loopNoise("pink",sec,"bandpass",500,.6,.07,0,.05,.7);
+   const iv=setInterval(()=>{if(Math.random()<.6){const t=AC.currentTime,p=Math.random()*1.6-.8,f=2200+ri(1800),k=1+ri(3);for(let i=0;i<k;i++)bleep(t+i*.14,[f,f*(1.2+Math.random()*.4)],.11,.045,p)}},2600);
+   return ()=>{clearInterval(iv);a.stop()}},
+  lines:["গাছের পাতায় হাওয়া খেলছে।","দূরে একটা পাখি ডাকছে।","গাছের ছায়ায় ঠান্ডা আর শান্ত।","পাতার ফাঁক দিয়ে নরম আলো আসছে।","মাটি আর ভেজা ঘাসের গন্ধ।","বনের নীরবতা তোমাকে ঘিরে আছে।"]},
+ {id:"night",n:"রাতের গ্রাম",start(sec){const a=loopNoise("pink",sec,"lowpass",420,.7,.045,0,.04,.6);
+   const mk=(pan,hz,rate)=>{const o=AC.createOscillator(),g=AC.createGain(),p=AC.createStereoPanner(),l=AC.createOscillator(),lg=AC.createGain();o.frequency.value=hz;g.gain.value=0;p.pan.value=pan;l.type="square";l.frequency.value=rate;lg.gain.value=.012;l.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(p);p.connect(bgm);o.start();l.start();return [o,g,p,l,lg]};
+   const c1=mk(-.6,4300,13+Math.random()*2),c2=mk(.6,4700,15+Math.random()*2);
+   return ()=>{[c1,c2].forEach(c=>{c.forEach(x=>{try{x.stop&&x.stop()}catch(e){}});kill(c)});a.stop()}},
+  lines:["গ্রামে রাত নেমেছে, চারদিকে নিঝুম।","ঝিঁঝি পোকা মৃদু সুরে ডাকছে।","আকাশে অনেক তারা।","দূরে কোথাও একটা নৌকার শব্দ।","ঠান্ডা হাওয়া গায়ে লাগছে।","চারদিক শান্ত, তুমি নিরাপদ।"]},
+ {id:"stream",n:"ঝরনা",start(sec){const a=loopNoise("pink",sec,"bandpass",1400,.8,.10,-.15,.23,.5);const b=loopNoise("pink",sec,"highpass",2500,.5,.035,.2,.31,.7);const c=loopNoise("brown",sec,"lowpass",300,.7,.08,0);return ()=>{a.stop();b.stop();c.stop()}},
+  lines:["পাহাড়ি ঝরনার জল পাথরের ওপর দিয়ে বয়ে যাচ্ছে।","স্বচ্ছ ঠান্ডা জল।","জল আপনমনে কুলকুল করে বয়ে যায়।","পাথরের ফাঁকে জল ঝিরঝির করছে।","জলের শব্দের সঙ্গে মন হালকা হচ্ছে।","জল যেমন সব ধুয়ে নিয়ে যায়, তেমনি ভার সরে যাচ্ছে।"]},
+ {id:"chimes",n:"বাতাসের ঘণ্টা",start(sec){const a=loopNoise("pink",sec,"lowpass",500,.6,.05,0,.06,.8);const pent=[523.25,587.33,659.25,783.99,880,1046.5];
+   const iv=setInterval(()=>{const k=1+ri(2);for(let i=0;i<k;i++){const t=AC.currentTime+i*.35;bleep(t,[R2(pent),0],3.2,.05,Math.random()*1.6-.8)}},2200);
+   return ()=>{clearInterval(iv);a.stop()}},
+  lines:["বারান্দায় ঘণ্টা বাতাসে দুলছে।","ঘণ্টার মিষ্টি সুর ভেসে আসছে।","প্রতিটা সুর আস্তে আস্তে মিলিয়ে যাচ্ছে।","বাতাস এলে ঘণ্টা বাজে, বাতাস গেলে নীরবতা।","সুরের সঙ্গে মন ভেসে যাচ্ছে।","নরম সুর তোমাকে আদর করছে।"]}
+];
+let lastScene=-1;
+const INTRO=["চলো, এবার একটু প্রকৃতির কাছে যাই।","এবার চোখ বন্ধ করে শুধু শোনো।","এবার একটু বিশ্রাম নিই। কিছু করতে হবে না।","চলো, একটা শান্ত জায়গায় যাই, মনে মনে।","এবার শরীর আলগা করে শুধু শুনবে।"];
+const OUTRO=["আস্তে আস্তে ফিরে এসো, ধীরে।","খুব ভালো লাগছে, তাই না?","এই শান্তিটা সঙ্গে নিয়ে যাও।","একটা লম্বা শ্বাস নিয়ে ফিরে এসো।"];
+window.deepen=async function(p,t0){
+ ambient(p);heart(66-p*3);lvMin=4;
+ let si;do{si=ri(SCENES.length)}while(si===lastScene&&SCENES.length>1);lastScene=si;
+ const sc=SCENES[si],sec=70+8*p;
+ await speak(`${name}, ${R2(INTRO)} আজকের জায়গা: ${sc.n}।`);
+ if(Math.random()<.6)await breathCycle();
+ const rawStop=sc.start(sec);let done=false;const stopSc=()=>{if(done)return;done=true;try{rawStop()}catch(e){}};ints.push(stopSc);
+ const end=Date.now()+sec*1000,ln=sc.lines.slice().sort(()=>Math.random()-.5);
+ try{
+  for(let i=0;Date.now()<end-6000&&i<ln.length;i++){
+   await speak(ln[i]);
+   await sleep(Math.min(14000,Math.max(0,end-Date.now()-6000)));
+  }
+  const rest=end-Date.now();if(rest>0)await sleep(rest);
+ }finally{try{stopSc()}catch(e){}}
+ await speak(R2(OUTRO));
+};
+})();
+
+/* সমাপনী বার্তায় দুই নির্মাতার নাম */
+window.finale=async function(){
+  const t=AC.currentTime,CL=AC.sampleRate*.08|0,CB=AC.createBuffer(1,CL,AC.sampleRate),CD=CB.getChannelData(0);
+  for(let j=0;j<CL;j++)CD[j]=(Math.random()*2-1)*Math.exp(-j/(CL*.25));
+  for(let i=0;i<70;i++){
+    const pn=AC.createStereoPanner();pn.pan.value=Math.random()*2-1;pn.connect(master);
+    const s=AC.createBufferSource(),g=AC.createGain();s.buffer=CB;g.gain.value=.25;s.connect(g);g.connect(pn);s.start(t+Math.random()*7);
+    s.onended=()=>{try{s.disconnect();g.disconnect();pn.disconnect()}catch(e){}};
+  }
+  [[392,0],[392,.35],[523.25,.7],[523.25,1.4],[659.25,1.75],[783.99,2.4]].forEach(([f,o],i)=>{
+    const bp=AC.createStereoPanner();bp.pan.value=P(i%2?.6:-.6);bp.connect(master);tone(bp,f,t+o,.55,"sawtooth",.1);
+  });
+  for(let i=0;i<6;i++)setTimeout(()=>{if(!suspended)bell()},i*900);
+  orb(1.4,3);
+  await speak(`${name}, তুমি দুশ্চিন্তা আর ভয়ের সঙ্গে চলতে শিখেছো। এই পথচলা তোমার নিজের।`);
+  await speak("এই গেমটা বানিয়েছেন বাংলাদেশের এমডি রবিউল ইসলাম হাওলাদার আর এইচ. এম. সম্রাট, ব্লাইন্ড ট্যালেন্ট দলের পক্ষ থেকে। তোমার জন্য আন্তরিক শুভেচ্ছা।");
+  await speak("মনে রেখো, এই গেম শান্ত হতে সাহায্য করে, কিন্তু চিকিৎসকের বিকল্প নয়। মন বেশি ভার থাকলে কারও সঙ্গে কথা বলো।");
+};
 }catch(e){try{console.error("mayaplus",e)}catch(_){}}
 })();
