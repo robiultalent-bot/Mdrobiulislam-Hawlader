@@ -31,7 +31,7 @@ const OBS={
   car:{k:"car",bn:"গাড়ি",en:"a car",loop:"e1",horn:["h01","h02","h14","h13","h15","h20","h18"],rate:[0.92,1.08]},
   rick:{k:"rick",bn:"রিকশা",en:"a rickshaw",loop:"e_rick",horn:["h12","h19","h18"],rate:[0.95,1.05]},
   bike:{k:"bike",bn:"মোটরসাইকেল",en:"a motorbike",loop:"e_bike",horn:["h11","h19","h18"],rate:[0.95,1.1]},
-  bus:{k:"bus",bn:"বাস",en:"a bus",loop:"e3",horn:["h04","h03"],rate:[0.85,0.95]},
+  bus:{k:"bus",bn:"বাস",en:"a bus",loop:"e_bus",horn:["h04","h03"],rate:[0.85,0.95]},
   truck:{k:"truck",bn:"ট্রাক",en:"a truck",loop:"e_truck",horn:["h05","h03"],rate:[0.9,1.0]},
   person:{k:"person",bn:"মানুষ",en:"a person",loop:"steps",horn:[],rate:[0.95,1.05]},
   pit:{k:"pit",bn:"গর্ত",en:"a pothole",loop:"pit",horn:[],rate:[1,1]}
@@ -81,7 +81,7 @@ function hush(){try{if(hasNT()&&NT.on)ntCall("ttsStop",null)}catch(e){}try{speec
 let AC=null,bus=null,NB=null;
 const BUF={};
 let loaded=false;
-const NEED=["h01","h02","h03","h04","h05","h06","h07","h08","h09","h10","h11","h12","h13","h14","h15","h16","h17","h18","h19","h20","e0","e1","e2","e3","e4","e5","e6","e_rick","e_bike","e_truck","steps","pit","wind","road","crash","shbreak","coin","shget","pass","whoosh","mile","fanfare","gear","hiss"];
+const NEED=["h01","h02","h03","h04","h05","h06","h07","h08","h09","h10","h11","h12","h13","h14","h15","h16","h17","h18","h19","h20","e0","e1","e2","e3","e4","e5","e6","e_rick","e_bike","e_truck","e_bus","steps","pit","wind","road","crash","shbreak","coin","shget","pass","whoosh","mile","fanfare","gear","hiss"];
 const missing=()=>NEED.filter(k=>!BUF[k]);
 function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
 function out(){
