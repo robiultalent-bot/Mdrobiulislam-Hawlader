@@ -1,5 +1,14 @@
 package PKG_PLACEHOLDER
 
+// ============================================================
+// © Blind Talent — মনের আলো (Light of Mind)
+// মালিক: Md Robiul Islam Hawlader ও H. M. Samrat
+// মালিকানাধীন ও সর্বস্বত্ব সংরক্ষিত কোড। লিখিত অনুমতি ছাড়া কপি, পরিবর্তন
+// বা পুনঃব্যবহার নিষিদ্ধ। অননুমোদিত ব্যবহারে আইনি ব্যবস্থা নেওয়া হতে পারে।
+// Proprietary and confidential. Unauthorized copying, modification or
+// redistribution is prohibited without written permission from the owners.
+// ============================================================
+
 import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
@@ -67,6 +76,7 @@ class VideoEngine(
             "vedRecord" -> record(id)
             "vedExport" -> startExport(args.optString(0, "{}"), id)
             "vedCancel" -> cancelExport(id)
+            "vedSaveGallery" -> saveGallery(args.optString(0, "{}"), id)
             else -> return false
         }
         return true
@@ -226,8 +236,9 @@ class VideoEngine(
         val t = p.optString("wm", "")
         if (t.isEmpty()) return null
         val s = SpannableString(t)
-        var px = (outH * 0.03).toInt()
-        if (px < 14) px = 14
+        var px = (outH * 0.022).toInt()
+        if (px < 11) px = 11
+        if (px > 26) px = 26
         s.setSpan(AbsoluteSizeSpan(px), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         s.setSpan(ForegroundColorSpan(0xFFFFFFFF.toInt()), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         s.setSpan(BackgroundColorSpan(0x66000000), 0, t.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -378,38 +389,49 @@ class VideoEngine(
         }, 600)
     }
 
+    private fun insertToGallery(out: File, name: String): String {
+        var uriStr = ""
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val cv = ContentValues()
+                cv.put(MediaStore.Video.Media.DISPLAY_NAME, name)
+                cv.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                cv.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/MonerAlo")
+                cv.put(MediaStore.Video.Media.IS_PENDING, 1)
+                val r = act.contentResolver
+                val u = r.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv)
+                if (u != null) {
+                    r.openOutputStream(u)?.use { os -> out.inputStream().use { it.copyTo(os) } }
+                    val cv2 = ContentValues()
+                    cv2.put(MediaStore.Video.Media.IS_PENDING, 0)
+                    r.update(u, cv2, null, null)
+                    uriStr = u.toString()
+                }
+            } else {
+                val dir = act.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+                if (dir != null) {
+                    dir.mkdirs()
+                    val f = File(dir, name)
+                    out.copyTo(f, true)
+                    uriStr = f.absolutePath
+                }
+            }
+        } catch (e: Throwable) {
+            uriStr = ""
+        }
+        return uriStr
+    }
+
+    /* কয়েন-গেট: এখানে তৈরি (export) শেষে সঙ্গে সঙ্গে গ্যালারিতে সেভ না করে,
+       শুধু প্রিভিউ ফেরত দেয়। "ডাউনলোড" বোতামে আলাদা কয়েন কেটে vedSaveGallery
+       দিয়ে আসল সেভ হয়। এর ফলে দুটো আলাদা কয়েন-ধাপ সত্যিকার অর্থেই দুটো
+       আলাদা কাজ করে, শুধু UI-তে ভান করে না। */
     private fun finishOk(job: Job, out: File, id: String) {
+        val saveNow = job.p.optBoolean("saveToGallery", false)
         Thread {
             var uriStr = ""
             val name = "MonerAlo_" + System.currentTimeMillis() + ".mp4"
-            try {
-                if (Build.VERSION.SDK_INT >= 29) {
-                    val cv = ContentValues()
-                    cv.put(MediaStore.Video.Media.DISPLAY_NAME, name)
-                    cv.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                    cv.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/MonerAlo")
-                    cv.put(MediaStore.Video.Media.IS_PENDING, 1)
-                    val r = act.contentResolver
-                    val u = r.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv)
-                    if (u != null) {
-                        r.openOutputStream(u)?.use { os -> out.inputStream().use { it.copyTo(os) } }
-                        val cv2 = ContentValues()
-                        cv2.put(MediaStore.Video.Media.IS_PENDING, 0)
-                        r.update(u, cv2, null, null)
-                        uriStr = u.toString()
-                    }
-                } else {
-                    val dir = act.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
-                    if (dir != null) {
-                        dir.mkdirs()
-                        val f = File(dir, name)
-                        out.copyTo(f, true)
-                        uriStr = f.absolutePath
-                    }
-                }
-            } catch (e: Throwable) {
-                uriStr = ""
-            }
+            if (saveNow) uriStr = insertToGallery(out, name)
             act.runOnUiThread {
                 busy = false
                 transformer = null
@@ -422,6 +444,32 @@ class VideoEngine(
                 o.put("url", "file://" + out.absolutePath)
                 o.put("skipped", job.skipped)
                 js("window.__vedProgress&&window.__vedProgress(100)")
+                reply(id, o.toString())
+            }
+        }.start()
+    }
+
+    private fun saveGallery(json: String, id: String) {
+        Thread {
+            var uriStr = ""
+            var ok = false
+            try {
+                val p = JSONObject(json)
+                val path = p.optString("path", "")
+                val f = File(path)
+                val cacheOk = f.canonicalPath.startsWith(act.cacheDir.canonicalPath + File.separator)
+                if (cacheOk && f.name.startsWith("ved_out_") && f.exists()) {
+                    val name = "MonerAlo_" + System.currentTimeMillis() + ".mp4"
+                    uriStr = insertToGallery(f, name)
+                    ok = uriStr.isNotEmpty()
+                }
+            } catch (e: Throwable) {
+            }
+            act.runOnUiThread {
+                val o = JSONObject()
+                o.put("ok", ok)
+                o.put("saved", ok)
+                o.put("uri", uriStr)
                 reply(id, o.toString())
             }
         }.start()

@@ -1,8 +1,20 @@
+/* ============================================================
+ * © Blind Talent — মনের আলো (Light of Mind)
+ * মালিক: Md Robiul Islam Hawlader ও H. M. Samrat
+ * এই কোড মালিকানাধীন ও সর্বস্বত্ব সংরক্ষিত। লিখিত অনুমতি ছাড়া কপি,
+ * পরিবর্তন বা পুনঃব্যবহার করা থেকে বিরত থাকুন। অননুমোদিত ব্যবহারে
+ * আইনি ব্যবস্থা নেওয়া হতে পারে।
+ * Proprietary and confidential. Unauthorized copying, modification
+ * or redistribution of this file is prohibited without written
+ * permission from the owners.
+ * ============================================================ */
 (function(){
 "use strict";
 if(window.__LOM_V)return;window.__LOM_V=1;
 
-const WM="Developed by Blind Talent\nMain developer: Md Robiul Islam Hawlader\nPartner: H. M. Samrat";
+const WM_BN="মনের আলো অ্যাপ দিয়ে তৈরি";
+const WM_EN="Made with Light of Mind app";
+const COST={pick:5,create:20,save:150};
 const $=function(i){return document.getElementById(i)};
 const sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
 const native=function(){return !!(window.flutter_inappwebview&&window.AndroidTTS)};
@@ -27,16 +39,21 @@ bn:{
  c2:"২. কাটো (শুরু ও শেষ)",st:"শুরু: ",en:"শেষ: ",setS:"▶ এখন থেকে শুরু",setE:"⏹ এখন পর্যন্ত শেষ",len:"নতুন ভিডিওর দৈর্ঘ্য: ",
  c3:"৩. দেখতে কেমন হবে",ratio:"আকার (রেশিও)",r_orig:"আসল আকার",br:"উজ্জ্বলতা: ",ct:"কনট্রাস্ট: ",sat:"রঙের গাঢ়তা: ",gray:"সাদা-কালো করো",reset:"↺ সব আগের মতো করো",
  c4:"৪. শব্দ",vol:"ভিডিওর শব্দ: ",music:"🎵 গান বাছো",noMusic:"কোনো গান বাছা হয়নি।",mname:"গান যোগ হয়েছে।",mvol:"গানের শব্দ: ",mdel:"✖ গান বাদ দাও",
- c5:"৫. সেভ করো",exp:"📤 নতুন ভিডিও বানাও ও সেভ করো",cancel:"✖ বন্ধ করো",
- wmNote:"ওয়াটারমার্ক: ভিডিওর নিচে \"Developed by Blind Talent\" লেখা থাকবে।",
+ c5:"৫. সেভ করো",exp:"📤 নতুন ভিডিও বানাও",cancel:"✖ বন্ধ করো",
+ wmNote:"ওয়াটারমার্ক: ভিডিওর কোণায় ছোট করে \"মনের আলো অ্যাপ দিয়ে তৈরি\" লেখা থাকবে।",
  onlyApp:"এই সুবিধা শুধু মনের আলো অ্যাপের ভেতরে কাজ করে।",needVideo:"আগে একটা ভিডিও বাছো।",
  working:"ভিডিও বানানো হচ্ছে। শেষ হতে কিছুক্ষণ লাগবে। অ্যাপ বন্ধ কোরো না।",
- prog:"প্রগতি: ",done:"হয়ে গেছে! নতুন ভিডিও ফোনের গ্যালারির Movies ফোল্ডারে সেভ হয়েছে।",
- doneNoSave:"ভিডিও বানানো হয়েছে, কিন্তু গ্যালারিতে সেভ করা যায়নি।",
+ prog:"প্রগতি: ",done:"ভিডিও তৈরি হয়ে গেছে! নিচে দেখে নাও, তারপর সেভ করো।",
+ doneNoSave:"ভিডিও বানানো হয়েছে।",
  fail:"দুঃখিত, ভিডিও বানানো যায়নি। ",cancelled:"বন্ধ করা হয়েছে।",
  skipped:"এই অংশগুলো বাদ গেছে: ",s_music:"গান ও ভলিউম",s_effects:"রং ও আকারের বদল",
  prevErr:"ভিডিও এখানে চালিয়ে দেখা যাচ্ছে না, তবে এডিট কাজ করবে।",
- sec:" সেকেন্ড",min:" মিনিট "
+ sec:" সেকেন্ড",min:" মিনিট ",
+ coinNo:"এখন কয়েন পর্যাপ্ত নেই।",coinNeed:"টা কয়েন লাগবে। তোমার কাছে এখন আছে ",coinAsk:"একটা ছোট বিজ্ঞাপন দেখলে কয়েন পাবে। দেখতে রাজি?",
+ coinWatching:"বিজ্ঞাপন আসছে, একটু অপেক্ষা করো।",coinGot:"টা কয়েন পেয়েছো। এখন আছে ",coinFail:"এখন বিজ্ঞাপন পাওয়া যাচ্ছে না। ইন্টারনেট ঠিক আছে কিনা দেখে আবার চেষ্টা করো।",
+ costPick:"ভিডিও আনতে ",costCreate:"ভিডিও তৈরি করতে ",costSave:"গ্যালারিতে সেভ করে ডাউনলোড করতে ",
+ dlBtn:"⬇ গ্যালারিতে সেভ করো (ডাউনলোড)",dlWorking:"সেভ হচ্ছে...",dlDone:"নতুন ভিডিও ফোনের গ্যালারির Movies ফোল্ডারে সেভ হয়েছে।",dlFail:"সেভ করা যায়নি, আবার চেষ্টা করো।",
+ coinsLeft:"তোমার কয়েন এখন "
 },
 en:{
  btn:"🎬 Video Studio",title:"🎬 Video Studio",back:"← Back",
@@ -48,16 +65,21 @@ en:{
  c2:"2. Trim (start and end)",st:"Start: ",en:"End: ",setS:"▶ Start from here",setE:"⏹ End at here",len:"New video length: ",
  c3:"3. Look",ratio:"Shape (aspect ratio)",r_orig:"Original",br:"Brightness: ",ct:"Contrast: ",sat:"Colour strength: ",gray:"Black and white",reset:"↺ Reset all",
  c4:"4. Sound",vol:"Video volume: ",music:"🎵 Choose music",noMusic:"No music chosen.",mname:"Music added.",mvol:"Music volume: ",mdel:"✖ Remove music",
- c5:"5. Save",exp:"📤 Make and save the new video",cancel:"✖ Stop",
- wmNote:"Watermark: \"Developed by Blind Talent\" appears at the bottom of the video.",
+ c5:"5. Save",exp:"📤 Make the new video",cancel:"✖ Stop",
+ wmNote:"Watermark: a small \"Made with Light of Mind app\" appears in a corner of the video.",
  onlyApp:"This feature works only inside the Light of Mind app.",needVideo:"Choose a video first.",
  working:"Making the video. This will take a while. Do not close the app.",
- prog:"Progress: ",done:"Done! The new video is saved in the Movies folder of your gallery.",
- doneNoSave:"The video was made, but it could not be saved to the gallery.",
+ prog:"Progress: ",done:"Video ready! Preview it below, then save it.",
+ doneNoSave:"The video was made.",
  fail:"Sorry, the video could not be made. ",cancelled:"Stopped.",
  skipped:"These parts were left out: ",s_music:"music and volume",s_effects:"colour and shape changes",
  prevErr:"The video cannot be played here, but editing will still work.",
- sec:" seconds",min:" min "
+ sec:" seconds",min:" min ",
+ coinNo:"Not enough coins right now.",coinNeed:" coins are needed. You have ",coinAsk:"Watching a short ad gives you coins. Watch one?",
+ coinWatching:"Loading an ad, please wait.",coinGot:" coins earned. You now have ",coinFail:"No ad is available right now. Check your internet and try again.",
+ costPick:"To bring in a video: ",costCreate:"To make the video: ",costSave:"To save it to your gallery (download): ",
+ dlBtn:"⬇ Save to gallery (download)",dlWorking:"Saving...",dlDone:"The new video is saved in the Movies folder of your gallery.",dlFail:"Could not save, try again.",
+ coinsLeft:"Your coins now: "
 }};
 const t=function(k){return (T[lang]&&T[lang][k])||T.bn[k]||k};
 const RATIOS=[["orig","r_orig"],["9:16","9:16"],["16:9","16:9"],["1:1","1:1"],["4:3","4:3"]];
@@ -78,9 +100,35 @@ function msg(x,say){
   if(say!==false)speak(x);
 }
 
-const S={v:null,a:null,start:0,end:0,ratio:"orig",br:0,ct:0,sat:0,gray:false,vol:100,mvol:50,busy:false};
-/* gate(): later steps (ads and coins) will be added here */
-async function gate(kind){return true}
+const S={v:null,a:null,start:0,end:0,ratio:"orig",br:0,ct:0,sat:0,gray:false,vol:100,mvol:50,busy:false,outPath:""};
+
+/* কয়েন গেট: pick/create/save — প্রতিটি ভিন্ন কাজে কয়েন কাটে। কয়েন কম থাকলে
+   বিজ্ঞাপন দেখে কয়েন বাড়াতে হয় (ads.js-এর সঙ্গে একই কয়েন ভাগ করে)। */
+function adsMod(){try{return window.__LOM_ADS||null}catch(e){return null}}
+async function gate(kind){
+  if(!native())return true;
+  const cost=COST[kind]||0;
+  if(cost<=0)return true;
+  const ads=adsMod();
+  if(!ads)return true; // অ্যাড মডিউল না থাকলে আটকানো হবে না
+  for(;;){
+    if(ads.coins>=cost){ads.setCoins(ads.coins-cost);return true}
+    msg(t("cost"+kind.charAt(0).toUpperCase()+kind.slice(1))+bn(cost)+t("coinNeed")+bn(ads.coins)+"টা। "+t("coinAsk"));
+    await sleep(2200);
+    msg(t("coinWatching"),false);
+    let ok=false;
+    try{ok=await ads.watch()}catch(e){ok=false}
+    if(ok){
+      const per=PER_AD_OF(ads);
+      ads.setCoins(ads.coins+per);
+      msg(bn(per)+t("coinGot")+bn(ads.coins)+"টা।");
+    }else{
+      msg(t("coinFail"));
+      return false;
+    }
+  }
+}
+function PER_AD_OF(ads){try{return (ads.cfg&&ads.cfg.PER_AD)||2}catch(e){return 2}}
 
 const card=function(h,b){return '<div class="lzCard"><h3>'+h+'</h3>'+b+'</div>'};
 const lbl=function(id,k,v,min,max,step,val){
@@ -108,7 +156,8 @@ function html(){
   h+=card(t("c5"),'<p class="lzSm">'+t("wmNote")+'</p><div class="lzRow"><button class="lzBtn" id="vsExp">'+t("exp")+'</button><button class="lzBtn r" id="vsCan">'+t("cancel")+'</button></div>'
     +'<div style="height:8px;background:#1c2442;border-radius:6px;overflow:hidden;margin:10px 0"><i id="vsBar" style="display:block;height:100%;width:0;background:#f2b84b"></i></div>'
     +'<p class="lzSm" id="vsPg" aria-live="polite"></p><div class="lzMsg" id="vsMsg" role="status" aria-live="polite"></div>'
-    +'<video id="vsOut" controls playsinline style="width:100%;max-height:260px;background:#000;border-radius:10px;display:none" aria-label="result"></video>');
+    +'<video id="vsOut" controls playsinline style="width:100%;max-height:260px;background:#000;border-radius:10px;display:none" aria-label="result"></video>'
+    +'<div class="lzRow" id="vsDl" style="display:none"><button class="lzBtn" id="vsDlBtn">'+t("dlBtn")+'</button></div>');
   return h;
 }
 function upd(){
@@ -140,6 +189,7 @@ function loadVals(){
 async function getVideo(mode){
   if(!native()){msg(t("onlyApp"));return}
   if(S.busy)return;
+  if(!(await gate("pick")))return;
   speak(t("picking"));
   let r={};
   try{r=await nat(mode)}catch(e){r={ok:false,err:String(e).slice(0,80)}}
@@ -171,12 +221,15 @@ async function doExport(){
   if(S.busy)return;
   if(!native()){msg(t("onlyApp"));return}
   if(!S.v){msg(t("needVideo"));return}
-  if(!(await gate("export")))return;
+  if(!(await gate("create")))return;
   S.busy=true;
+  S.outPath="";
+  const dl=$("vsDl");if(dl)dl.style.display="none";
   const dur=S.v.durationMs;
   const sMs=Math.round(S.start*1000),eMs=Math.round(S.end*1000);
   const p={src:S.v.path,width:S.v.width,height:S.v.height,startMs:sMs,endMs:(eMs>=dur-50)?0:eMs,
-    ratio:S.ratio,brightness:S.br/100,contrast:S.ct/100,saturation:S.sat,gray:S.gray,volume:S.vol/100,wm:WM};
+    ratio:S.ratio,brightness:S.br/100,contrast:S.ct/100,saturation:S.sat,gray:S.gray,volume:S.vol/100,
+    wm:(lang==="en"?WM_EN:WM_BN),saveToGallery:false};
   if(S.a)p.music={path:S.a.path,volume:S.mvol/100,startMs:0};
   const o=$("vsOut");if(o)o.style.display="none";
   setProg(0);msg(t("working"));
@@ -185,18 +238,37 @@ async function doExport(){
   S.busy=false;
   if(r&&r.ok){
     setProg(100);
-    let m=r.saved?t("done"):t("doneNoSave");
+    let m=t("done");
     if(r.skipped&&r.skipped.length){
       const names=[];
       for(let i=0;i<r.skipped.length;i++){names.push(r.skipped[i]==="music"?t("s_music"):t("s_effects"))}
       m+=" "+t("skipped")+names.join(", ");
     }
     msg(m);
+    S.outPath=r.path||"";
     if(o&&r.url){o.style.display="block";o.src=r.url}
+    if(dl&&S.outPath)dl.style.display="block";
   }else if(r&&r.cancelled){
     msg(t("cancelled"));
   }else{
     msg(t("fail")+((r&&r.error)?String(r.error).slice(0,120):""));
+  }
+}
+async function doSave(){
+  if(!native()){msg(t("onlyApp"));return}
+  if(!S.outPath){msg(t("needVideo"));return}
+  if(S.busy)return;
+  if(!(await gate("save")))return;
+  S.busy=true;
+  msg(t("dlWorking"),false);
+  let r=null;
+  try{r=await nat("vedSaveGallery",JSON.stringify({path:S.outPath}))}catch(e){r={ok:false}}
+  S.busy=false;
+  if(r&&r.ok){
+    msg(t("dlDone"));
+    const dl=$("vsDl");if(dl)dl.style.display="none";
+  }else{
+    msg(t("dlFail"));
   }
 }
 function setProg(n){
@@ -218,6 +290,7 @@ function bind(){
   $("vsMus").onclick=pickMusic;
   $("vsMDel").onclick=function(){S.a=null;upd()};
   $("vsExp").onclick=doExport;
+  $("vsDlBtn").onclick=doSave;
   $("vsCan").onclick=function(){if(native())nat("vedCancel").catch(function(){})};
   $("vsReset").onclick=resetAll;
   $("vsRatio").onchange=function(){S.ratio=this.value};

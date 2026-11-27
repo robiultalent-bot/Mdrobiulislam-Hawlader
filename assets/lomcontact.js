@@ -1,3 +1,13 @@
+/* ============================================================
+ * © Blind Talent — মনের আলো (Light of Mind)
+ * মালিক: Md Robiul Islam Hawlader ও H. M. Samrat
+ * এই কোড মালিকানাধীন ও সর্বস্বত্ব সংরক্ষিত। লিখিত অনুমতি ছাড়া কপি,
+ * পরিবর্তন বা পুনঃব্যবহার করা থেকে বিরত থাকুন। অননুমোদিত ব্যবহারে
+ * আইনি ব্যবস্থা নেওয়া হতে পারে।
+ * Proprietary and confidential. Unauthorized copying, modification
+ * or redistribution of this file is prohibited without written
+ * permission from the owners.
+ * ============================================================ */
 (function(){
 "use strict";
 if(window.__LOM_C)return;window.__LOM_C=1;
