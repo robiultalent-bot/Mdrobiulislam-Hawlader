@@ -19,6 +19,8 @@ M=$(find lib -iname main.dart 2>/dev/null | head -1)
 rm -rf android
 flutter create --org com.blindtalent --project-name light_of_mind --platforms android .
 sed -i -E 's/(minSdk(Version)?[ =]+)flutter\.minSdkVersion/\124/' android/app/build.gradle* || true
+[ -f android/app/build.gradle ] && sed -i -E "s/^( *)(minSdk(Version)?[ =]+24)\$/\\1\\2\n\\1ndk { abiFilters 'armeabi-v7a', 'arm64-v8a' }/" android/app/build.gradle || true
+grep -n abiFilters android/app/build.gradle | tee -a "$L" || true
 MF=android/app/src/main/AndroidManifest.xml
 grep -q 'permission.INTERNET' $MF || sed -i 's|<manifest[^>]*>|&<uses-permission android:name="android.permission.INTERNET"/>|' $MF
 grep -q 'TTS_SERVICE' $MF || sed -i 's|<manifest[^>]*>|&<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>|' $MF
