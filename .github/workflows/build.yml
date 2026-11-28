@@ -50,12 +50,17 @@ jobs:
           path: |
             **/flutter-apk/*.apk
             build.log
+      - name: Release text
+        if: success()
+        shell: bash
+        run: |
+          printf 'APK নামাতে নিচে Assets খুলে app-release.apk চাপো।\nসরাসরি লিংক: https://github.com/${{ github.repository }}/releases/download/build-${{ github.run_number }}/app-release.apk\n' > release.txt
       - uses: softprops/action-gh-release@v2
         if: success()
         with:
           tag_name: build-${{ github.run_number }}
           name: APK ${{ github.run_number }}
-          body_path: notes.txt
+          body_path: release.txt
           files: "**/flutter-apk/app-release.apk"
       - uses: softprops/action-gh-release@v2
         if: failure()
